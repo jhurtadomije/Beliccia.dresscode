@@ -1,0 +1,45 @@
+/* Sección Hero */
+.hero {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+    text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+    margin-bottom: 1rem;
+}
+
+.hero p {
+    text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.hero .btn {
+    margin-bottom: 2rem;
+}
+.hero video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }

@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css');
+@import './variables.css';
+
+body {
+  font-family: var(--font-body);
+  color: var(--secondary-color);
+  background-color: var(--background-color);
+  line-height: 1.6;
+}
+
+h1, h2 {
+  font-family: var(--font-title);
+  color: var(--secondary-color);
+  margin-bottom: 1rem;
+  text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+}
+
+a {
+  font-size: 1.5rem;
+  text-decoration: none;
+  color: var(--secondary-color);
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: var(--primary-color);
+}
+
+.btn {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  padding: 0.8rem 1.2rem;
+  border: none;
+  border-radius: 0.3rem;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background-color: var(--accent-color);
+}

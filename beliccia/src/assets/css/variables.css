@@ -1,0 +1,12 @@
+:root {
+    --primary-color: #d4a373;
+    --secondary-color: #333333;
+    --background-color: #fff8e7;
+    --accent-color: #b5835a;
+    --font-title: "Uncial Antiqua", serif;
+    --font-body: 'Poppins', sans-serif;
+    --shadow-primary: 1px 1px 5px var(--primary-color);
+    --shadow-accent: 0 0 10px var(--accent-color);
+    --shadow-secondary: 0 0 15px var(--secondary-color);
+  }
+  

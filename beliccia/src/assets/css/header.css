@@ -1,0 +1,104 @@
+/* Header */
+header {
+    background-color: rgba(255, 248, 231, 0.6);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+    animation: fadeInHeader 5s ease-in-out forwards;
+    opacity: 0;
+}
+
+.navbar {
+    color: var(--secondary-color);
+    padding: 0.8rem 1rem;
+}
+
+.navbar-brand img {
+    height: 10rem;
+    width: auto;
+}
+
+.navbar-toggler {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 3.5rem;
+    height: 2rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    gap: 0.4rem;
+}
+
+.navbar-toggler .line {
+    background-color: var(--secondary-color);
+    height: 0.3rem;
+    width: 100%;
+    border-radius: 0.15rem;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.nav-item {
+    padding: 0.5rem 1rem;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+}
+
+.collapse.navbar-collapse {
+    transition: max-height 0.3s ease, opacity 1s ease;
+}
+
+.collapse.navbar-collapse.show {
+    animation: intensifyBackground 0.5s ease-in-out forwards;
+}
+
+@keyframes intensifyBackground {
+    0% { background-color: rgba(255, 248, 231, 0); }
+    100% { background-color: rgba(255, 248, 231, 1); }
+}
+
+
+
+.dropdown-menu {
+    background-color: var(--background-color);
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideDown 0.8s ease forwards;
+    transform-origin: top center;
+    font-family: var(--font-body);
+    padding: 0.3rem 0;
+    text-align: center;
+    border-radius: 0.5rem;
+  }
+  
+  .dropdown-item {
+    font-size: 1rem;
+    color: var(--secondary-color);
+    padding: 0.4rem 1rem;
+    background-color: transparent;
+    transition: background-color 0.3s, color 0.3s;
+    text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+  }
+  
+  .dropdown-item:hover {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+  }
+  
+  /* Animación tipo alfombra */
+  @keyframes slideDown {
+    0% {
+      opacity: 0;
+      transform: scaleY(0.6) translateY(-10px);
+    }
+    100% {
+      opacity: 1;
+      transform: scaleY(1) translateY(0);
+    }
+  }
+  

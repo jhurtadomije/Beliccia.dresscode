@@ -1,0 +1,30 @@
+/* Colecciones */
+#collections {
+    padding: 2rem 1rem;
+    text-align: center;
+    background-color: var(--background-color);
+    margin-bottom: 1rem;
+}
+
+.carousel-item img {
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.carousel-caption h5 {
+    font-family: var(--font-title);
+    font-size: 2rem;
+    color: var(--secondary-color);
+    text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+}
+
+.carousel-caption p {
+    font-family: var(--font-body);
+    color: var(--background-color);
+    text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+}
+.carousel-item {
+    min-height: 300px;
+    align-items: center;
+    justify-content: center;
+  }

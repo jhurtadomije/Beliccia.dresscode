@@ -1,0 +1,10 @@
+/* estilos.css */
+@import './css/globals.css';
+@import './css/header.css';
+@import './css/hero.css';
+@import './css/collections.css';
+@import './css/about.css';
+@import './css/services.css';
+@import './css/footer.css';
+@import './css/animations.css';
+@import './css/responsive.css';

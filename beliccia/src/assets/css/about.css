@@ -1,0 +1,63 @@
+/* Sobre Nosotros */
+#about {
+    padding: 2rem 1rem;
+    margin-bottom: 2rem;
+}
+
+#about h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    order: -1;
+}
+
+#about img {
+    align-self: center;
+    max-width: 100%;
+    width: 100%;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#about p {
+    margin: 1rem 0;
+    text-align: center;
+    color: var(--secondary-color);
+}
+
+#about a.btn {
+    display: inline-block;
+    color: var(--background-color);
+    background-color: var(--primary-color);
+    padding: 0.8rem 1.2rem;
+    border-radius: 0.3rem;
+    margin-top: 1rem;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+#about a.btn:hover {
+    background-color: var(--accent-color);
+}
+
+#about .social-icons {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+#about .social-icons a {
+    color: var(--secondary-color);
+    margin: 0 0.8rem;
+    transition: color 0.3s ease;
+}
+
+#about .social-icons a:hover {
+    color: var(--primary-color);
+}
+
+#about .social-icons i {
+    font-size: 1.8rem;
+}
+
+#about .social-icons i:hover {
+    text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+}

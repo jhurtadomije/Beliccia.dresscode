@@ -1,0 +1,40 @@
+/* Footer */
+footer h6 {
+    color: var(--secondary-color);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+footer ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+footer ul li {
+    margin-bottom: 0.5rem;
+}
+
+footer ul li a {
+    transition: color 0.3s ease;
+}
+
+footer ul li a:hover {
+    text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+}
+
+footer .social-icons a {
+    transition: color 0.3s ease;
+}
+
+footer .social-icons a:hover {
+    text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+}
+
+footer .border-top {
+    border-top: 1px solid var(--secondary-color);
+}
+
+footer p, footer a {
+    font-size: 0.9rem;
+}

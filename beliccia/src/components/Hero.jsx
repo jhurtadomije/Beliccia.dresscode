@@ -1,0 +1,55 @@
+export default function Hero() {
+    return (
+      <div
+        id="hero"
+        style={{
+          height: '100vh',
+          width: '100vw',
+          margin: 0,
+          padding: 0,
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 0,
+          }}
+        >
+          <source src="/videos/hero.mp4" type="video/mp4" />
+          Tu navegador no soporta la reproducción de videos.
+        </video>
+  
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            color: 'white',
+            textAlign: 'center',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <h1 style={{ fontSize: '3rem' }}>BELICCIA</h1>
+          <p style={{ fontSize: '1.5rem' }}>Elegancia para tus momentos más especiales</p>
+          <a href="#collections" className="btn btn-light btn-lg">
+            Ver Colecciones
+          </a>
+        </div>
+      </div>
+    );
+  }
+  
