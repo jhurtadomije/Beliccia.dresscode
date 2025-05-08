@@ -8,16 +8,15 @@ header {
     z-index: 10;
     animation: fadeInHeader 5s ease-in-out forwards;
     opacity: 0;
+    
 }
 
 .navbar {
     color: var(--secondary-color);
-    padding: 0.8rem 1rem;
 }
 
 .navbar-brand img {
-    height: 10rem;
-    width: auto;
+    height: 12rem;
 }
 
 .navbar-toggler {
@@ -62,7 +61,15 @@ header {
     100% { background-color: rgba(255, 248, 231, 1); }
 }
 
-
+.navbar-toggler.open .line1 {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+.navbar-toggler.open .line2 {
+  opacity: 0;
+}
+.navbar-toggler.open .line3 {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
 
 .dropdown-menu {
     background-color: var(--background-color);

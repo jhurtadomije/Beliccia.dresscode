@@ -1,9 +1,15 @@
+import { useState } from 'react';
+
 export default function Header() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const toggleMenu = () => {
+    setMenuOpen(prev => !prev);
+  };
     return (
       <header>
         <nav className="navbar navbar-expand-lg">
           <div className="container">
-            <a className="navbar-brand" href="#">
+            <a className="navbar-brand mx-auto d-lg-inline" href="#">
               <img
                 src="/imagenes/logo.png"
                 alt="Logo Beliccia"
