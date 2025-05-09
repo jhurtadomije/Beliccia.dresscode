@@ -56,7 +56,7 @@ export default function Hero() {
           paddingBottom: '4rem',
         }}
       >
-        <h1 style={{ fontSize: '2.5rem' }}>BELICCIA</h1>
+        <h1 style={{ fontSize: '2.5rem', textShadow: 'none' }}>BELICCIA</h1>
         <p style={{ fontSize: '1.2rem' }}>Elegancia para tus momentos más especiales</p>
         <a href="#collections" className="btn btn-light btn-lg">
           Ver Colecciones
