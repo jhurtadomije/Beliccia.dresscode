@@ -18,6 +18,7 @@ export default function Hero() {
         margin: 0,
         padding: 0,
         position: 'relative',
+        objectPosition: 'center',
         overflow: 'hidden',
       }}
     >
