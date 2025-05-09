@@ -1,7 +1,7 @@
 // src/pages/Madrinas.jsx
 import { useEffect, useState } from 'react';
 
-export default function Madrinas() {
+export default function Accesorios() {
   const [productos, setProductos] = useState([]);
 
   useEffect(() => {
@@ -14,7 +14,7 @@ export default function Madrinas() {
   return (
     <section className="py-5" style={{ backgroundColor: 'var(--background-color)' }}>
       <div className="container">
-        <h2 className="text-center mb-4">Colección de Madrinas</h2>
+        <h2 className="text-center mb-4">Accesorios</h2>
         <div className="row">
           {productos.map(producto => (
             <div className="col-md-4 mb-4" key={producto.id}>

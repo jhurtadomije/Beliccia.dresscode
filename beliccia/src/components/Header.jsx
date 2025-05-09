@@ -58,8 +58,8 @@ export default function Header() {
                 </a>
                 <ul className="dropdown-menu" aria-labelledby="coleccionesDropdown">
                   <li><a className="dropdown-item" href="/novias">Novias</a></li>
-                  <li><a className="dropdown-item" href="/madrinas">Madrinas</a></li>
                   <li><a className="dropdown-item" href="/invitadas">Invitadas</a></li>
+                  <li><a className="dropdown-item" href="/madrinas">Accesorios</a></li>
                 </ul>
               </li>
               <li className="nav-item">
