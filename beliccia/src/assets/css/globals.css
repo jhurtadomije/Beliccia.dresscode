@@ -40,3 +40,8 @@ a:hover {
 .btn:hover {
   background-color: var(--accent-color);
 }
+
+.page-container {
+  margin-top: 7rem; /* Ajusta si tu header es más alto o más bajo */
+  padding: 1rem;
+}
