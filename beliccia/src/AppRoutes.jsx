@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import Layout from './components/layout';
+import Layout from './components/Layout';
 import App from './App';
 import Novias from './pages/Novias';
 import Accesorios from './pages/Accesorios';
