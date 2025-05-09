@@ -36,7 +36,7 @@ export default function Hero() {
           zIndex: 0,
         }}
       >
-        <source src="/videos/hero.mp4" type="video/mp4" />
+        <source src="/videos/videoHero1.mp4" type="video/mp4" />
         Tu navegador no soporta la reproducción de videos.
       </video>
 
