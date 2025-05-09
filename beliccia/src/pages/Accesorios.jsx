@@ -1,4 +1,4 @@
-// src/pages/Madrinas.jsx
+
 import { useEffect, useState } from 'react';
 
 export default function Accesorios() {
