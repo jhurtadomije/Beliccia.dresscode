@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "echo VITE_API_URL=$VITE_API_URL && echo VITE_IMAGE_BASE=$VITE_IMAGE_BASE && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist"
