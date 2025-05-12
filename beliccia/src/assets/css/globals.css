@@ -8,6 +8,7 @@ body {
   color: var(--secondary-color);
   background-color: var(--background-color);
   line-height: 1.6;
+  overflow-x: hidden;
 }
 
 h1, h2 {
@@ -41,7 +42,9 @@ a:hover {
   background-color: var(--accent-color);
 }
 
+/*
 .page-container {
-  margin-top: 7rem; /* Ajusta si tu header es más alto o más bajo */
+  margin-top: 7rem; 
   padding: 1rem;
 }
+*/

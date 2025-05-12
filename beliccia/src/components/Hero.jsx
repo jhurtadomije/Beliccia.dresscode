@@ -27,6 +27,7 @@ export default function Hero() {
         muted
         loop
         playsInline
+        draggable={false}
         style={{
           position: 'absolute',
           top: 0,
