@@ -17,42 +17,42 @@ export default function Collections() {
 
     const slides = [
       {
-        src: '/imagenes/colecciones/coleccion1.webp',
+        src: '/imagenes/colecciones/vestido2.jpg',
         title: 'Vestidos de Novia',
         text: 'Lujosos diseños de novia con detalles únicos.',
       },
       {
-        src: '/imagenes/colecciones/coleccion5.webp',
+        src: '/imagenes/colecciones/vestido6.jpg',
         title: 'Vestidos de Novia Exclusivos',
         text: 'Elegancia para tus momentos más especiales.',
       },
       {
-        src: '/imagenes/colecciones/coleccion2.webp',
+        src: '/imagenes/colecciones/vestido8.jpg',
         title: 'Vestidos de Cóctel',
         text: 'Diseños modernos para destacar en cualquier evento.',
       },
       {
-        src: '/imagenes/colecciones/coleccion6.webp',
+        src: '/imagenes/colecciones/vestido11.jpg',
         title: 'Vestidos de fiesta',
         text: 'Detalles delicados y elegancia clásica.',
       },
       {
-        src: '/imagenes/colecciones/coleccion3.webp',
+        src: '/imagenes/colecciones/vestido13.jpg',
         title: 'Vestidos cortos',
         text: 'Detalles delicados y elegancia clásica.',
       },
       {
-        src: '/imagenes/colecciones/coleccion7.webp',
+        src: '/imagenes/colecciones/vestido19.jpg',
         title: 'Vestidos de Fiesta Elegante',
         text: 'Diseños únicos para destacar en cualquier ocasión.',
       },
       {
-        src: '/imagenes/colecciones/coleccion4.webp',
+        src: '/imagenes/colecciones/vestido24.jpg',
         title: 'Encajes de Ensueño',
         text: 'Detalles delicados y elegancia clásica.',
       },
       {
-        src: '/imagenes/colecciones/coleccion8.webp',
+        src: '/imagenes/colecciones/vestido28.jpg',
         title: 'Elegancia',
         text: 'Detalles delicados y elegancia clásica.',
       },
