@@ -1,6 +1,6 @@
 /* Header */
 header {
-    background-color: rgba(255, 248, 231, 0.6);
+    background-color: (--background-color);
     position: fixed;
     top: 0;
     left: 0;
