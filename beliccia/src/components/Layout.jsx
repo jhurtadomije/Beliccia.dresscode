@@ -10,7 +10,7 @@ export default function Layout() {
   const isHomePage = location.pathname === '/';
 
   // Ajusta este valor a la altura real de tu header
-  const headerHeight = '120px';
+  const headerHeight = '6rem';
 
   return (
     <>

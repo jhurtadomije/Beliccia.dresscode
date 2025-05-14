@@ -1,40 +1,101 @@
-/* Responsividad */
+/* --------- RESPONSIVE.CSS --------- */
+
+/* Escritorio (≥992px) */
 @media (min-width: 992px) {
-    .navbar-toggler {
-        display: none;
-    }
-
-    .navbar-collapse {
-        display: flex !important;
-        max-height: none !important;
-        opacity: 1 !important;
-    }
-
-    .navbar-nav {
-        flex-direction: row;
-        gap: 1.5rem;
-    }
-}
-
-@media (max-width: 700px) {
-    .navbar-toggler {
-        display: flex;
-    }
-
-    .navbar-nav {
-        flex-direction: column;
-        gap: 0.5rem;
-        padding: 1rem;
-    }
-
-    .nav-link {
-        padding: 0.5rem;
-        text-align: center;
-    }
-}
-
-@media (max-width: 768px) {
-  #hero video {
-    object-position: center center;
+  .navbar-toggler {
+    display: none !important;
   }
+  .navbar .container {
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    padding-left: 0 !important;
+  }
+  .navbar-brand {
+    order: 1 !important;
+    margin: 0 !important;
+    position: relative !important;
+    transform: none !important;
+  }
+  .collapse.navbar-collapse {
+    order: 2 !important;
+    position: static !important;
+    display: flex !important;
+    flex-direction: row !important;
+    width: auto !important;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-left: 3rem;
+  }
+  .navbar-nav {
+    flex-direction: row !important;
+    gap: 1.5rem !important;
+    margin: 0 !important;
+  }
+  .navbar-icons {
+    order: 3 !important;
+    margin-left: auto !important;
+    display: flex !important;
+  }
+}
+
+/* Móvil (<992px) */
+@media (max-width: 991.98px) {
+  .navbar .container {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+  .navbar-toggler {
+    display: flex !important;
+    order: 1 !important;
+  }
+  .navbar-brand {
+    order: 2 !important;
+    margin: 0 auto !important;
+    position: static !important;
+    transform: none !important;
+  }
+  .navbar-brand img {
+    height: 10rem;
+    margin-top: 0;
+    position: static;
+  }
+  .collapse.navbar-collapse {
+    order: 3 !important;
+    position: absolute;
+    top: 6rem;
+    left: 0;
+    width: 100%;
+    z-index: 999;
+    background: var(--background-color);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0;
+    display: none !important;
+    transition: none !important;
+  }
+  .collapse.navbar-collapse.show {
+    display: flex !important;
+    flex-direction: column;
+    animation: intensifyBackground 0.5s ease-in-out forwards;
+  }
+  .navbar-icons {
+    order: 4 !important;
+  }
+  .navbar-nav {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+  }
+  .nav-link {
+    padding: 0.5rem;
+  }
+}
+
+/* Ajuste hero en móvil pequeño */
+@media (max-width: 768px) {
+  #hero video { object-position: center center; }
 }

@@ -3,11 +3,12 @@
     --secondary-color: #333333;
     --background-color: #ffffff;
     --accent-color: #ffffff;
-    --text-light: #666666
+    --text-light: #666666;
     --font-title: "Cormorant Garamond", serif;
     --font-body: 'Poppins', sans-serif;
    --shadow-primary: 0 2px 4px rgba(0, 0, 0, 0.1);
   --shadow-accent: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-secondary: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --hover-color:     #f2f2f2;
   }
   

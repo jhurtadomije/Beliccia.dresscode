@@ -1,64 +1,60 @@
-/* Header */
+/* ======================
+   HEADER & RESPONSIVE CSS
+========================= */
+
+/* --------- HEADER.CSS --------- */
 header {
-    background-color: (--background-color);
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 10;
-    animation: fadeInHeader 5s ease-in-out forwards;
-    opacity: 0;
-    
+  background-color: transparent;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  animation: fadeInHeader 0.5s ease-in-out forwards;
+  opacity: 1;
+  padding: 0;
+  margin: 0;
 }
 
 .navbar {
-    color: var(--secondary-color);
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  height: 6rem;
+  padding: 0;
+  overflow: visible;
+  color: var(--secondary-color);
 }
 
+/* Logo sobresaliendo sin empujar */
 .navbar-brand img {
-    height: 12rem;
+  height: 15rem;
+  margin-top: -3rem;
 }
 
+/* Ajuste del botón hamburguesa */
 .navbar-toggler {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 3.5rem;
-    height: 2rem;
-    border: none;
-    background: none;
-    cursor: pointer;
-    gap: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;      /* Centra las líneas verticalmente */
+  align-items: center;
+  width: 3.5rem;
+  height: 2rem;                /* Altura ajustada */
+  border: none;
+  background: none;
+  cursor: pointer;
+  gap: 0.25rem;                 /* Espacio reducido entre líneas */
+  margin-top: 0.5rem;
+  z-index: 1100;
 }
 
 .navbar-toggler .line {
-    background-color: var(--secondary-color);
-    height: 0.3rem;
-    width: 100%;
-    border-radius: 0.15rem;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.nav-item {
-    padding: 0.5rem 1rem;
-    transition: color 0.3s ease;
-}
-
-.nav-link:hover {
-    text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
-}
-
-.collapse.navbar-collapse {
-    transition: max-height 0.3s ease, opacity 1s ease;
-}
-
-.collapse.navbar-collapse.show {
-    animation: intensifyBackground 0.5s ease-in-out forwards;
-}
-
-@keyframes intensifyBackground {
-    0% { background-color: rgba(255, 248, 231, 0); }
-    100% { background-color: rgba(255, 248, 231, 1); }
+  background-color: var(--secondary-color);
+  height: 0.2rem;              /* Líneas más finas */
+  width: 100%;
+  border-radius: 0.15rem;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .navbar-toggler.open .line1 {
@@ -71,41 +67,75 @@ header {
   transform: rotate(-45deg) translate(6px, -6px);
 }
 
+/* Iconos pegados al top */
+.navbar-icons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* Menú desplegable absoluto (no empuja el navbar) */
+.collapse.navbar-collapse {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: var(--background-color);
+  z-index: 999;
+  padding: 1rem 0;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  display: none !important;
+  transition: none !important;
+}
+.collapse.navbar-collapse.show {
+  display: flex !important;
+  flex-direction: column;
+  animation: intensifyBackground 0.5s ease-in-out forwards;
+}
+
+.nav-item {
+  padding: 0.5rem 1rem;
+}
+.nav-link:hover,
+.dropdown-item:hover,
+.icon-link:hover {
+  color: var(--hover-color) !important;
+  text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+}
+
+@keyframes fadeInHeader {
+  to { opacity: 1; }
+}
+
+@keyframes intensifyBackground {
+  0% { background-color: rgba(255,255,255,0); }
+  100% { background-color: var(--background-color); }
+}
+
+@keyframes slideDown {
+  0% { opacity: 0; transform: scaleY(0.6) translateY(-10px); }
+  100% { opacity: 1; transform: scaleY(1) translateY(0); }
+}
+
 .dropdown-menu {
-    background-color: var(--background-color);
-    border: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    animation: slideDown 0.8s ease forwards;
-    transform-origin: top center;
-    font-family: var(--font-body);
-    padding: 0.3rem 0;
-    text-align: center;
-    border-radius: 0.5rem;
-  }
-  
-  .dropdown-item {
-    font-size: 1rem;
-    color: var(--secondary-color);
-    padding: 0.4rem 1rem;
-    background-color: transparent;
-    transition: background-color 0.3s, color 0.3s;
-    text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
-  }
-  
-  .dropdown-item:hover {
-    background-color: var(--primary-color);
-    color: var(--background-color);
-  }
-  
-  /* Animación tipo alfombra */
-  @keyframes slideDown {
-    0% {
-      opacity: 0;
-      transform: scaleY(0.6) translateY(-10px);
-    }
-    100% {
-      opacity: 1;
-      transform: scaleY(1) translateY(0);
-    }
-  }
-  
+  background-color: var(--background-color);
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideDown 0.8s ease forwards;
+  transform-origin: top center;
+  font-family: var(--font-body);
+  padding: 0.3rem 0;
+  text-align: center;
+  border-radius: 0.5rem;
+}
+.dropdown-item {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--secondary-color);
+  padding: 0.4rem 1rem;
+  background-color: transparent;
+  transition: background-color 0.3s, color 0.3s;
+  text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+}

@@ -2,46 +2,60 @@ import { useEffect, useRef, useState } from 'react';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef(null);
+  const collapseRef = useRef(null);
+  const togglerRef = useRef(null);
 
-  const toggleMenu = () => {
-    setMenuOpen(prev => !prev);
-  };
+  const toggleMenu = () => setMenuOpen(prev => !prev);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+      if (
+        collapseRef.current &&
+        !collapseRef.current.contains(e.target) &&
+        togglerRef.current &&
+        !togglerRef.current.contains(e.target)
+      ) {
         setMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
     <header>
-      <nav className="navbar navbar-expand-lg" ref={menuRef}>
-        <div className="container">
-          <a className="navbar-brand mx-auto d-lg-inline" href="/">
-            <img
-              src="/imagenes/logo.png"
-              alt="Logo Beliccia"
-              className="d-inline-block align-text-top"
-            />
-          </a>
+      <nav className="navbar navbar-expand-lg">
+        <div className="container d-flex align-items-center justify-content-between position-relative">
+
+          {/* Botón hamburguesa */}
           <button
+            ref={togglerRef}
             className={`navbar-toggler ${menuOpen ? 'open' : ''}`}
             type="button"
+            aria-label="Toggle navigation"
             onClick={toggleMenu}
           >
             <span className="line line1"></span>
             <span className="line line2"></span>
             <span className="line line3"></span>
           </button>
-          <div className={`collapse navbar-collapse ${menuOpen ? 'show' : ''}`} id="navbarNav">
-            <ul className="navbar-nav ms-auto">
+
+          {/* Logo */}
+          <a className="navbar-brand" href="/">
+            <img
+              src="/imagenes/logo.png"
+              alt="Logo Beliccia"
+              className="d-inline-block align-text-top"
+            />
+          </a>
+
+          {/* Menú desplegable */}
+          <div
+            ref={collapseRef}
+            className={`collapse navbar-collapse ${menuOpen ? 'show' : ''}`}
+            id="navbarNav"
+          >
+            <ul className="navbar-nav">
               <li className="nav-item">
                 <a className="nav-link" href="/#hero">Inicio</a>
               </li>
@@ -52,7 +66,6 @@ export default function Header() {
                   id="coleccionesDropdown"
                   role="button"
                   data-bs-toggle="dropdown"
-                  aria-expanded="false"
                 >
                   Colecciones
                 </a>
@@ -78,7 +91,6 @@ export default function Header() {
                   id="contactDropdown"
                   role="button"
                   data-bs-toggle="dropdown"
-                  aria-expanded="false"
                 >
                   Contacto
                 </a>
@@ -89,6 +101,20 @@ export default function Header() {
               </li>
             </ul>
           </div>
+
+          {/* Iconos */}
+          <div className="navbar-icons d-flex ms-auto">
+            <a href="/buscar" className="icon-link me-2" title="Buscar">
+              <i className="fas fa-search"></i>
+            </a>
+            <a href="/carrito" className="icon-link me-2" title="Carrito">
+              <i className="fas fa-shopping-cart"></i>
+            </a>
+            <a href="/login" className="icon-link" title="Iniciar sesión">
+              <i className="fas fa-user"></i>
+            </a>
+          </div>
+
         </div>
       </nav>
     </header>

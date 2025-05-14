@@ -21,12 +21,12 @@ h1, h2 {
 a {
   font-size: 1.5rem;
   text-decoration: none;
-  color: var(--secondary-color);
+  color: var(--primary-color);
   transition: color 0.3s;
 }
 
 a:hover {
-  color: var(--primary-color);
+  color: var(--background-color);
 }
 
 .btn {
