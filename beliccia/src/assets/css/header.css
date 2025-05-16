@@ -169,7 +169,7 @@ header {
 
 .main-header.scrolled.expanded,
 .main-header.scrolled:hover {
-  height: 6.5rem;
+  height: 9rem;
   background: rgba(255,255,255,0.99);
   box-shadow: 0 4px 16px rgba(0,0,0,0.13);
 }
