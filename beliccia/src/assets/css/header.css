@@ -163,7 +163,7 @@ header {
 
 .main-header.scrolled {
   background: rgba(255,255,255,0.95);   /* Puedes poner un gris/negro si prefieres */
-  height: 3.5rem;
+  height: 4rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
@@ -203,5 +203,5 @@ header {
   height: 12rem;
 }
 .main-header.scrolled .navbar-brand img {
-  height: 3rem;
+  height: 5rem;
 }
