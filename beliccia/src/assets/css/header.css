@@ -1,6 +1,4 @@
-/* ======================
-   HEADER & RESPONSIVE CSS
-========================= */
+
 
 /* --------- HEADER.CSS --------- */
 header {
@@ -27,12 +25,12 @@ header {
   color: var(--secondary-color);
 }
 
-/* Logo sobresaliendo sin empujar */
+/* Logo sobresaliendo sin empujar 
 .navbar-brand img {
   height: 15rem;
   margin-top: -3rem;
 }
-
+*/
 /* Ajuste del botón hamburguesa */
 .navbar-toggler {
   display: flex;
@@ -138,4 +136,72 @@ header {
   background-color: transparent;
   transition: background-color 0.3s, color 0.3s;
   text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
+}
+
+/* ------- HEADER DINÁMICO SCROLL+HOVER ------- */
+.main-header {
+  position: fixed;
+  top: 0; left: 0; width: 100vw;
+  z-index: 1000;
+  background: transparent;
+  height: 4rem;      /* Minimizado */
+  transition: all 0.36s cubic-bezier(.76,.01,.3,1.01);
+  box-shadow: none;
+  opacity: 0.94;
+  
+}
+
+/* Expandido (hover o ratón encima) */
+.main-header.expanded,
+.main-header:hover {
+  backdrop-filter: blur(7px);
+  background: rgba(255,255,255,0.97);   /* Fondo claro, ajusta si prefieres oscuro */
+  box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+  height: 9rem;    /* Alto expandido */
+  opacity: 1;
+}
+
+.main-header.scrolled {
+  background: rgba(255,255,255,0.95);   /* Puedes poner un gris/negro si prefieres */
+  height: 3.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.main-header.scrolled.expanded,
+.main-header.scrolled:hover {
+  height: 6.5rem;
+  background: rgba(255,255,255,0.99);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+}
+
+/* Sombra a los enlaces cuando el fondo es transparente */
+.main-header:not(.expanded):not(.scrolled) .nav-link,
+.main-header:not(.expanded):not(.scrolled) .navbar-brand {
+  text-shadow: 0 2px 6px rgba(255,255,255,0.85), 0 1px 2px rgba(0,0,0,0.4);
+  color: var(--secondary-color);
+}
+
+.main-header.expanded .nav-link,
+.main-header.expanded .navbar-brand,
+.main-header.scrolled .nav-link,
+.main-header.scrolled .navbar-brand {
+  text-shadow: none;
+  color: var(--secondary-color);
+}
+
+.main-header .navbar-brand img {
+  display: block;
+  height: 4rem;
+  margin-top: 0;
+  margin-bottom: 0;
+  object-fit: contain;
+  transition: height 0.35s cubic-bezier(.76,.01,.3,1.01), margin 0.35s;
+  /* Así ocupa sólo lo que toca */
+}
+.main-header.expanded .navbar-brand img,
+.main-header.scrolled.expanded .navbar-brand img {
+  height: 12rem;
+}
+.main-header.scrolled .navbar-brand img {
+  height: 3rem;
 }

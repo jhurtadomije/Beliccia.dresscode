@@ -1,0 +1,56 @@
+.custom-modal-backdrop {
+  position: fixed;
+  z-index: 100011;
+  left: 0; top: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-modal {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 6px 32px rgba(0,0,0,0.13);
+  padding: 2rem 2rem 1.5rem 2rem;
+  max-width: 430px;
+  width: 96vw;
+  max-height: 95vh;
+  overflow-y: auto;
+  position: relative;
+  animation: fadeIn 0.3s;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.modal-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.modal-image {
+  border: 1px solid #eee;
+  margin-bottom: 8px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-32px);}
+  to { opacity: 1; transform: none;}
+}
+.card,
+.card-flip,
+.card-flip-container {
+  position: relative;
+  z-index: 1 !important;
+}

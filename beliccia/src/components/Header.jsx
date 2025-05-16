@@ -2,11 +2,22 @@ import { useEffect, useRef, useState } from 'react';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
   const collapseRef = useRef(null);
   const togglerRef = useRef(null);
 
   const toggleMenu = () => setMenuOpen(prev => !prev);
 
+  // Controla si el header está scrolleado
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Cierra el menú al hacer click fuera
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -23,7 +34,11 @@ export default function Header() {
   }, []);
 
   return (
-    <header>
+    <header
+      className={`main-header${expanded ? ' expanded' : ''}${scrolled ? ' scrolled' : ''}`}
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
+    >
       <nav className="navbar navbar-expand-lg">
         <div className="container d-flex align-items-center justify-content-between position-relative">
 
