@@ -83,7 +83,22 @@
   }
   .navbar-icons {
     order: 4 !important;
+    margin-left: 0 !important;
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    width: auto;
+    position: static;
+    margin-top: 0;
   }
+  .navbar-icons .icon-link i {
+  font-size: 1.2rem; /* Más pequeño, por defecto suelen ser 1.5rem o 2rem */
+}
+  .navbar .container {
+    flex-wrap: nowrap !important;
+  }
+  
   .navbar-nav {
     flex-direction: column;
     gap: 0.5rem;
