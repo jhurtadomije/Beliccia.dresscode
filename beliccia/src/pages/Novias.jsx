@@ -1,18 +1,17 @@
 // src/pages/Novias.jsx
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api, { IMAGE_BASE } from '../services/api';
 
-// Card de Novia con flip
-// Card de Novia con flip
 function NoviaCard({ producto, onPedirCita }) {
   const [flipped, setFlipped] = useState(false);
-  const relativePath = producto.imagenes[0].replace(/^\/?imagenes\/?/, '');
+  const relativePath = producto.imagenes[0].replace(/^\/?imagenes\//, '');
   const imageUrl = `${IMAGE_BASE}/${relativePath}`;
 
   return (
     <div className="card-flip-container h-100">
       <div className={`card card-flip ${flipped ? 'flipped' : ''} shadow`}>
-        {/* Cara Frontal */}
+        {/* Frontal */}
         <div className="card-front">
           <img
             src={imageUrl}
@@ -20,38 +19,45 @@ function NoviaCard({ producto, onPedirCita }) {
             alt={producto.nombre}
             loading="lazy"
           />
-          <div className="card-body text-center d-flex flex-column justify-content-center align-items-center">
+          <div className="card-body text-center">
             <h5 className="card-title">{producto.nombre}</h5>
+            <p className="card-text">€{producto.precio}</p>
             <button
-              className="btn btn-outline-dark mt-4 mb-3"
+              className="btn btn-outline-dark mt-2"
               onClick={() => setFlipped(true)}
             >
               Ver detalles
             </button>
           </div>
         </div>
-        {/* Cara Trasera */}
+
+        {/* Trasera */}
         <div className="card-back">
           <div className="card-body text-center d-flex flex-column justify-content-between align-items-center">
             <h5 className="card-title">{producto.nombre}</h5>
             <p className="card-text mb-3">{producto.descripcion}</p>
-            <p>Para más información, consulta con nosotros o pide tu cita</p>
+            <p className="fw-bold">Precio: €{producto.precio}</p>
+
+            {producto.ventaOnline ? (
+              <button
+                className="btn btn-success mb-2"
+                style={{ width: '100%' }}
+                onClick={() => alert('¡Añadido al carrito!')}
+              >
+                Añadir al carrito
+              </button>
+            ) : (
+              <button
+                className="btn btn-primary mb-2"
+                style={{ width: '100%' }}
+                onClick={onPedirCita}
+              >
+                Pedir cita
+              </button>
+            )}
+
             <button
-              className="btn btn-primary mb-2"
-              onClick={onPedirCita}
-              style={{ width: '100%' }}
-            >
-              Pedir Cita
-            </button>
-            <a
-              href={`/novias/${producto.id}`}
-              className="btn btn-dark mb-2"
-              style={{ width: '100%' }}
-            >
-              Ver más
-            </a>
-            <button
-              className="btn btn-secondary mt-2"
+              className="btn btn-secondary mt-auto"
               onClick={() => setFlipped(false)}
             >
               Volver
@@ -63,8 +69,6 @@ function NoviaCard({ producto, onPedirCita }) {
   );
 }
 
-
-
 export default function Novias() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -72,64 +76,84 @@ export default function Novias() {
   const [showModal, setShowModal] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
+  // Lectura de parámetro ?corte=
+  const [searchParams] = useSearchParams();
+  const corteSlug = searchParams.get('corte');
+  const estilosMap = {
+    a: 'Corte A',
+    recto: 'Corte Recto',
+    sirena: 'Corte Sirena',
+    princesa: 'Corte Princesa',
+  };
+  const corteNombre = estilosMap[corteSlug];
+
   useEffect(() => {
     api.get('/productos?cat=novias')
       .then(({ data }) => {
-        setProductos(data);
-        setCargando(false);
+        // Extraer array (paginado o directo)
+        const arr = Array.isArray(data) ? data : data.resultados;
+        // Filtrar por estilo si aplica
+        const filtrados = corteNombre
+          ? arr.filter(p => p.estilo === corteNombre)
+          : arr;
+        setProductos(filtrados);
       })
       .catch(err => {
         console.error(err);
         setError('No se pudieron cargar los vestidos de novia.');
+      })
+      .finally(() => {
         setCargando(false);
       });
-  }, []);
+  }, [corteNombre]);
 
   if (cargando) return (
-    <section className="py-5" style={{ backgroundColor: 'var(--background-color)' }}>
-      <div className="container text-center">Cargando vestidos de novia…</div>
-    </section>
+    <section className="py-5 text-center">Cargando vestidos de novia…</section>
   );
   if (error) return (
-    <section className="py-5" style={{ backgroundColor: 'var(--background-color)' }}>
-      <div className="container text-center text-danger">{error}</div>
-    </section>
-  );
-  if (!Array.isArray(productos)) return (
-    <section className="py-5" style={{ backgroundColor: 'var(--background-color)' }}>
-      <div className="container text-center text-danger">
-        La respuesta de la API no es un array válido.
-      </div>
-    </section>
+    <section className="py-5 text-center text-danger">{error}</section>
   );
 
   return (
     <section className="py-5" style={{ backgroundColor: 'var(--background-color)' }}>
       <div className="container">
         <h2 className="text-center mb-4">Colección de Novias</h2>
+
+        {/* Mostrar filtro activo */}
+        {corteNombre && (
+          <p className="text-center fst-italic">
+            Filtrando por estilo: <strong>{corteNombre}</strong>
+          </p>
+        )}
+
         <div className="row g-4">
-          {productos.map(p => (
-            <div className="col-12 col-sm-6 col-md-4" key={p.id}>
-              <NoviaCard 
-                producto={p} 
-                onPedirCita={() => {
-                  setProductoSeleccionado(p);
-                  setShowModal(true);
-                }} 
-              />
-            </div>
-          ))}
+          {productos.length === 0 ? (
+            <div className="col-12 text-center text-muted">No hay vestidos disponibles.</div>
+          ) : (
+            productos.map(p => (
+              <div className="col-12 col-sm-6 col-md-4" key={p.id}>
+                <NoviaCard
+                  producto={p}
+                  onPedirCita={() => {
+                    setProductoSeleccionado(p);
+                    setShowModal(true);
+                  }}
+                />
+              </div>
+            ))
+          )}
         </div>
       </div>
-      {/* MODAL AQUÍ, FUERA DEL GRID */}
+
+      {/* Modal de cita */}
       {showModal && productoSeleccionado && (
         <div className="custom-modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="custom-modal" onClick={e => e.stopPropagation()}>
-            <button className="btn-close" onClick={() => setShowModal(false)} style={{ float: 'right' }}>&times;</button>
+            <button className="btn-close" onClick={() => setShowModal(false)}>&times;</button>
             <h5 className="mb-3">{productoSeleccionado.nombre}</h5>
             <div className="modal-gallery mb-3">
               {productoSeleccionado.imagenes.map((img, i) => {
-                const imgUrl = `${IMAGE_BASE}/${img.replace(/^\/?imagenes\/?/, '')}`;
+                const imgUrl = `${IMAGE_BASE}/${img.replace(/^\/?imagenes\//, '')}`;
                 return (
                   <img
                     key={i}
@@ -147,7 +171,6 @@ export default function Novias() {
                 );
               })}
             </div>
-            {/* Formulario de cita */}
             <form
               className="mt-2"
               onSubmit={e => {
@@ -156,12 +179,10 @@ export default function Novias() {
                 setShowModal(false);
               }}
             >
-              <input className="form-control mb-2" placeholder="Nombre" required />
-              <input className="form-control mb-2" placeholder="Correo electrónico" type="email" required />
-              <textarea className="form-control mb-2" placeholder="Mensaje o consulta" required />
-              <button className="btn btn-success w-100" type="submit">
-                Enviar solicitud de cita
-              </button>
+              <input name="name" autoComplete="name" className="form-control mb-2" placeholder="Nombre" required />
+              <input name="email" autoComplete="email" className="form-control mb-2" placeholder="Correo electrónico" type="email" required />
+              <textarea name="message" autoComplete="off" className="form-control mb-2" placeholder="Mensaje o consulta" required />
+              <button className="btn btn-success w-100" type="submit">Enviar solicitud de cita</button>
             </form>
           </div>
         </div>

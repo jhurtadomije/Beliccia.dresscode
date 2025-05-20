@@ -1,58 +1,61 @@
+// src/components/Header.jsx
 import { useEffect, useRef, useState } from 'react';
+import { NavLink, Link, useLocation } from 'react-router-dom';
+import FiltrosEstiloNovia from './FiltrosEstiloNovia';
 
 export default function Header() {
+  const location = useLocation();
+  const isNoviasPage = location.pathname.startsWith('/novias');
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [modalEstilosVisible, setModalEstilosVisible] = useState(false);
 
   const collapseRef = useRef(null);
   const togglerRef = useRef(null);
 
   const toggleMenu = () => setMenuOpen(prev => !prev);
-  const [modalEstilosVisible, setModalEstilosVisible] = useState(false);
-
-  function handleEligeEstiloClick(e) {
+  const handleEligeEstiloClick = e => {
     e.preventDefault();
     setModalEstilosVisible(true);
-  }
+  };
 
-  const estilos = [
-  { nombre: "Corte A", slug: "a", img: "/imagenes/estilos/novia-corte-a.png" },
-  { nombre: "Corte Recto", slug: "recto", img: "/imagenes/estilos/novia-corte-recto.png" },
-  { nombre: "Corte Sirena", slug: "sirena", img: "/imagenes/estilos/novia-corte-sirena.png" },
-  { nombre: "Corte Princesa", slug: "princesa", img: "/imagenes/estilos/novia-corte-princesa.png" },
-];
+  // Habilita submenús anidados
+  useEffect(() => {
+    const container = collapseRef.current;
+    if (!container) return;
+    const toggles = container.querySelectorAll('.dropdown-submenu > .dropdown-toggle');
+    toggles.forEach(toggle => {
+      toggle.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Ocultar otras sublistas
+        toggles.forEach(t => {
+          if (t !== toggle) {
+            t.nextElementSibling.classList.remove('show');
+          }
+        });
+        toggle.nextElementSibling.classList.toggle('show');
+      });
+    });
+    return () => {
+      toggles.forEach(toggle => {
+        toggle.replaceWith(toggle.cloneNode(true));
+      });
+    };
+  }, [menuOpen]);
 
-function FiltrosEstiloNovia({ onSelect }) {
-  return (
-    <div className="row justify-content-center gy-4 gx-3">
-      {estilos.map(estilo => (
-        <div key={estilo.slug} className="col-6 col-md-3 text-center">
-          <button
-            type="button"
-            className="btn-filtro-estilo"
-            onClick={() => onSelect(estilo.slug)}
-            title={`Ver vestidos de ${estilo.nombre}`}
-            style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-          >
-            <img src={estilo.img} alt={estilo.nombre} className="img-fluid mb-2" style={{ maxHeight: "160px" }} />
-            <div style={{ fontWeight: 500 }}>{estilo.nombre}</div>
-          </button>
-        </div>
-      ))}
-    </div>
-  );
-}
-  // Controla si el header está scrolleado
+  // Cambia estilo al hacer scroll
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Cierra el menú al hacer click fuera
+  // Cierra el menú al click fuera
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handleClickOutside = e => {
       if (
         collapseRef.current &&
         !collapseRef.current.contains(e.target) &&
@@ -81,67 +84,131 @@ function FiltrosEstiloNovia({ onSelect }) {
             className={`navbar-toggler ${menuOpen ? 'open' : ''}`}
             type="button"
             aria-label="Toggle navigation"
+            aria-expanded={menuOpen}
             onClick={toggleMenu}
           >
-            <span className="line line1"></span>
-            <span className="line line2"></span>
-            <span className="line line3"></span>
+            <span className="line line1" />
+            <span className="line line2" />
+            <span className="line line3" />
           </button>
 
           {/* Logo */}
-          <a className="navbar-brand" href="/">
-            <img
-              src="/imagenes/logo.png"
-              alt="Logo Beliccia"
-              className="d-inline-block align-text-top"
-            />
-          </a>
+          <Link className="navbar-brand" to="/">
+            <img src="/imagenes/logo.png" alt="Logo Beliccia" />
+          </Link>
 
-          {/* Menú desplegable */}
+          {/* Menú principal */}
           <div
             ref={collapseRef}
             className={`collapse navbar-collapse ${menuOpen ? 'show' : ''}`}
             id="navbarNav"
           >
             <ul className="navbar-nav">
+
+              {/* Inicio */}
               <li className="nav-item">
-                <a className="nav-link" href="/#hero">Inicio</a>
+                <NavLink className="nav-link" to="/#hero">Inicio</NavLink>
               </li>
+
+              {/* Colecciones */}
               <li className="nav-item dropdown">
                 <a
                   className="nav-link dropdown-toggle"
-                  href="#collections"
+                  href="#colecciones"
                   id="coleccionesDropdown"
                   role="button"
                   data-bs-toggle="dropdown"
+                  aria-expanded="false"
                 >
                   Colecciones
                 </a>
                 <ul className="dropdown-menu" aria-labelledby="coleccionesDropdown">
-                  <li><a className="dropdown-item" href="/novias">Novias</a></li>
-                  <li><a className="dropdown-item" href="/invitadas">Invitadas</a></li>
-                  <li><a className="dropdown-item" href="/accesorios">Accesorios</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li>
-                    <button
-                      type="button"
-                      className="dropdown-item"
-                      onClick={handleEligeEstiloClick}
+
+                  {/* Novias */}
+                  <li className="dropdown-submenu dropend">
+                    <a
+                      className="dropdown-item dropdown-toggle"
+                      href="/novias"
                     >
-                      Elige tu estilo
-                    </button>
+                      Novias
+                    </a>
+                    <ul className="dropdown-menu">
+                      <li>
+                        <NavLink className="dropdown-item" to="/novias">
+                          Ver todo
+                        </NavLink>
+                      </li>
+                      <li>
+                        <button
+                          className="dropdown-item"
+                          onClick={handleEligeEstiloClick}
+                        >
+                          Elige tu estilo
+                        </button>
+                      </li>
+                    </ul>
                   </li>
+
+                  {/* Invitadas */}
+                  <li>
+                    <NavLink className="dropdown-item" to="/invitadas">
+                      Invitadas
+                    </NavLink>
+                  </li>
+
+                  {/* Complementos */}
+                  <li className="dropdown-submenu dropend">
+                    <a
+                      className="dropdown-item dropdown-toggle"
+                      href="/accesorios"
+                    >
+                      Complementos
+                    </a>
+                    <ul className="dropdown-menu">
+                      <li>
+                        <NavLink className="dropdown-item" to="/tocados">
+                          Tocados
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink className="dropdown-item" to="/bolsos">
+                          Bolsos
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink className="dropdown-item" to="/pendientes">
+                          Pendientes
+                        </NavLink>
+                      </li>
+                    </ul>
+                  </li>
+
                 </ul>
               </li>
+
+              {/* Sobre Nosotros */}
               <li className="nav-item">
-                <a className="nav-link" href="/#about">Sobre Nosotros</a>
+                <NavLink className="nav-link" to="/#about">Sobre Nosotros</NavLink>
               </li>
+
+              {/* Servicios */}
               <li className="nav-item">
-                <a className="nav-link" href="/#services">Servicios</a>
+                <NavLink className="nav-link" to="/#services">Servicios</NavLink>
               </li>
+
+              {/* Tienda */}
               <li className="nav-item">
-                <a className="nav-link" href="https://jhurtadomije.github.io/Tienda/">Tienda</a>
+                <a
+                  className="nav-link"
+                  href="https://jhurtadomije.github.io/Tienda/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Tienda
+                </a>
               </li>
+
+              {/* Contacto */}
               <li className="nav-item dropdown">
                 <a
                   className="nav-link dropdown-toggle"
@@ -149,53 +216,47 @@ function FiltrosEstiloNovia({ onSelect }) {
                   id="contactDropdown"
                   role="button"
                   data-bs-toggle="dropdown"
+                  aria-expanded="false"
                 >
                   Contacto
                 </a>
                 <ul className="dropdown-menu" aria-labelledby="contactDropdown">
-                  <li><a className="dropdown-item" href="/#contact">Formulario</a></li>
-                  <li><a className="dropdown-item" href="/visitanos">Visítanos</a></li>
+                  <li>
+                    <NavLink className="dropdown-item" to="/#contact">Formulario</NavLink>
+                  </li>
+                  <li>
+                    <NavLink className="dropdown-item" to="/visitanos">Visítanos</NavLink>
+                  </li>
                 </ul>
               </li>
+
             </ul>
           </div>
 
           {/* Iconos */}
           <div className="navbar-icons d-flex ms-auto">
-            <a href="/buscar" className="icon-link me-2" title="Buscar">
-              <i className="fas fa-search"></i>
-            </a>
-            <a href="/carrito" className="icon-link me-2" title="Carrito">
-              <i className="fas fa-shopping-cart"></i>
-            </a>
-            <a href="/login" className="icon-link" title="Iniciar sesión">
-              <i className="fas fa-user"></i>
-            </a>
+            <Link to="/buscar" className="icon-link me-2" title="Buscar"><i className="fas fa-search" /></Link>
+            <Link to="/carrito" className="icon-link me-2" title="Carrito"><i className="fas fa-shopping-cart" /></Link>
+            <Link to="/login" className="icon-link" title="Iniciar sesión"><i className="fas fa-user" /></Link>
           </div>
-
         </div>
       </nav>
-      {modalEstilosVisible && (
-  <div className="custom-modal-backdrop" onClick={() => setModalEstilosVisible(false)}>
-    <div className="custom-modal" onClick={e => e.stopPropagation()}>
-      <button
-        className="btn-close"
-        onClick={() => setModalEstilosVisible(false)}
-        style={{ float: 'right' }}
-      >
-        &times;
-      </button>
-      <h4 className="mb-3 text-center">Elige tu estilo</h4>
-      <FiltrosEstiloNovia
-        onSelect={slug => {
-          window.location.href = `/novias?corte=${slug}`;
-          setModalEstilosVisible(false);
-        }}
-      />
-    </div>
-  </div>
-)}
 
+      {/* Modal Estilos Novia */}
+      {modalEstilosVisible && isNoviasPage && (
+        <div className="custom-modal-backdrop" onClick={() => setModalEstilosVisible(false)}>
+          <div className="custom-modal" onClick={e => e.stopPropagation()}>
+            <button className="btn-close" onClick={() => setModalEstilosVisible(false)}>&times;</button>
+            <h4 className="mb-3 text-center">Elige tu estilo</h4>
+            <FiltrosEstiloNovia
+              onSelect={slug => {
+                window.location.href = `/novias?corte=${slug}`;
+                setModalEstilosVisible(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </header>
   );
 }
