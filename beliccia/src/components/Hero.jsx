@@ -27,6 +27,7 @@ export default function Hero() {
         muted
         loop
         playsInline
+        webkit-playsinline=""
         draggable={false}
         style={{
           position: 'absolute',
