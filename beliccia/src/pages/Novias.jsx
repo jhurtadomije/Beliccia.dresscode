@@ -24,6 +24,7 @@ function NoviaCard({ producto, onPedirCita }) {
             <p className="card-text">€{producto.precio}</p>
             <button
               className="btn btn-outline-dark mt-2"
+              aria-label={`Ver detalles de ${producto.nombre}`}
               onClick={() => setFlipped(true)}
             >
               Ver detalles
@@ -106,6 +107,9 @@ export default function Novias() {
         setCargando(false);
       });
   }, [corteNombre]);
+  useEffect(() => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}, [corteNombre]);
 
   if (cargando) return (
     <section className="py-5 text-center">Cargando vestidos de novia…</section>

@@ -16,10 +16,10 @@ export default function Layout() {
     <>
       <Header />
       <main
-        className="page-container"
+        className={`page-container${isHomePage ? ' no-padding' : ''}`}
         style={{
           // Aplica padding-top en todas las rutas excepto la principal
-          paddingTop: isHomePage ? undefined : headerHeight
+          paddingTop: isHomePage ? undefined : headerHeight,
         }}
       >
         <Outlet />

@@ -69,6 +69,17 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Cierra el menú al navegar a otra ruta
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location]);
+
+  // Bloquea scroll del body cuando menú/modal está abierto
+  useEffect(() => {
+    document.body.style.overflow = (menuOpen || modalEstilosVisible) ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen, modalEstilosVisible]);
+
   return (
     <header
       className={`main-header${expanded ? ' expanded' : ''}${scrolled ? ' scrolled' : ''}`}
@@ -182,7 +193,6 @@ export default function Header() {
                       </li>
                     </ul>
                   </li>
-
                 </ul>
               </li>
 
@@ -194,18 +204,6 @@ export default function Header() {
               {/* Servicios */}
               <li className="nav-item">
                 <NavLink className="nav-link" to="/#services">Servicios</NavLink>
-              </li>
-
-              {/* Tienda */}
-              <li className="nav-item">
-                <a
-                  className="nav-link"
-                  href="https://jhurtadomije.github.io/Tienda/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Tienda
-                </a>
               </li>
 
               {/* Contacto */}
@@ -229,7 +227,6 @@ export default function Header() {
                   </li>
                 </ul>
               </li>
-
             </ul>
           </div>
 
@@ -243,19 +240,19 @@ export default function Header() {
       </nav>
 
       {/* Modal Estilos Novia */}
-      {modalEstilosVisible && isNoviasPage && (
-        <div className="custom-modal-backdrop" onClick={() => setModalEstilosVisible(false)}>
-          <div className="custom-modal" onClick={e => e.stopPropagation()}>
-            <button className="btn-close" onClick={() => setModalEstilosVisible(false)}>&times;</button>
-            <h4 className="mb-3 text-center">Elige tu estilo</h4>
-            <FiltrosEstiloNovia
-              onSelect={slug => {
-                window.location.href = `/novias?corte=${slug}`;
-                setModalEstilosVisible(false);
-              }}
-            />
-          </div>
+      {modalEstilosVisible && (
+      <div className="custom-modal-backdrop" onClick={() => setModalEstilosVisible(false)}>
+        <div className="custom-modal" onClick={e => e.stopPropagation()}>
+          <button className="btn-close" onClick={() => setModalEstilosVisible(false)}>&times;</button>
+          <h4 className="mb-3 text-center">Elige tu estilo</h4>
+          <FiltrosEstiloNovia
+            onSelect={slug => {
+              window.location.href = `/novias?corte=${slug}`;
+              setModalEstilosVisible(false);
+            }}
+          />
         </div>
+      </div>
       )}
     </header>
   );

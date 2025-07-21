@@ -1,3 +1,4 @@
+/*modalCard.css*/
 .custom-modal-backdrop {
   position: fixed;
   z-index: 100011;
@@ -53,4 +54,16 @@
 .card-flip-container {
   position: relative;
   z-index: 1 !important;
+}
+/* ESCRITORIO: modal más grande y padding ampliado */
+@media (min-width: 768px) {
+  .custom-modal {
+    max-width: 600px;
+    padding: 3rem 3rem 2.5rem 3rem;
+  }
+  .btn-close {
+    font-size: 2.2rem;
+    right: 28px;
+    top: 28px;
+  }
 }

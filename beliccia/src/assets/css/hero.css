@@ -1,46 +1,62 @@
-/* Sección Hero */
+/* --- GLOBAL: quitar desplazamiento horizontal forzado --- */
+html, body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* --- HERO: nunca uses 100vw salvo que estés fuera de todo container --- */
 .hero {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    background-size: cover;
-    background-position: center;
-    position: relative;
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  box-sizing: border-box; /* clave para que padding no expanda el width */
 }
 
+/* resto igual que antes... */
 .hero::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+}
+
+.hero h1 { font-size: 2.5rem; margin-bottom: 1rem; text-shadow: none !important; }
+.hero p { font-size: 1.2rem; margin-bottom: 2rem; }
+.hero .btn { margin-bottom: 2rem; }
+
+.hero-video {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; z-index: 0;
+}
+.hero-content {
+  position: relative; z-index: 1; color: #fff;
+  text-align: center; width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  justify-content: flex-end; align-items: center;
+  padding-bottom: 4rem;
+}
+.hero-title { font-size: 2.5rem; text-shadow: none; letter-spacing: 0.05em; }
+.hero-desc { font-size: 1.2rem; margin-bottom: 2rem; }
+
+@media (min-width: 768px) {
+  .hero {
+    justify-content: center;
+    padding: 0 4rem;
     width: 100%;
-    height: 100%;
-    z-index: 0;
-}
-
-.hero h1 {
-    font-size: 2.5rem;   
-    margin-bottom: 1rem;
-    text-shadow: none !important;
-}
-
-.hero p {
-    /*text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);*/
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
-}
-
-.hero .btn {
-    margin-bottom: 2rem;
-}
-
-.hero video {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 0;
+    max-width: 100vw;
   }
+  .hero-content { justify-content: center; padding-bottom: 7rem; }
+  .hero-title { font-size: 4rem; }
+  .hero p { font-size: 1.8rem; margin-bottom: 3rem; }
+  .hero .btn { margin-bottom: 3rem; font-size: 1.2rem; }
+  .hero-desc { font-size: 1.8rem; margin-bottom: 3rem; }
+}

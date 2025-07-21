@@ -1,3 +1,4 @@
+/*components/About.jsx */
 import { useEffect, useState } from 'react';
 import { getRandomAnimation } from '../utils/animations';
 

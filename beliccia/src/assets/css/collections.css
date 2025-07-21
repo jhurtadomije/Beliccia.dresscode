@@ -1,4 +1,4 @@
-/* Colecciones */
+/* MOBILE FIRST: estilos base para móvil */
 #collections {
     padding: 2rem 1rem;
     text-align: center;
@@ -23,8 +23,23 @@
     color: var(--background-color);
     text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
 }
+
 .carousel-item {
     min-height: 300px;
     align-items: center;
     justify-content: center;
-  }
+}
+
+/* ESCRITORIO: amplía paddings, fuentes, alto del carrusel... */
+@media (min-width: 768px) {
+    #collections {
+        padding: 4rem 4rem;
+        margin-bottom: 2rem;
+    }
+    .carousel-caption h5 {
+        font-size: 2.8rem;
+    }
+    .carousel-item {
+        min-height: 450px;
+    }
+}

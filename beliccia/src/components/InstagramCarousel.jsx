@@ -1,5 +1,5 @@
 // src/components/InstagramCarousel.jsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import InstagramEmbed from './InstagramEmbed';
 
 const instagramPermalinks = [
@@ -11,7 +11,7 @@ const instagramPermalinks = [
   // añade más si quieres...
 ];
 
-// utilidad para trocear en grupos de n elementos
+// Utilidad para trocear en grupos de n elementos
 function chunkArray(arr, size) {
   const res = [];
   for (let i = 0; i < arr.length; i += size) {
@@ -21,7 +21,18 @@ function chunkArray(arr, size) {
 }
 
 export default function InstagramCarousel() {
-  const pages = chunkArray(instagramPermalinks, 3);
+  // Estado para cambiar el número de publicaciones por slide
+  const getChunkSize = () => (window.innerWidth < 768 ? 1 : 3);
+  const [chunkSize, setChunkSize] = useState(getChunkSize());
+
+  useEffect(() => {
+    // Handler para resize
+    const onResize = () => setChunkSize(getChunkSize());
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const pages = chunkArray(instagramPermalinks, chunkSize);
 
   useEffect(() => {
     const carouselEl = document.getElementById('instaCarousel');
@@ -31,7 +42,7 @@ export default function InstagramCarousel() {
         ride: 'carousel',
       });
     }
-  }, []);
+  }, [chunkSize]);
 
   return (
     <div id="instaCarousel" className="carousel slide" data-bs-ride="carousel">
@@ -43,7 +54,7 @@ export default function InstagramCarousel() {
           >
             <div className="row g-4 justify-content-center">
               {page.map((url, i) => (
-                <div key={i} className="col-12 col-md-4">
+                <div key={i} className={chunkSize === 1 ? "col-12" : "col-12 col-md-4"}>
                   <InstagramEmbed html={`
                     <blockquote class="instagram-media"
                       data-instgrm-permalink="${url}"
@@ -57,7 +68,6 @@ export default function InstagramCarousel() {
           </div>
         ))}
       </div>
-
       <button
         className="carousel-control-prev"
         type="button"

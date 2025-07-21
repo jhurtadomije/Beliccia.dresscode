@@ -61,3 +61,28 @@
 #about .social-icons i:hover {
     text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
 }
+
+/* --- ESCRITORIO: media query para pantallas grandes --- */
+@media (min-width: 768px) {
+  #about {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    padding: 4rem 3rem;
+    margin-bottom: 3rem;
+    justify-content: center;
+  }
+  #about img {
+    width: 45%;
+    max-width: 400px;
+    margin: 0;
+  }
+  #about .about-content {
+    width: 50%;
+    text-align: left;
+  }
+  #about h2,
+  #about p {
+    text-align: left;
+  }
+}

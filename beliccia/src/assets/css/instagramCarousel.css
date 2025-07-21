@@ -1,8 +1,22 @@
-/* Centrar controles y paginación */
+/* MOBILE FIRST: controles y paginación básicos */
 .swiper-button-next,
 .swiper-button-prev {
   color: var(--secondary-color);
+  width: 2.2rem;
+  height: 2.2rem;
 }
 .swiper-pagination-bullet-active {
   background: var(--primary-color);
+}
+
+/* ESCRITORIO: controles más grandes y separados */
+@media (min-width: 768px) {
+  .swiper-button-next,
+  .swiper-button-prev {
+    width: 2.8rem;
+    height: 2.8rem;
+  }
+  .swiper-pagination {
+    bottom: 1.5rem !important;
+  }
 }

@@ -5,20 +5,30 @@ export default function InstagramEmbed({ html }) {
   const ref = useRef();
 
   useEffect(() => {
-    // Inserta el bloque
-    ref.current.innerHTML = html;
-    // Llama al script de Instagram si existe
-    if (window.instgrm) {
-      window.instgrm.Embeds.process();
-    } else {
-      // carga el SDK si no está
-      const script = document.createElement('script');
-      script.src = "https://www.instagram.com/embed.js";
-      script.async = true;
-      document.body.appendChild(script);
-      script.onload = () => window.instgrm.Embeds.process();
+    if (ref.current) {
+      ref.current.innerHTML = html;
+
+      const processInstagram = () => {
+        if (window.instgrm && window.instgrm.Embeds) {
+          window.instgrm.Embeds.process();
+        }
+      };
+
+      if (window.instgrm && window.instgrm.Embeds) {
+        processInstagram();
+      } else {
+        // Solo añade el script si no existe
+        if (!document.querySelector('script[src="https://www.instagram.com/embed.js"]')) {
+          const script = document.createElement('script');
+          script.src = "https://www.instagram.com/embed.js";
+          script.async = true;
+          script.onload = processInstagram;
+          document.body.appendChild(script);
+        }
+      }
     }
+    // No hace falta limpiar nada al desmontar
   }, [html]);
 
-  return <div ref={ref} />;
+  return <div ref={ref} className="instagram-embed" />;
 }

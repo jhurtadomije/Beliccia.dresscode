@@ -47,3 +47,19 @@
     color: var(--secondary-color);
     text-align: center;
 }
+
+@media (min-width: 992px) {
+  .services-grid {
+    padding: 3rem 4rem;
+    gap: 2.5rem;
+  }
+  .service-card {
+    padding: 2rem 1.5rem;
+  }
+  .service-card i {
+    font-size: 2.2rem;
+  }
+  .service-card-title {
+    font-size: 2rem;
+  }
+}

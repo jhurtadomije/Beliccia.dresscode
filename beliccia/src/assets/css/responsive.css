@@ -1,12 +1,78 @@
-/* --------- RESPONSIVE.CSS --------- */
+/* -------- MOBILE FIRST (fuera de media query) -------- */
+.navbar .container {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  flex-wrap: nowrap !important;
+}
+.navbar-toggler {
+  display: flex !important;
+  order: 1 !important;
+}
+.navbar-brand {
+  order: 2 !important;
+  margin: 0 auto !important;
+  position: static !important;
+  transform: none !important;
+}
+.navbar-brand img {
+  height: 10rem;
+  margin-top: 0;
+  position: static;
+}
+.collapse.navbar-collapse {
+  order: 3 !important;
+  position: absolute;
+  top: 6rem;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  background: var(--background-color);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  padding: 1rem 0;
+  display: none !important;
+  transition: none !important;
+}
+.collapse.navbar-collapse.show {
+  display: flex !important;
+  flex-direction: column;
+  animation: intensifyBackground 0.5s ease-in-out forwards;
+}
+.navbar-icons {
+  order: 4 !important;
+  margin-left: 0 !important;
+  display: flex !important;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  width: auto;
+  position: static;
+  margin-top: 0;
+}
+.navbar-icons .icon-link i {
+  font-size: 1.2rem;
+}
+.navbar-nav {
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+}
+.nav-link {
+  padding: 0.5rem;
+}
+.instagram-embed {
+  max-width: 98vw;
+  margin: 0 auto;
+}
 
-/* Escritorio (≥992px) */
+/* -------- DESKTOP: cambios solo para escritorio -------- */
 @media (min-width: 992px) {
   .navbar-toggler {
     display: none !important;
   }
   .navbar .container {
-    display: flex !important;
     justify-content: flex-start !important;
     align-items: center !important;
     padding-left: 0 !important;
@@ -32,6 +98,8 @@
     flex-direction: row !important;
     gap: 1.5rem !important;
     margin: 0 !important;
+    padding: 0;
+    text-align: left;
   }
   .navbar-icons {
     order: 3 !important;
@@ -40,77 +108,7 @@
   }
 }
 
-/* Móvil (<992px) */
-@media (max-width: 991.98px) {
-  .navbar .container {
-    display: flex !important;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-  }
-  .navbar-toggler {
-    display: flex !important;
-    order: 1 !important;
-  }
-  .navbar-brand {
-    order: 2 !important;
-    margin: 0 auto !important;
-    position: static !important;
-    transform: none !important;
-  }
-  .navbar-brand img {
-    height: 10rem;
-    margin-top: 0;
-    position: static;
-  }
-  .collapse.navbar-collapse {
-    order: 3 !important;
-    position: absolute;
-    top: 6rem;
-    left: 0;
-    width: 100%;
-    z-index: 999;
-    background: var(--background-color);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    padding: 1rem 0;
-    display: none !important;
-    transition: none !important;
-  }
-  .collapse.navbar-collapse.show {
-    display: flex !important;
-    flex-direction: column;
-    animation: intensifyBackground 0.5s ease-in-out forwards;
-  }
-  .navbar-icons {
-    order: 4 !important;
-    margin-left: 0 !important;
-    display: flex !important;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    width: auto;
-    position: static;
-    margin-top: 0;
-  }
-  .navbar-icons .icon-link i {
-  font-size: 1.2rem; /* Más pequeño, por defecto suelen ser 1.5rem o 2rem */
-}
-  .navbar .container {
-    flex-wrap: nowrap !important;
-  }
-  
-  .navbar-nav {
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1rem;
-    text-align: center;
-  }
-  .nav-link {
-    padding: 0.5rem;
-  }
-}
-
-/* Ajuste hero en móvil pequeño */
+/* Hero ajuste en móvil pequeño */
 @media (max-width: 768px) {
   #hero video { object-position: center center; }
 }
