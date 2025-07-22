@@ -1,0 +1,143 @@
+.fab-instagram-stories {
+  position: fixed;
+  left: 1.8rem;
+  bottom: 5.6rem;
+  z-index: 1700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 24px #d6297690;
+  cursor: pointer;
+  animation: stories-pop-in 0.9s cubic-bezier(.64,.11,.19,1.03);
+  transition: transform 0.18s, box-shadow 0.18s;
+  overflow: visible;
+}
+
+.fab-instagram-stories:hover {
+  transform: scale(1.09) rotate(-3deg);
+  box-shadow: 0 10px 38px #d62976bb;
+}
+
+/* Anillo Stories animado tipo Instagram */
+.fab-instagram-stories::before {
+  content: "";
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: conic-gradient(
+    #fa7e1e 10%, #d62976 30%, #962fbf 70%, #fa7e1e 100%
+  );
+  filter: blur(1.5px) brightness(1.12);
+  opacity: 1;
+  animation: stories-ring-spin 2.8s linear infinite;
+}
+
+/* Pulso animado */
+.fab-instagram-stories::after {
+  content: "";
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  left: 50%;
+  top: 50%;
+  z-index: -2;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(rgba(214,41,118,0.18) 0%, rgba(214,41,118,0) 80%);
+  opacity: 0.45;
+  animation: stories-pulse 2.1s infinite cubic-bezier(.86,.21,.55,1.09);
+}
+
+@keyframes stories-ring-spin {
+  100% { transform: translate(-50%, -50%) rotate(360deg);}
+}
+@keyframes stories-pulse {
+  0% { opacity: 0.24; transform: translate(-50%, -50%) scale(0.95);}
+  60% { opacity: 0.47; transform: translate(-50%, -50%) scale(1.07);}
+  100% { opacity: 0.23; transform: translate(-50%, -50%) scale(0.95);}
+}
+@keyframes stories-pop-in {
+  0% { opacity: 0; transform: scale(0.7) translateY(32px);}
+  70% { opacity: 1; transform: scale(1.10) translateY(-7px);}
+  100% { opacity: 1; transform: scale(1) translateY(0);}
+}
+
+/* TEXTO OCULTO POR DEFECTO */
+.fab-stories-text {
+  display: none;
+  margin-left: 1.15rem;
+  font-size: 1.17rem;
+  color: #d62976;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  background: #fff7;
+  padding: 0.42em 1.15em 0.42em 1em;
+  border-radius: 2em;
+  box-shadow: 0 2px 14px #d6297630;
+  letter-spacing: 0.02em;
+  transition: background 0.2s, box-shadow 0.22s, opacity 0.19s, margin 0.15s;
+  cursor: pointer;
+  position: relative;
+  top: 1px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ICONO INSTAGRAM */
+.fab-instagram-stories .fab-inner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 8px #d6297644;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.1rem;
+  color: #d62976;
+  border: 3px solid #fff;
+  transition: border-color 0.18s;
+}
+.fab-instagram-stories:hover .fab-inner {
+  border-color: #d62976;
+}
+.fab-instagram-stories .fab-inner i {
+  background: linear-gradient(120deg, #fa7e1e 20%, #d62976 55%, #962fbf 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* --- SOLO EN DESKTOP SE MUESTRA EL TEXTO AL HOVER --- */
+@media (min-width: 992px) {
+  .fab-instagram-stories:hover .fab-stories-text,
+  .fab-instagram-stories:focus .fab-stories-text {
+    display: inline-block;
+    opacity: 1;
+    pointer-events: auto;
+    animation: stories-pop-in 0.9s cubic-bezier(.72,.01,.2,1.02);
+    margin-left: 20rem;
+  }
+}
+
+/* --- MOBILE --- */
+@media (max-width: 991px) {
+  .fab-instagram-stories {
+    bottom: 1.2rem;
+    left: 1.1rem;
+    width: 52px;
+    height: 52px;
+  }
+  .fab-instagram-stories .fab-inner { width: 36px; height: 36px; font-size: 1.5rem;}
+  .fab-stories-text { display: none !important; }
+}

@@ -23,28 +23,30 @@ export default function Header() {
 
   // Habilita submenús anidados
   useEffect(() => {
-    const container = collapseRef.current;
-    if (!container) return;
-    const toggles = container.querySelectorAll('.dropdown-submenu > .dropdown-toggle');
-    toggles.forEach(toggle => {
-      toggle.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
-        // Ocultar otras sublistas
-        toggles.forEach(t => {
-          if (t !== toggle) {
-            t.nextElementSibling.classList.remove('show');
-          }
-        });
-        toggle.nextElementSibling.classList.toggle('show');
+  // Solo en móvil, cuando el menú hamburguesa está abierto
+  if (window.innerWidth >= 992) return;
+  const container = collapseRef.current;
+  if (!container) return;
+  const toggles = container.querySelectorAll('.dropdown-submenu > .dropdown-toggle');
+  toggles.forEach(toggle => {
+    toggle.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Ocultar otras sublistas
+      toggles.forEach(t => {
+        if (t !== toggle) {
+          t.nextElementSibling.classList.remove('show');
+        }
       });
+      toggle.nextElementSibling.classList.toggle('show');
     });
-    return () => {
-      toggles.forEach(toggle => {
-        toggle.replaceWith(toggle.cloneNode(true));
-      });
-    };
-  }, [menuOpen]);
+  });
+  return () => {
+    toggles.forEach(toggle => {
+      toggle.replaceWith(toggle.cloneNode(true));
+    });
+  };
+}, [menuOpen]);
 
   // Cambia estilo al hacer scroll
   useEffect(() => {
@@ -136,10 +138,11 @@ export default function Header() {
                 <ul className="dropdown-menu" aria-labelledby="coleccionesDropdown">
 
                   {/* Novias */}
-                  <li className="dropdown-submenu dropend">
+                   <li className="dropdown-submenu dropend">
                     <a
                       className="dropdown-item dropdown-toggle"
                       href="/novias"
+                      tabIndex={-1}
                     >
                       Novias
                     </a>
@@ -160,18 +163,62 @@ export default function Header() {
                     </ul>
                   </li>
 
-                  {/* Invitadas */}
-                  <li>
-                    <NavLink className="dropdown-item" to="/invitadas">
-                      Invitadas
-                    </NavLink>
+                  {/* Fiesta */}
+                  <li className="dropdown-submenu dropend">
+                    <a
+                      className="dropdown-item dropdown-toggle"
+                      href="#"
+                      tabIndex={-1}
+                    >
+                      Fiesta
+                    </a>
+                    <ul className="dropdown-menu">
+
+                      {/* Madrina - SUBMENÚ A LA DERECHA */}
+                      <li className="dropdown-submenu dropend">
+                        <a
+                          className="dropdown-item dropdown-toggle"
+                          href="/madrina"
+                          tabIndex={-1}
+                        >
+                          Madrina
+                        </a>
+                        <ul className="dropdown-menu">
+                          <li>
+                            <NavLink className="dropdown-item" to="/madrina">
+                              Ver todo
+                            </NavLink>
+                          </li>
+                        </ul>
+                      </li>
+
+                      {/* Invitada - SUBMENÚ A LA DERECHA */}
+                      <li className="dropdown-submenu dropend">
+                        <a
+                          className="dropdown-item dropdown-toggle"
+                          href="/invitadas"
+                          tabIndex={-1}
+                        >
+                          Invitada
+                        </a>
+                        <ul className="dropdown-menu">
+                          <li>
+                            <NavLink className="dropdown-item" to="/invitadas">
+                              Ver todo
+                            </NavLink>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
                   </li>
+
 
                   {/* Complementos */}
                   <li className="dropdown-submenu dropend">
                     <a
                       className="dropdown-item dropdown-toggle"
                       href="/accesorios"
+                      tabIndex={-1}
                     >
                       Complementos
                     </a>

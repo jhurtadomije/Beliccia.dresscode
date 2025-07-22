@@ -192,7 +192,7 @@ header {
   margin-top: 0;
   margin-bottom: 0;
   object-fit: contain;
-  transition: height 0.35s cubic-bezier(.76,.01,.3,1.01), margin 0.35s;
+  transition: height 0.7s cubic-bezier(.76,.01,.3,1.01), margin 0.35s;
   /* Así ocupa sólo lo que toca */
 }
 .main-header.expanded .navbar-brand img,
@@ -205,8 +205,10 @@ header {
 
 /* ------ MEDIA QUERY ESCRITORIO ------ */
 /* --------- HEADER DESKTOP FONDO TRANSPARENTE PREMIUM --------- */
+/* ----------- BASE ----------- */
 @media (min-width: 992px) {
-  /* Header minimizado: transparente TOTAL, sin blur */
+
+  /* HEADER PREMIUM TRANSPARENTE */
   .main-header {
     background: transparent !important;
     backdrop-filter: none !important;
@@ -215,42 +217,35 @@ header {
     transition:
       background 0.35s cubic-bezier(.76,.01,.3,1.01),
       height 0.35s cubic-bezier(.76,.01,.3,1.01),
-      box-shadow 0.34s, 
+      box-shadow 0.34s,
       backdrop-filter 0.32s;
   }
-  /* Header expandido (hover/arriba): fondo blanco glassy + blur */
   .main-header.expanded,
   .main-header:hover {
     background: rgba(255,255,255,0.87) !important;
     backdrop-filter: blur(7px) !important;
     box-shadow: 0 4px 14px rgba(0,0,0,0.09) !important;
-    padding-top: 0.3rem;
     height: 9rem !important;
   }
-  /* Header scrolled: fondo blanco más opaco + blur */
   .main-header.scrolled {
     background: rgba(255,255,255,0.95) !important;
     backdrop-filter: blur(7px) !important;
     box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
     height: 4.2rem !important;
   }
-  /* Header expandido Y scrolled: igual que expandido */
   .main-header.scrolled.expanded,
   .main-header.scrolled:hover {
     background: rgba(255,255,255,0.98) !important;
     box-shadow: 0 4px 18px rgba(0,0,0,0.13) !important;
     backdrop-filter: blur(7px) !important;
-    height: 6.8rem !important;
+    height: 9rem !important;
   }
 
-  /* Sombra a enlaces SOLO cuando header es transparente, para legibilidad sobre vídeo/foto */
   .main-header:not(.expanded):not(.scrolled) .nav-link,
   .main-header:not(.expanded):not(.scrolled) .navbar-brand {
     text-shadow: 0 2px 7px rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.28);
     color: var(--secondary-color);
   }
-
-  /* Quita sombra en expandido/scrolled para que el menú se vea plano */
   .main-header.expanded .nav-link,
   .main-header.expanded .navbar-brand,
   .main-header.scrolled .nav-link,
@@ -258,6 +253,93 @@ header {
     text-shadow: none;
     color: var(--secondary-color);
   }
+  .navbar-nav > .nav-item.dropdown > .dropdown-menu {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transform: scaleY(0.88) translateY(-15px);
+    animation: none;
+    transition:
+      opacity 0.47s cubic-bezier(.77,.07,.3,1.05),
+      transform 0.39s cubic-bezier(.77,.07,.3,1.08),
+      visibility 0s linear 0.39s;
+    will-change: opacity, transform;
+  }
+  .navbar-nav > .nav-item.dropdown:hover > .dropdown-menu,
+  .navbar-nav > .nav-item.dropdown:focus-within > .dropdown-menu {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: scaleY(1) translateY(0);
+    transition:
+      opacity 0.55s cubic-bezier(.77,.07,.3,1.07),
+      transform 0.47s cubic-bezier(.77,.07,.3,1.07);
+    z-index: 220;
+    animation: slideDown 0.55s cubic-bezier(.77,.07,.3,1.09);
+  }
+  @keyframes slideDown {
+    0%   { opacity: 0; transform: scaleY(0.88) translateY(-15px);}
+    100% { opacity: 1; transform: scaleY(1) translateY(0);}
+  }
+
+  /* --- ANIMACIÓN ALFOMBRA SUBMENÚ LATERAL (DROPEND) --- */
+  @keyframes slideRightMenu {
+    0%   { opacity: 0; transform: scaleX(0.82) translateX(28px);}
+    100% { opacity: 1; transform: scaleX(1) translateX(0);}
+  }
+  .dropdown-submenu.dropend {
+    position: relative;
+  }
+  .dropdown-submenu.dropend > .dropdown-menu {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: 0.25rem;
+    min-width: 200px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.11);
+    border-radius: 0.7em;
+    background: var(--background-color, #fff);
+    transform: scaleX(0.82) translateX(28px);
+    transition:
+      opacity 0.8s cubic-bezier(.77,.07,.3,1.07),
+      transform 0.43s cubic-bezier(.77,.07,.3,1.11),
+      visibility 0s;
+    will-change: opacity, transform;
+    z-index: 250;
+  }
+  .dropdown-submenu.dropend:hover > .dropdown-menu,
+  .dropdown-submenu.dropend:focus-within > .dropdown-menu,
+  .dropdown-submenu.dropend > .dropdown-menu:hover,
+  .dropdown-submenu.dropend > .dropdown-menu:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: scaleX(1) translateX(0);
+    animation: slideRightMenu 0.8s cubic-bezier(.77,.07,.3,1.07) both;
+  }
+  /* Flecha submenú lateral */
+  .dropdown-submenu.dropend > .dropdown-toggle::after {
+    float: right;
+    margin-left: 0.5em;
+    border-left: .3em solid;
+    border-top: .3em solid transparent;
+    border-bottom: .3em solid transparent;
+    border-right: none;
+    content: "";
+    vertical-align: 0.12em;
+    display: inline-block;
+  }
+  /* Por accesibilidad: submenú visible si hay focus */
+  .dropdown-submenu.dropend > .dropdown-menu {
+    transition-delay: 0s, 0s, 0s !important ;
+  }
+
+ 
+  
 }
 
  

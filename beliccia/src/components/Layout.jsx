@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import { Outlet } from 'react-router-dom';
+import InstagramFloatingStories from './InstagramFloatingStories';
+import WhatsAppFloatingButton from './WhatsAppFloatingButton';
 
 export default function Layout() {
   const location = useLocation();
@@ -24,6 +26,8 @@ export default function Layout() {
       >
         <Outlet />
       </main>
+      <WhatsAppFloatingButton />
+      <InstagramFloatingStories />
       <Footer />
     </>
   );

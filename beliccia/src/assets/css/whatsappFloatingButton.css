@@ -1,0 +1,143 @@
+/* ----- MOBILE FIRST: WHATSAPP ENCIMA DE INSTAGRAM ----- */
+.fab-whatsapp {
+  position: fixed;
+  left: 1.1rem;
+  bottom: 7rem;         /* WhatsApp por encima de Instagram */
+  z-index: 1700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 24px #25d36699;
+  cursor: pointer;
+  animation: stories-pop-in 0.95s cubic-bezier(.64,.11,.19,1.03);
+  transition: transform 0.18s, box-shadow 0.18s;
+  overflow: visible;
+}
+.fab-whatsapp .fab-inner {
+  width: 36px;
+  height: 36px;
+  font-size: 1.5rem;
+}
+
+/* WhatsApp texto flotante oculto en móvil */
+.fab-whatsapp-text {
+  display: none;
+  margin-left: 1.15rem;
+  font-size: 1.17rem;
+  color: #075e54;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  background: #e9ffe9;
+  padding: 0.42em 1.15em 0.42em 1em;
+  border-radius: 2em;
+  box-shadow: 0 2px 14px #25d36633;
+  letter-spacing: 0.02em;
+  transition: background 0.2s, box-shadow 0.22s, opacity 0.19s, margin 0.15s;
+  cursor: pointer;
+  position: relative;
+  top: 1px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fab-whatsapp:hover {
+  transform: scale(1.09) rotate(3deg);
+  box-shadow: 0 10px 38px #25d366cc;
+}
+
+/* Animación de anillo y pulso */
+.fab-whatsapp::before {
+  content: "";
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: conic-gradient(
+    #25d366 10%, #128c7e 45%, #075e54 80%, #25d366 100%
+  );
+  filter: blur(1.5px) brightness(1.12);
+  opacity: 1;
+  animation: wa-ring-spin 2.3s linear infinite;
+}
+.fab-whatsapp::after {
+  content: "";
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  left: 50%;
+  top: 50%;
+  z-index: -2;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(rgba(37,211,102,0.19) 0%, rgba(37,211,102,0) 80%);
+  opacity: 0.45;
+  animation: wa-pulse 2.1s infinite cubic-bezier(.86,.21,.55,1.09);
+}
+@keyframes wa-ring-spin {
+  100% { transform: translate(-50%, -50%) rotate(360deg);}
+}
+@keyframes wa-pulse {
+  0% { opacity: 0.22; transform: translate(-50%, -50%) scale(0.95);}
+  60% { opacity: 0.44; transform: translate(-50%, -50%) scale(1.07);}
+  100% { opacity: 0.21; transform: translate(-50%, -50%) scale(0.95);}
+}
+@keyframes stories-pop-in {
+  0% { opacity: 0; transform: scale(0.7) translateY(32px);}
+  70% { opacity: 1; transform: scale(1.10) translateY(-7px);}
+  100% { opacity: 1; transform: scale(1) translateY(0);}
+}
+.fab-whatsapp .fab-inner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 8px #25d36633;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.1rem;
+  color: #25d366;
+  border: 3px solid #fff;
+  transition: border-color 0.18s;
+}
+.fab-whatsapp:hover .fab-inner {
+  border-color: #25d366;
+}
+.fab-whatsapp .fab-inner i {
+  background: linear-gradient(120deg, #25d366 20%, #128c7e 55%, #075e54 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ---- DESKTOP: WhatsApp MÁS ARRIBA y texto animado ---- */
+@media (min-width: 992px) {
+  .fab-whatsapp {
+    left: 1.8rem;
+    bottom: 13.2rem;    /* Más arriba que Instagram */
+    width: 64px;
+    height: 64px;
+  }
+  .fab-whatsapp .fab-inner {
+    width: 44px;
+    height: 44px;
+    font-size: 2.1rem;
+  }
+  .fab-whatsapp:hover .fab-whatsapp-text,
+  .fab-whatsapp:focus .fab-whatsapp-text {
+    display: inline-block;
+    opacity: 1;
+    pointer-events: auto;
+    animation: stories-pop-in 0.9s cubic-bezier(.72,.01,.2,1.02);
+    margin-left: 20rem;
+  }
+}
