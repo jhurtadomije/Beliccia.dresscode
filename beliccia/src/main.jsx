@@ -14,7 +14,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <CartProvider>
-        <ScrollToTop />
+        <ScrollToTop /> 
         <AppRoutes />
       </CartProvider>
     </BrowserRouter>

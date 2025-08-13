@@ -5,8 +5,6 @@ import FiltrosEstiloNovia from './FiltrosEstiloNovia';
 
 export default function Header() {
   const location = useLocation();
-  const isNoviasPage = location.pathname.startsWith('/novias');
-
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -21,34 +19,35 @@ export default function Header() {
     setModalEstilosVisible(true);
   };
 
-  // Habilita submenús anidados
+  // Submenús anidados (solo móvil)
   useEffect(() => {
-  // Solo en móvil, cuando el menú hamburguesa está abierto
-  if (window.innerWidth >= 992) return;
-  const container = collapseRef.current;
-  if (!container) return;
-  const toggles = container.querySelectorAll('.dropdown-submenu > .dropdown-toggle');
-  toggles.forEach(toggle => {
-    toggle.addEventListener('click', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      // Ocultar otras sublistas
-      toggles.forEach(t => {
-        if (t !== toggle) {
-          t.nextElementSibling.classList.remove('show');
-        }
-      });
-      toggle.nextElementSibling.classList.toggle('show');
-    });
-  });
-  return () => {
+    if (window.innerWidth >= 992) return;
+    const container = collapseRef.current;
+    if (!container) return;
+    const toggles = container.querySelectorAll('.dropdown-submenu > .dropdown-toggle');
+    const handlers = [];
     toggles.forEach(toggle => {
-      toggle.replaceWith(toggle.cloneNode(true));
+      const handler = e => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggles.forEach(t => {
+          if (t !== toggle && t.nextElementSibling) {
+            t.nextElementSibling.classList.remove('show');
+          }
+        });
+        if (toggle.nextElementSibling) {
+          toggle.nextElementSibling.classList.toggle('show');
+        }
+      };
+      toggle.addEventListener('click', handler);
+      handlers.push({ el: toggle, handler });
     });
-  };
-}, [menuOpen]);
+    return () => {
+      handlers.forEach(({ el, handler }) => el.removeEventListener('click', handler));
+    };
+  }, [menuOpen]);
 
-  // Cambia estilo al hacer scroll
+  // Estilo al hacer scroll
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
     window.addEventListener('scroll', onScroll);
@@ -71,7 +70,7 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Cierra el menú al navegar a otra ruta
+  // Cierra el menú al navegar
   useEffect(() => {
     setMenuOpen(false);
   }, [location]);
@@ -132,20 +131,20 @@ export default function Header() {
                   role="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
+                  onClick={e => e.preventDefault()}
                 >
                   Colecciones
                 </a>
                 <ul className="dropdown-menu" aria-labelledby="coleccionesDropdown">
 
                   {/* Novias */}
-                   <li className="dropdown-submenu dropend">
-                    <a
+                  <li className="dropdown-submenu dropend">
+                    <button
+                      type="button"
                       className="dropdown-item dropdown-toggle"
-                      href="/novias"
-                      tabIndex={-1}
                     >
                       Novias
-                    </a>
+                    </button>
                     <ul className="dropdown-menu">
                       <li>
                         <NavLink className="dropdown-item" to="/novias">
@@ -156,6 +155,7 @@ export default function Header() {
                         <button
                           className="dropdown-item"
                           onClick={handleEligeEstiloClick}
+                          type="button"
                         >
                           Elige tu estilo
                         </button>
@@ -165,42 +165,39 @@ export default function Header() {
 
                   {/* Fiesta */}
                   <li className="dropdown-submenu dropend">
-                    <a
+                    <button
+                      type="button"
                       className="dropdown-item dropdown-toggle"
-                      href="#"
-                      tabIndex={-1}
                     >
                       Fiesta
-                    </a>
+                    </button>
                     <ul className="dropdown-menu">
 
-                      {/* Madrina - SUBMENÚ A LA DERECHA */}
+                      {/* Madrinas */}
                       <li className="dropdown-submenu dropend">
-                        <a
+                        <button
+                          type="button"
                           className="dropdown-item dropdown-toggle"
-                          href="/madrina"
-                          tabIndex={-1}
                         >
-                          Madrina
-                        </a>
+                          Madrinas
+                        </button>
                         <ul className="dropdown-menu">
                           <li>
-                            <NavLink className="dropdown-item" to="/madrina">
+                            <NavLink className="dropdown-item" to="/madrinas">
                               Ver todo
                             </NavLink>
                           </li>
                         </ul>
                       </li>
 
-                      {/* Invitada - SUBMENÚ A LA DERECHA */}
+                      {/* Invitadas */}
                       <li className="dropdown-submenu dropend">
-                        <a
+                        <button
+                          type="button"
                           className="dropdown-item dropdown-toggle"
-                          href="/invitadas"
-                          tabIndex={-1}
                         >
-                          Invitada
-                        </a>
+                          Invitadas
+                        </button>
                         <ul className="dropdown-menu">
                           <li>
                             <NavLink className="dropdown-item" to="/invitadas">
@@ -212,16 +209,14 @@ export default function Header() {
                     </ul>
                   </li>
 
-
                   {/* Complementos */}
                   <li className="dropdown-submenu dropend">
-                    <a
+                    <button
+                      type="button"
                       className="dropdown-item dropdown-toggle"
-                      href="/accesorios"
-                      tabIndex={-1}
                     >
                       Complementos
-                    </a>
+                    </button>
                     <ul className="dropdown-menu">
                       <li>
                         <NavLink className="dropdown-item" to="/tocados">
@@ -262,6 +257,7 @@ export default function Header() {
                   role="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
+                  onClick={e => e.preventDefault()}
                 >
                   Contacto
                 </a>
@@ -288,18 +284,18 @@ export default function Header() {
 
       {/* Modal Estilos Novia */}
       {modalEstilosVisible && (
-      <div className="custom-modal-backdrop" onClick={() => setModalEstilosVisible(false)}>
-        <div className="custom-modal" onClick={e => e.stopPropagation()}>
-          <button className="btn-close" onClick={() => setModalEstilosVisible(false)}>&times;</button>
-          <h4 className="mb-3 text-center">Elige tu estilo</h4>
-          <FiltrosEstiloNovia
-            onSelect={slug => {
-              window.location.href = `/novias?corte=${slug}`;
-              setModalEstilosVisible(false);
-            }}
-          />
+        <div className="custom-modal-backdrop" onClick={() => setModalEstilosVisible(false)}>
+          <div className="custom-modal" onClick={e => e.stopPropagation()}>
+            <button className="btn-close" onClick={() => setModalEstilosVisible(false)}>&times;</button>
+            <h4 className="mb-3 text-center">Elige tu estilo</h4>
+            <FiltrosEstiloNovia
+              onSelect={slug => {
+                window.location.href = `/novias?corte=${slug}`;
+                setModalEstilosVisible(false);
+              }}
+            />
+          </div>
         </div>
-      </div>
       )}
     </header>
   );

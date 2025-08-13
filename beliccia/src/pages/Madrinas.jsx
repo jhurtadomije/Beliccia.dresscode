@@ -1,9 +1,9 @@
-// src/pages/Invitadas.jsx
+// src/pages/Madrinas.jsx
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api, { API_BASE, IMAGE_BASE } from '../services/api';
 
-const PLACEHOLDER = '/placeholder.png'; // Pon este archivo en /public
+const PLACEHOLDER = '/placeholder.png'; // Asegúrate de tenerlo en /public
 
 // Resuelve correctamente URLs de imagen que vienen de la API o de /imagenes
 const API_ORIGIN = (() => {
@@ -12,16 +12,16 @@ const API_ORIGIN = (() => {
 
 function resolveImageUrl(raw) {
   if (!raw) return PLACEHOLDER;
-  if (/^https?:\/\//i.test(raw)) return raw;            // ya es absoluta
+  if (/^https?:\/\//i.test(raw)) return raw;                 // absoluta
   if (raw.startsWith('/api/')) return `${API_ORIGIN}${raw}`; // servida por la API
   if (raw.startsWith('/imagenes/')) {
     const rel = raw.replace(/^\/?imagenes\//, '');
-    return `${IMAGE_BASE}/${rel}`;                      // estática
+    return `${IMAGE_BASE}/${rel}`;                           // estática
   }
   return raw; // fallback
 }
 
-function InvitadaCard({ producto, onPedirCita }) {
+function MadrinaCard({ producto, onPedirCita }) {
   const [flipped, setFlipped] = useState(false);
 
   const nombre = producto?.nombre || producto?.name || 'Producto';
@@ -73,7 +73,7 @@ function InvitadaCard({ producto, onPedirCita }) {
               Pedir Cita
             </button>
 
-            <Link to={`/invitadas/${encodeURIComponent(id)}`} className="btn btn-dark mb-2 w-100">
+            <Link to={`/madrinas/${encodeURIComponent(id)}`} className="btn btn-dark mb-2 w-100">
               Ver más
             </Link>
 
@@ -87,7 +87,7 @@ function InvitadaCard({ producto, onPedirCita }) {
   );
 }
 
-export default function Invitadas() {
+export default function Madrinas() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
@@ -104,8 +104,8 @@ export default function Invitadas() {
     setCargando(true);
     setError(null);
 
-    // La API clasifica invitadas como categoria=fiesta & subcategoria=invitada
-    api.get('/productos', { params: { categoria: 'fiesta', subcategoria: 'invitada', limit: 24 } })
+    // La API clasifica madrinas como categoria=fiesta & subcategoria=madrina
+    api.get('/productos', { params: { categoria: 'fiesta', subcategoria: 'madrina', limit: 24 } })
       .then(({ data }) => {
         const arr =
           Array.isArray(data) ? data :
@@ -115,7 +115,7 @@ export default function Invitadas() {
         if (alive) setProductos(arr);
       })
       .catch(() => {
-        if (alive) setError('No se pudieron cargar los vestidos de invitadas.');
+        if (alive) setError('No se pudieron cargar los vestidos de madrina.');
       })
       .finally(() => {
         if (alive) setCargando(false);
@@ -124,20 +124,20 @@ export default function Invitadas() {
     return () => { alive = false; };
   }, []);
 
-  if (cargando) return <section className="py-5 text-center">Cargando invitadas…</section>;
+  if (cargando) return <section className="py-5 text-center">Cargando madrinas…</section>;
   if (error) return <section className="py-5 text-center text-danger">{error}</section>;
 
   return (
     <section className="py-5">
       <div className="container">
-        <h2 className="text-center mb-4">Colección Invitadas</h2>
+        <h2 className="text-center mb-4">Colección Madrinas</h2>
         <div className="row g-4">
           {productos.length === 0 ? (
             <div className="col-12 text-center text-muted">No hay productos disponibles.</div>
           ) : (
             productos.map((p) => (
               <div className="col-12 col-sm-6 col-md-4" key={p.id ?? p.sku ?? p._id ?? p.nombre}>
-                <InvitadaCard producto={p} onPedirCita={() => abrirModal(p)} />
+                <MadrinaCard producto={p} onPedirCita={() => abrirModal(p)} />
               </div>
             ))
           )}
