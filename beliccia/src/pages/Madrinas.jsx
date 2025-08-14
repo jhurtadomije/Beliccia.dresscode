@@ -1,15 +1,23 @@
 // src/pages/Madrinas.jsx
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 import api, { API_BASE, IMAGE_BASE } from '../services/api';
 
-const PLACEHOLDER = '/placeholder.png'; // Asegúrate de tenerlo en /public
+const PLACEHOLDER = '/placeholder.png'; // asegúrate de tenerlo en /public
+const BUY_LIMIT = 250; // tope para permitir compra online
 
-// Resuelve correctamente URLs de imagen que vienen de la API o de /imagenes
+const asNumber = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+// Origen absoluto de la API para componer URLs /api/...
 const API_ORIGIN = (() => {
   try { return new URL(API_BASE).origin; } catch { return ''; }
 })();
 
+// Normaliza cualquier valor de imagen que nos llegue
 function resolveImageUrl(raw) {
   if (!raw) return PLACEHOLDER;
   if (/^https?:\/\//i.test(raw)) return raw;                 // absoluta
@@ -23,20 +31,25 @@ function resolveImageUrl(raw) {
 
 function MadrinaCard({ producto, onPedirCita }) {
   const [flipped, setFlipped] = useState(false);
+  const { addToCart } = useCart();
+  const location = useLocation();
+  const from = location.pathname + location.search;
 
   const nombre = producto?.nombre || producto?.name || 'Producto';
   const descripcion = producto?.descripcion || producto?.description || '';
   const id = producto?.id ?? producto?.sku ?? producto?._id ?? nombre;
 
   const imagenes = useMemo(() => {
-    if (Array.isArray(producto?.imagenes) && producto.imagenes.length) {
-      return producto.imagenes;
-    }
+    if (Array.isArray(producto?.imagenes) && producto.imagenes.length) return producto.imagenes;
     if (producto?.imagen) return [producto.imagen];
     return [PLACEHOLDER];
   }, [producto]);
 
   const imageUrl = resolveImageUrl(producto?.imagen || imagenes[0]);
+
+  const price = asNumber(producto?.precio);
+  const canBuy = price !== null && price <= BUY_LIMIT;
+  const showPrice = canBuy; // solo mostramos precio si <= BUY_LIMIT
 
   return (
     <div className="card-flip-container h-100">
@@ -49,9 +62,11 @@ function MadrinaCard({ producto, onPedirCita }) {
             alt={nombre}
             loading="lazy"
             onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
+            style={{ objectFit: 'contain', aspectRatio: '3 / 4' }}
           />
           <div className="card-body text-center d-flex flex-column justify-content-center align-items-center">
             <h5 className="card-title">{nombre}</h5>
+            {showPrice && <p className="card-text mb-0">€{price.toFixed(2)}</p>}
             <button
               className="btn btn-outline-dark mt-4 mb-3"
               onClick={() => setFlipped(true)}
@@ -67,13 +82,34 @@ function MadrinaCard({ producto, onPedirCita }) {
           <div className="card-body text-center d-flex flex-column justify-content-between align-items-center">
             <h5 className="card-title">{nombre}</h5>
             {!!descripcion && <p className="card-text mb-3">{descripcion}</p>}
-            <p className="text-muted">Consulta disponibilidad y pide tu cita</p>
+            {showPrice && <p className="fw-bold">Precio: €{price.toFixed(2)}</p>}
 
-            <button className="btn btn-primary mb-2 w-100" onClick={onPedirCita}>
-              Pedir Cita
-            </button>
+            {canBuy ? (
+              <button
+                className="btn btn-success mb-2 w-100"
+                onClick={() => addToCart(producto)}
+              >
+                Añadir al carrito
+              </button>
+            ) : (
+              <>
+                <p className="text-muted small mb-2">
+                  Este artículo no está disponible para venta online. Solicita información y te responderemos a la mayor brevedad posible.
+                </p>
+                <button
+                  className="btn btn-primary mb-2 w-100"
+                  onClick={onPedirCita}
+                >
+                  Solicitar información
+                </button>
+              </>
+            )}
 
-            <Link to={`/madrinas/${encodeURIComponent(id)}`} className="btn btn-dark mb-2 w-100">
+            <Link
+              to={`/producto/${encodeURIComponent(id)}`}
+              state={{ from }}
+              className="btn btn-dark mb-2 w-100"
+            >
               Ver más
             </Link>
 
@@ -104,7 +140,7 @@ export default function Madrinas() {
     setCargando(true);
     setError(null);
 
-    // La API clasifica madrinas como categoria=fiesta & subcategoria=madrina
+    // Madrinas: categoria=fiesta & subcategoria=madrina
     api.get('/productos', { params: { categoria: 'fiesta', subcategoria: 'madrina', limit: 24 } })
       .then(({ data }) => {
         const arr =
@@ -144,14 +180,14 @@ export default function Madrinas() {
         </div>
       </div>
 
-      {/* Modal de cita */}
+      {/* Modal de contacto/solicitud */}
       {showModal && productoSeleccionado && (
         <div
           className="custom-modal-backdrop"
           onClick={() => setShowModal(false)}
           role="dialog"
           aria-modal="true"
-          aria-label={`Pedir cita para ${productoSeleccionado?.nombre || productoSeleccionado?.name || 'producto'}`}
+          aria-label={`Solicitar información de ${productoSeleccionado?.nombre || productoSeleccionado?.name || 'producto'}`}
         >
           <div className="custom-modal" onClick={(e) => e.stopPropagation()}>
             <button

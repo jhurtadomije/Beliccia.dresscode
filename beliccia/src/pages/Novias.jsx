@@ -1,30 +1,107 @@
 // src/pages/Novias.jsx
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import api, { IMAGE_BASE } from '../services/api';
+import { useEffect, useState, useMemo } from 'react';
+import { useSearchParams, Link, useLocation } from 'react-router-dom';
+import api from '../services/api';
+import { useCart } from '../context/CartContext';
+import { resolveImageUrl } from '../services/imageUrl';
 
-function NoviaCard({ producto, onPedirCita }) {
+const PLACEHOLDER = '/placeholder.png';
+const BUY_LIMIT = 250;
+
+const asNumber = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+const getId = (p) => p?.id ?? p?.sku ?? p?._id ?? p?.slug ?? p?.nombre;
+
+// ---------- helpers de normalización y detección “novias” ----------
+const deaccent = (s) => String(s || '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '');
+const norm = (s) => deaccent(String(s || '').toLowerCase().trim());
+
+const NOVIA_WORDS = new Set([
+  'novia', 'novias', 'coleccion novias', 'colección novias',
+  'bridal', 'wedding', 'bride'
+]);
+
+const isNovia = (p) => {
+  const parts = [];
+  parts.push(
+    norm(p?.categoria),
+    norm(p?.subcategoria),
+    norm(p?.coleccion),
+    norm(p?.collection),
+    norm(p?.tipo),
+    norm(p?.tipoProducto),
+    norm(p?.tipoVestido),
+    norm(p?.estilo)
+  );
+  (p?.tags || p?.etiquetas || []).forEach(t => parts.push(norm(t)));
+  const nombre = norm(p?.nombre);
+  return (
+    parts.some(t => t && NOVIA_WORDS.has(t)) ||
+    nombre.includes('novia') || nombre.includes('bridal')
+  );
+};
+
+// dedupe por id/sku/_id/slug/nombre
+const dedupeByKey = (arr) => {
+  const seen = new Set();
+  return (arr || []).filter(p => {
+    const k = getId(p) ?? '';
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+};
+
+// ¿tiene imagen real o usa placeholder?
+const hasRealImage = (p) => {
+  const first = (Array.isArray(p?.imagenes) && p.imagenes[0]) || p?.imagen || '';
+  const url = resolveImageUrl(first) || '';
+  return url && !url.endsWith('/placeholder.png');
+};
+
+function NoviaCard({ producto, onSolicitarInfo }) {
   const [flipped, setFlipped] = useState(false);
-  const relativePath = producto.imagenes[0].replace(/^\/?imagenes\//, '');
-  const imageUrl = `${IMAGE_BASE}/${relativePath}`;
+  const { addToCart } = useCart();
+  const location = useLocation();
+  const from = location.pathname + location.search;
+
+  const id = getId(producto);
+  const nombre = producto?.nombre || 'Vestido de novia';
+
+  const firstImage = useMemo(() => {
+    if (Array.isArray(producto?.imagenes) && producto.imagenes.length) return producto.imagenes[0];
+    if (producto?.imagen) return producto.imagen;
+    return '';
+  }, [producto]);
+  const imageUrl = resolveImageUrl(firstImage) || PLACEHOLDER;
+
+  const price = asNumber(producto?.precio);
+  const canBuy = price !== null && price <= BUY_LIMIT;
+  const showPrice = canBuy; // si > 250, no mostramos el precio
 
   return (
     <div className="card-flip-container h-100">
       <div className={`card card-flip ${flipped ? 'flipped' : ''} shadow`}>
-        {/* Frontal */}
-        <div className="card-front">
+        {/* Front */}
+        <div className="card-face card-front">
           <img
             src={imageUrl}
             className="card-img-top"
-            alt={producto.nombre}
+            alt={nombre}
             loading="lazy"
+            onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
+            style={{ objectFit: 'cover', aspectRatio: '3 / 4' }}
           />
-          <div className="card-body text-center">
-            <h5 className="card-title">{producto.nombre}</h5>
-            <p className="card-text">€{producto.precio}</p>
+          <div className="card-body text-center d-flex flex-column justify-content-center align-items-center">
+            <h5 className="card-title">{nombre}</h5>
+            {showPrice && <p className="card-text mb-0">€{price.toFixed(2)}</p>}
             <button
-              className="btn btn-outline-dark mt-2"
-              aria-label={`Ver detalles de ${producto.nombre}`}
+              className="btn btn-outline-dark mt-4 mb-3"
+              aria-label={`Ver detalles de ${nombre}`}
               onClick={() => setFlipped(true)}
             >
               Ver detalles
@@ -32,40 +109,49 @@ function NoviaCard({ producto, onPedirCita }) {
           </div>
         </div>
 
-        {/* Trasera */}
-        <div className="card-back">
+        {/* Back */}
+        <div className="card-face card-back">
           <div className="card-body text-center d-flex flex-column justify-content-between align-items-center">
-            <h5 className="card-title">{producto.nombre}</h5>
-            <p className="card-text mb-3">{producto.descripcion}</p>
-            <p className="fw-bold">Precio: €{producto.precio}</p>
+            <h5 className="card-title">{nombre}</h5>
+            {!!producto?.descripcion && <p className="card-text mb-3">{producto.descripcion}</p>}
 
-            {producto.ventaOnline ? (
+            {showPrice ? (
+              <p className="fw-bold">Precio: €{price.toFixed(2)}</p>
+            ) : (
+              <p className="text-muted mb-2">Consulta disponibilidad y condiciones.</p>
+            )}
+
+            {canBuy ? (
               <button
-                className="btn btn-success mb-2"
-                style={{ width: '100%' }}
-                onClick={() => alert('¡Añadido al carrito!')}
+                className="btn btn-success mb-2 w-100"
+                onClick={() => addToCart(producto)}
               >
                 Añadir al carrito
               </button>
             ) : (
               <button
-                className="btn btn-primary mb-2"
-                style={{ width: '100%' }}
-                onClick={onPedirCita}
+                className="btn btn-primary mb-2 w-100"
+                onClick={onSolicitarInfo}
               >
-                Pedir cita
+                Solicitar información
               </button>
             )}
 
-            <button
-              className="btn btn-secondary mt-auto"
-              onClick={() => setFlipped(false)}
+            <Link
+              to={`/producto/${encodeURIComponent(id)}`}
+              state={{ from }}
+              className="btn btn-dark mb-2 w-100"
             >
+              Ver más
+            </Link>
+
+            <button className="btn btn-secondary mt-2" onClick={() => setFlipped(false)}>
               Volver
             </button>
           </div>
         </div>
       </div>
+
     </div>
   );
 }
@@ -77,53 +163,62 @@ export default function Novias() {
   const [showModal, setShowModal] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
-  // Lectura de parámetro ?corte=
   const [searchParams] = useSearchParams();
   const corteSlug = searchParams.get('corte');
   const estilosMap = {
     a: 'Corte A',
     recto: 'Corte Recto',
     sirena: 'Corte Sirena',
-    princesa: 'Corte Princesa',
+    princesa: 'Corte Princesa'
   };
   const corteNombre = estilosMap[corteSlug];
 
   useEffect(() => {
-    api.get('/productos?cat=novias')
+    // Traemos todo y filtramos en cliente por “novia/novias/colección novias”
+    api.get('/productos', { params: { limite: 1000 } })
       .then(({ data }) => {
-        // Extraer array (paginado o directo)
-        const arr = Array.isArray(data) ? data : data.resultados;
-        // Filtrar por estilo si aplica
-        const filtrados = corteNombre
-          ? arr.filter(p => p.estilo === corteNombre)
-          : arr;
-        setProductos(filtrados);
+        const arr =
+          Array.isArray(data) ? data :
+          Array.isArray(data?.resultados) ? data.resultados :
+          Array.isArray(data?.items) ? data.items :
+          [];
+
+        // 1) Solo los que pertenezcan a Novias
+        let novias = arr.filter(isNovia);
+
+        // 2) Filtro por estilo si aplica
+        if (corteNombre) {
+          novias = novias.filter(p => p?.estilo === corteNombre);
+        }
+
+        // 3) Dedupe y ordenar: primero con imagen real
+        novias = dedupeByKey(novias).sort((a, b) => {
+          const ai = hasRealImage(a) ? 1 : 0;
+          const bi = hasRealImage(b) ? 1 : 0;
+          return bi - ai;
+        });
+
+        setProductos(novias || []);
       })
       .catch(err => {
         console.error(err);
         setError('No se pudieron cargar los vestidos de novia.');
       })
-      .finally(() => {
-        setCargando(false);
-      });
+      .finally(() => setCargando(false));
   }, [corteNombre]);
-  useEffect(() => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}, [corteNombre]);
 
-  if (cargando) return (
-    <section className="py-5 text-center">Cargando vestidos de novia…</section>
-  );
-  if (error) return (
-    <section className="py-5 text-center text-danger">{error}</section>
-  );
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [corteNombre]);
+
+  if (cargando) return <section className="py-5 text-center">Cargando vestidos de novia…</section>;
+  if (error) return <section className="py-5 text-center text-danger">{error}</section>;
 
   return (
     <section className="py-5" style={{ backgroundColor: 'var(--background-color)' }}>
       <div className="container">
         <h2 className="text-center mb-4">Colección de Novias</h2>
 
-        {/* Mostrar filtro activo */}
         {corteNombre && (
           <p className="text-center fst-italic">
             Filtrando por estilo: <strong>{corteNombre}</strong>
@@ -134,11 +229,11 @@ export default function Novias() {
           {productos.length === 0 ? (
             <div className="col-12 text-center text-muted">No hay vestidos disponibles.</div>
           ) : (
-            productos.map(p => (
-              <div className="col-12 col-sm-6 col-md-4" key={p.id}>
+            productos.map((p, idx) => (
+              <div className="col-12 col-sm-6 col-md-4" key={`${getId(p)}-${idx}`}>
                 <NoviaCard
                   producto={p}
-                  onPedirCita={() => {
+                  onSolicitarInfo={() => {
                     setProductoSeleccionado(p);
                     setShowModal(true);
                   }}
@@ -149,32 +244,35 @@ export default function Novias() {
         </div>
       </div>
 
-      {/* Modal de cita */}
+      {/* Modal de contacto */}
       {showModal && productoSeleccionado && (
         <div className="custom-modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="custom-modal" onClick={e => e.stopPropagation()}>
-            <button className="btn-close" onClick={() => setShowModal(false)}>&times;</button>
-            <h5 className="mb-3">{productoSeleccionado.nombre}</h5>
-            <div className="modal-gallery mb-3">
-              {productoSeleccionado.imagenes.map((img, i) => {
-                const imgUrl = `${IMAGE_BASE}/${img.replace(/^\/?imagenes\//, '')}`;
+            <button className="btn-close" onClick={() => setShowModal(false)} aria-label="Cerrar">
+              &times;
+            </button>
+            <h5 className="mb-3">{productoSeleccionado?.nombre || 'Producto'}</h5>
+
+            <div className="modal-gallery mb-3 d-flex align-items-center">
+              {(Array.isArray(productoSeleccionado?.imagenes) && productoSeleccionado.imagenes.length
+                ? productoSeleccionado.imagenes
+                : [productoSeleccionado?.imagen || PLACEHOLDER]
+              ).slice(0, 8).map((img, i) => {
+                const imgUrl = resolveImageUrl(img);
                 return (
                   <img
                     key={i}
                     src={imgUrl}
-                    alt={`${productoSeleccionado.nombre} - foto ${i + 1}`}
+                    alt={`${productoSeleccionado?.nombre || 'Producto'} - foto ${i + 1}`}
                     className="modal-image"
-                    style={{
-                      maxWidth: '90px',
-                      maxHeight: '90px',
-                      marginRight: '8px',
-                      borderRadius: '8px',
-                      objectFit: 'cover',
-                    }}
+                    loading="lazy"
+                    onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
+                    style={{ maxWidth: 90, maxHeight: 90, marginRight: 8, borderRadius: 8, objectFit: 'cover', border: '1px solid #eee' }}
                   />
                 );
               })}
             </div>
+
             <form
               className="mt-2"
               onSubmit={e => {
@@ -186,7 +284,7 @@ export default function Novias() {
               <input name="name" autoComplete="name" className="form-control mb-2" placeholder="Nombre" required />
               <input name="email" autoComplete="email" className="form-control mb-2" placeholder="Correo electrónico" type="email" required />
               <textarea name="message" autoComplete="off" className="form-control mb-2" placeholder="Mensaje o consulta" required />
-              <button className="btn btn-success w-100" type="submit">Enviar solicitud de cita</button>
+              <button className="btn btn-success w-100" type="submit">Enviar solicitud de información</button>
             </form>
           </div>
         </div>
@@ -194,3 +292,4 @@ export default function Novias() {
     </section>
   );
 }
+

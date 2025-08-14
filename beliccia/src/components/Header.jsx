@@ -5,47 +5,121 @@ import FiltrosEstiloNovia from './FiltrosEstiloNovia';
 
 export default function Header() {
   const location = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);              // overlay móvil
+  const [expanded, setExpanded] = useState(false);              // efecto hover general
   const [scrolled, setScrolled] = useState(false);
   const [modalEstilosVisible, setModalEstilosVisible] = useState(false);
+  const [hasOpenDesktopMenu, setHasOpenDesktopMenu] = useState(false); // <-- NUEVO
 
   const collapseRef = useRef(null);
   const togglerRef = useRef(null);
+  const hoverTimersRef = useRef(new Map()); // para gestionar retrasos de hover en desktop
+  const collapseHdrTimeout = useRef(null);
 
   const toggleMenu = () => setMenuOpen(prev => !prev);
-  const handleEligeEstiloClick = e => {
-    e.preventDefault();
-    setModalEstilosVisible(true);
+  const closeMenu = () => setMenuOpen(false);
+
+  const closeAllSubmenus = () => {
+    const root = collapseRef.current;
+    if (!root) return;
+    root.querySelectorAll('.dropdown-menu.show').forEach(ul => ul.classList.remove('show'));
+    root.querySelectorAll('.dropdown-toggle[aria-expanded="true"]').forEach(btn => btn.setAttribute('aria-expanded', 'false'));
   };
 
-  // Submenús anidados (solo móvil)
+  // ------------------ SUBMENÚS EN MÓVIL (click) ------------------
   useEffect(() => {
     if (window.innerWidth >= 992) return;
-    const container = collapseRef.current;
-    if (!container) return;
-    const toggles = container.querySelectorAll('.dropdown-submenu > .dropdown-toggle');
+    const root = collapseRef.current;
+    if (!root) return;
+
+    const toggles = root.querySelectorAll(
+      '.dropdown-submenu > .dropdown-toggle, .nav-item.dropdown > .dropdown-toggle'
+    );
     const handlers = [];
+
     toggles.forEach(toggle => {
-      const handler = e => {
+      const handler = (e) => {
         e.preventDefault();
         e.stopPropagation();
         toggles.forEach(t => {
           if (t !== toggle && t.nextElementSibling) {
             t.nextElementSibling.classList.remove('show');
+            t.setAttribute('aria-expanded', 'false');
           }
         });
         if (toggle.nextElementSibling) {
           toggle.nextElementSibling.classList.toggle('show');
+          const expandedNow = toggle.getAttribute('aria-expanded') === 'true';
+          toggle.setAttribute('aria-expanded', expandedNow ? 'false' : 'true');
         }
       };
       toggle.addEventListener('click', handler);
       handlers.push({ el: toggle, handler });
     });
-    return () => {
-      handlers.forEach(({ el, handler }) => el.removeEventListener('click', handler));
-    };
+
+    return () => handlers.forEach(({ el, handler }) => el.removeEventListener('click', handler));
   }, [menuOpen]);
+
+  // ------------------ SUBMENÚS EN DESKTOP (hover-intent) ------------------
+  useEffect(() => {
+    if (window.innerWidth < 992) return;
+    const root = collapseRef.current;
+    if (!root) return;
+
+    const HOVER_OPEN_DELAY = 70;   // ms
+    const HOVER_CLOSE_DELAY = 320; // ms (un poco más alto para que no “desaparezca”)
+
+    const items = root.querySelectorAll(
+      '.navbar-nav > .nav-item.dropdown, .dropdown-submenu.dropend'
+    );
+    const timers = hoverTimersRef.current;
+    const handlers = [];
+
+    const openItem = (item) => {
+      item.classList.add('open');
+      setHasOpenDesktopMenu(true);
+      setExpanded(true);
+    };
+    const closeItem = (item) => {
+      item.classList.remove('open');
+      if (!root.querySelector('.nav-item.dropdown.open, .dropdown-submenu.dropend.open')) {
+        setHasOpenDesktopMenu(false);
+        clearTimeout(collapseHdrTimeout.current);
+        collapseHdrTimeout.current = setTimeout(() => setExpanded(false), 120);
+      }
+    };
+
+    items.forEach((item) => {
+      const onEnter = () => {
+        const tm = timers.get(item);
+        if (tm && tm.close) { clearTimeout(tm.close); tm.close = null; }
+        const openTm = setTimeout(() => openItem(item), HOVER_OPEN_DELAY);
+        timers.set(item, { ...(timers.get(item) || {}), open: openTm });
+      };
+      const onLeave = () => {
+        const tm = timers.get(item);
+        if (tm && tm.open) { clearTimeout(tm.open); tm.open = null; }
+        const closeTm = setTimeout(() => closeItem(item), HOVER_CLOSE_DELAY);
+        timers.set(item, { ...(timers.get(item) || {}), close: closeTm });
+      };
+
+      item.addEventListener('mouseenter', onEnter);
+      item.addEventListener('mouseleave', onLeave);
+      handlers.push({ item, onEnter, onLeave });
+    });
+
+    return () => {
+      handlers.forEach(({ item, onEnter, onLeave }) => {
+        item.removeEventListener('mouseenter', onEnter);
+        item.removeEventListener('mouseleave', onLeave);
+      });
+      timers.forEach(({ open, close }) => {
+        if (open) clearTimeout(open);
+        if (close) clearTimeout(close);
+      });
+      timers.clear();
+    };
+  }, [location]);
 
   // Estilo al hacer scroll
   useEffect(() => {
@@ -54,7 +128,7 @@ export default function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Cierra el menú al click fuera
+  // Click FUERA para cerrar (desktop/móvil)
   useEffect(() => {
     const handleClickOutside = e => {
       if (
@@ -63,16 +137,22 @@ export default function Header() {
         togglerRef.current &&
         !togglerRef.current.contains(e.target)
       ) {
-        setMenuOpen(false);
+        closeAllSubmenus();
+        setHasOpenDesktopMenu(false);
+        setExpanded(false);
+        closeMenu();
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Cierra el menú al navegar
+  // Cierra el overlay al navegar
   useEffect(() => {
-    setMenuOpen(false);
+    closeAllSubmenus();
+    setHasOpenDesktopMenu(false);
+    setExpanded(false);
+    closeMenu();
   }, [location]);
 
   // Bloquea scroll del body cuando menú/modal está abierto
@@ -81,11 +161,34 @@ export default function Header() {
     return () => { document.body.style.overflow = ''; };
   }, [menuOpen, modalEstilosVisible]);
 
+  // ESC para cerrar
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        closeAllSubmenus();
+        setHasOpenDesktopMenu(false);
+        setExpanded(false);
+        closeMenu();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <header
-      className={`main-header${expanded ? ' expanded' : ''}${scrolled ? ' scrolled' : ''}`}
+      className={`main-header${(expanded || hasOpenDesktopMenu) ? ' expanded' : ''}${scrolled ? ' scrolled' : ''}`}
       onMouseEnter={() => setExpanded(true)}
-      onMouseLeave={() => setExpanded(false)}
+      onMouseLeave={() => {
+        if (window.innerWidth >= 992) {
+          clearTimeout(collapseHdrTimeout.current);
+          collapseHdrTimeout.current = setTimeout(() => {
+            if (!hasOpenDesktopMenu) setExpanded(false);
+          }, 160);
+        } else {
+          setExpanded(false);
+        }
+      }}
     >
       <nav className="navbar navbar-expand-lg">
         <div className="container d-flex align-items-center justify-content-between position-relative">
@@ -117,45 +220,28 @@ export default function Header() {
           >
             <ul className="navbar-nav">
 
-              {/* Inicio */}
               <li className="nav-item">
                 <NavLink className="nav-link" to="/#hero">Inicio</NavLink>
               </li>
 
               {/* Colecciones */}
               <li className="nav-item dropdown">
-                <a
-                  className="nav-link dropdown-toggle"
-                  href="#colecciones"
-                  id="coleccionesDropdown"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  onClick={e => e.preventDefault()}
-                >
+                <button type="button" className="nav-link dropdown-toggle btn-reset-link" id="coleccionesDropdown" aria-expanded="false">
                   Colecciones
-                </a>
+                </button>
                 <ul className="dropdown-menu" aria-labelledby="coleccionesDropdown">
-
                   {/* Novias */}
                   <li className="dropdown-submenu dropend">
-                    <button
-                      type="button"
-                      className="dropdown-item dropdown-toggle"
-                    >
+                    <button type="button" className="dropdown-item dropdown-toggle" aria-expanded="false">
                       Novias
                     </button>
                     <ul className="dropdown-menu">
-                      <li>
-                        <NavLink className="dropdown-item" to="/novias">
-                          Ver todo
-                        </NavLink>
-                      </li>
+                      <li><NavLink className="dropdown-item" to="/novias">Ver todo</NavLink></li>
                       <li>
                         <button
                           className="dropdown-item"
-                          onClick={handleEligeEstiloClick}
                           type="button"
+                          onClick={(e) => { e.preventDefault(); setModalEstilosVisible(true); }}
                         >
                           Elige tu estilo
                         </button>
@@ -165,45 +251,26 @@ export default function Header() {
 
                   {/* Fiesta */}
                   <li className="dropdown-submenu dropend">
-                    <button
-                      type="button"
-                      className="dropdown-item dropdown-toggle"
-                    >
+                    <button type="button" className="dropdown-item dropdown-toggle" aria-expanded="false">
                       Fiesta
                     </button>
                     <ul className="dropdown-menu">
-
                       {/* Madrinas */}
                       <li className="dropdown-submenu dropend">
-                        <button
-                          type="button"
-                          className="dropdown-item dropdown-toggle"
-                        >
+                        <button type="button" className="dropdown-item dropdown-toggle" aria-expanded="false">
                           Madrinas
                         </button>
                         <ul className="dropdown-menu">
-                          <li>
-                            <NavLink className="dropdown-item" to="/madrinas">
-                              Ver todo
-                            </NavLink>
-                          </li>
+                          <li><NavLink className="dropdown-item" to="/madrinas">Ver todo</NavLink></li>
                         </ul>
                       </li>
-
                       {/* Invitadas */}
                       <li className="dropdown-submenu dropend">
-                        <button
-                          type="button"
-                          className="dropdown-item dropdown-toggle"
-                        >
+                        <button type="button" className="dropdown-item dropdown-toggle" aria-expanded="false">
                           Invitadas
                         </button>
                         <ul className="dropdown-menu">
-                          <li>
-                            <NavLink className="dropdown-item" to="/invitadas">
-                              Ver todo
-                            </NavLink>
-                          </li>
+                          <li><NavLink className="dropdown-item" to="/invitadas">Ver todo</NavLink></li>
                         </ul>
                       </li>
                     </ul>
@@ -211,63 +278,29 @@ export default function Header() {
 
                   {/* Complementos */}
                   <li className="dropdown-submenu dropend">
-                    <button
-                      type="button"
-                      className="dropdown-item dropdown-toggle"
-                    >
+                    <button type="button" className="dropdown-item dropdown-toggle" aria-expanded="false">
                       Complementos
                     </button>
                     <ul className="dropdown-menu">
-                      <li>
-                        <NavLink className="dropdown-item" to="/tocados">
-                          Tocados
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink className="dropdown-item" to="/bolsos">
-                          Bolsos
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink className="dropdown-item" to="/pendientes">
-                          Pendientes
-                        </NavLink>
-                      </li>
+                      <li><NavLink className="dropdown-item" to="/tocados">Tocados</NavLink></li>
+                      <li><NavLink className="dropdown-item" to="/bolsos">Bolsos</NavLink></li>
+                      <li><NavLink className="dropdown-item" to="/pendientes">Pendientes</NavLink></li>
                     </ul>
                   </li>
                 </ul>
               </li>
 
-              {/* Sobre Nosotros */}
-              <li className="nav-item">
-                <NavLink className="nav-link" to="/#about">Sobre Nosotros</NavLink>
-              </li>
-
-              {/* Servicios */}
-              <li className="nav-item">
-                <NavLink className="nav-link" to="/#services">Servicios</NavLink>
-              </li>
+              <li className="nav-item"><NavLink className="nav-link" to="/#about">Sobre Nosotros</NavLink></li>
+              <li className="nav-item"><NavLink className="nav-link" to="/#services">Servicios</NavLink></li>
 
               {/* Contacto */}
               <li className="nav-item dropdown">
-                <a
-                  className="nav-link dropdown-toggle"
-                  href="#"
-                  id="contactDropdown"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                  onClick={e => e.preventDefault()}
-                >
+                <button type="button" className="nav-link dropdown-toggle btn-reset-link" id="contactDropdown" aria-expanded="false">
                   Contacto
-                </a>
+                </button>
                 <ul className="dropdown-menu" aria-labelledby="contactDropdown">
-                  <li>
-                    <NavLink className="dropdown-item" to="/#contact">Formulario</NavLink>
-                  </li>
-                  <li>
-                    <NavLink className="dropdown-item" to="/visitanos">Visítanos</NavLink>
-                  </li>
+                  <li><NavLink className="dropdown-item" to="/#contact">Formulario</NavLink></li>
+                  <li><NavLink className="dropdown-item" to="/visitanos">Visítanos</NavLink></li>
                 </ul>
               </li>
             </ul>
@@ -281,6 +314,9 @@ export default function Header() {
           </div>
         </div>
       </nav>
+
+      {/* Overlay móvil para cerrar tocando fuera */}
+      {menuOpen && <div className="mobile-backdrop" onClick={() => { closeAllSubmenus(); setHasOpenDesktopMenu(false); setExpanded(false); closeMenu(); }} />}
 
       {/* Modal Estilos Novia */}
       {modalEstilosVisible && (

@@ -1,3 +1,6 @@
+:root { --card-img-zoom: 1; } /* o 1.08, prueba */
+
+
 .card-flip-container {
   perspective: 1200px;
   height: 100%;
@@ -21,20 +24,36 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   overflow: hidden;
 }
-.card-flip .card-back {
-  transform: rotateY(180deg);
-  z-index: 2;
+.card-flip .card-back { transform: rotateY(180deg); z-index: 2; }
+.card-flip .card-front { z-index: 3; }
+.card-flip.flipped { transform: rotateY(180deg); }
+
+.card-image-wrap {
+  width: 100%;
+  aspect-ratio: 3 / 4;          /* Cambia a 2 / 3 si la quieres más vertical */
+  position: relative;
+  overflow: hidden;
+  background: #f6f6f6;
+  border-top-left-radius: 1.5rem;
+  border-top-right-radius: 1.5rem;
 }
-.card-flip .card-front {
-  z-index: 3;
+
+.card-image-wrap img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  object-position: center top;         /* prueba 'center center' si prefieres */
+  transform: scale(var(--card-img-zoom, 1));
+  transform-origin: center top;
 }
-.card-flip.flipped {
-  transform: rotateY(180deg);
-}
+
 .card-img-top {
   object-fit: contain;
   width: 100%;
-  height: 160px;  /* Móvil: altura menor por defecto */
+  height: 160px;  /* Móvil */
   border-top-left-radius: 1.5rem;
   border-top-right-radius: 1.5rem;
   background: #eee;
@@ -47,8 +66,11 @@
   min-width: 80px;
 }
 
+
 /* ESCRITORIO: sube altura de imagen y de card */
 @media (min-width: 769px) {
-  .card-img-top { height: 250px; }
   .card-flip { min-height: 420px; }
+  .card-img-top { height: 250px; } /* sólo para las tarjetas antiguas */
+  /* Si quieres otro ratio en desktop, puedes sobreescribir:
+     .card-image-wrap { aspect-ratio: 2 / 3; } */
 }
