@@ -106,7 +106,7 @@ header {
   100% { opacity: 1; transform: scaleY(1) translateY(0); }
 }
 
-/* Dropdown general */
+/* Dropdown general (desktop por defecto) */
 .dropdown-menu {
   background-color: var(--background-color);
   border: none;
@@ -188,9 +188,16 @@ header {
 
 /* ====== COMPORTAMIENTO EN MÓVIL ====== */
 @media (max-width: 991.98px) {
-  /* En móvil los dropdowns se apilan dentro del overlay:
-     los abrimos/cerramos con la clase .show que gestiona React */
-  .navbar .dropdown-menu { 
+
+  /* El panel puede hacer scroll si hay muchos ítems */
+  .collapse.navbar-collapse {
+    overflow-y: auto;
+    max-height: calc(100vh - 4.5rem);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* En móvil los dropdowns se apilan dentro del overlay */
+  .navbar .dropdown-menu {
     position: static;
     float: none;
     display: none;         /* cerrado por defecto */
@@ -199,14 +206,16 @@ header {
     box-shadow: none;
     border-radius: 0.5rem;
     text-align: left;
+    background: transparent;
   }
-  .navbar .dropdown-menu.show { display: block; }  /* abierto */
+  .navbar .dropdown-menu.show { display: block !important; }  /* abierto */
 
   /* Submenús anidados también en flujo normal */
   .dropdown-submenu > .dropdown-menu {
     position: static;
     margin-left: 0;
-    padding-left: 0.5rem;  /* leve indentación visual */
+    padding-left: 0.75rem;               /* leve indentación visual */
+    border-left: 1px solid rgba(0,0,0,.06);
   }
 
   /* Quita animaciones agresivas en móvil para evitar “parpadeos” */
@@ -217,6 +226,26 @@ header {
     transform: none !important;
     animation: none !important;
     transition: none !important;
+  }
+
+  /* Botón-título táctil: ocupa todo el ancho y alinea a la izquierda */
+  .btn-reset-link {
+    padding: .5rem 1rem;
+    width: 100%;
+    text-align: left;
+  }
+
+  /* Flechitas orientativas */
+  .nav-item.dropdown > .dropdown-toggle::after,
+  .dropdown-submenu > .dropdown-toggle::after {
+    content: '▸';
+    float: right;
+    margin-left: .5rem;
+    transition: transform .2s ease;
+  }
+  .nav-item.dropdown > .dropdown-toggle[aria-expanded="true"]::after,
+  .dropdown-submenu > .dropdown-toggle[aria-expanded="true"]::after {
+    transform: rotate(90deg);
   }
 }
 
@@ -255,6 +284,9 @@ header {
     height: 9rem !important;
   }
 
+  /* Menú raíz */
+  .navbar-nav > .nav-item.dropdown { position: relative; }
+
   .navbar-nav > .nav-item.dropdown > .dropdown-menu {
     opacity: 0;
     pointer-events: none;
@@ -266,19 +298,18 @@ header {
       transform 0.39s cubic-bezier(.77,.07,.3,1.08),
       visibility 0s linear 0.39s;
     will-change: opacity, transform;
+    margin-top: 0.25rem; /* evita “gap” al bajar al submenú */
   }
 
-  /* Abrir por hover/focus (estable) */
+  /* Abrir por hover/focus (y también cuando JS añade .open) */
   .navbar .dropdown:hover > .dropdown-menu,
-  .navbar .dropdown:focus-within > .dropdown-menu {
+  .navbar .dropdown:focus-within > .dropdown-menu,
+  .navbar-nav > .nav-item.dropdown.open > .dropdown-menu {
     display: block;
     visibility: visible;
     opacity: 1;
     pointer-events: auto;
     transform: scaleY(1) translateY(0);
-    transition:
-      opacity 0.55s cubic-bezier(.77,.07,.3,1.07),
-      transform 0.47s cubic-bezier(.77,.07,.3,1.07);
     z-index: 220;
     animation: slideDown 0.55s cubic-bezier(.77,.07,.3,1.09);
   }
@@ -307,7 +338,8 @@ header {
     z-index: 250;
   }
   .dropdown-submenu.dropend:hover > .dropdown-menu,
-  .dropdown-submenu.dropend:focus-within > .dropdown-menu {
+  .dropdown-submenu.dropend:focus-within > .dropdown-menu,
+  .dropdown-submenu.dropend.open > .dropdown-menu {
     opacity: 1;
     pointer-events: auto;
     visibility: visible;
@@ -319,9 +351,8 @@ header {
     100% { opacity: 1; transform: scaleX(1) translateX(0); }
   }
 
-  /* Flechita de submenú lateral */
+  /* Flechita de submenú lateral (caret) */
   .dropdown-submenu.dropend > .dropdown-toggle::after {
-    
     margin-left: 0.5em;
     border-left: .3em solid;
     border-top: .3em solid transparent;
@@ -331,38 +362,6 @@ header {
     vertical-align: 0.12em;
     display: inline-block;
   }
-  .navbar-nav > .nav-item.dropdown.open > .dropdown-menu {
-    opacity: 1;
-    pointer-events: auto;
-    visibility: visible;
-    transform: scaleY(1) translateY(0);
-    z-index: 220;
-  }
-  .dropdown-submenu.dropend.open > .dropdown-menu {
-    opacity: 1;
-    pointer-events: auto;
-    visibility: visible;
-    transform: scaleX(1) translateX(0);
-    z-index: 250;
-  }
-  /* 2) Pequeño colchón visual (evita “hueco” entre trigger y menú) */
-.navbar-nav > .nav-item.dropdown > .dropdown-menu {
-  margin-top: 0.25rem; /* ya lo tenías parecido; asegura que no hay gap */
-}
-
-/* 3) Asegura que el <li> posiciona el absoluto correctamente */
-.navbar-nav > .nav-item.dropdown { position: relative; }
-
-/* 4) El overlay móvil ya lo tenías; mantenlo */
-}
-/* --- Botones que parecen enlaces (usamos <button> en lugar de <a>) --- */
-.btn-reset-link {
-  background: transparent;
-  border: 0;
-  padding: 0;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
 }
 
 /* --- Overlay móvil para cerrar tocando fuera --- */
@@ -372,37 +371,32 @@ header {
   background: rgba(0,0,0,.25);
   z-index: 998; /* por debajo del header/menu (que está ~999/1000) */
 }
-
-/* --- Asegurar posicionamiento del dropdown raíz --- */
-.navbar-nav > .nav-item.dropdown { position: relative; }
-
-/* --- Evitar “hueco” que hace perder el hover al bajar al menú --- */
-.navbar-nav > .nav-item.dropdown > .dropdown-menu {
-  margin-top: 0.25rem; /* acolchado mínimo para que no haya gap */
+/* === quitar flechitas/carets en todos los toggles (top y submenús) === */
+.navbar .dropdown-toggle::after,
+.dropdown-submenu.dropend > .dropdown-toggle::after {
+  display: none !important;
+  content: none !important;
+  border: 0 !important;
 }
 
-/* --- En desktop, además de :hover, acepta el estado .open que activamos por JS --- */
-@media (min-width: 992px) {
-  .navbar-nav > .nav-item.dropdown.open > .dropdown-menu {
-    opacity: 1;
-    pointer-events: auto;
-    visibility: visible;
-    transform: scaleY(1) translateY(0);
-    z-index: 220;
+/* === móvil: sin animaciones ni transiciones al desplegar === */
+@media (max-width: 991.98px) {
+  /* overlay del menú */
+  .collapse.navbar-collapse,
+  .collapse.navbar-collapse.show {
+    animation: none !important;
+    transition: none !important;
   }
 
-  .dropdown-submenu.dropend { position: relative; }
-
-  .dropdown-submenu.dropend.open > .dropdown-menu {
-    opacity: 1;
-    pointer-events: auto;
-    visibility: visible;
-    transform: scaleX(1) translateX(0);
-    z-index: 250;
-  }
-
-  /* Opcional: un pelín más de “zona segura” al lado derecho del submenú */
+  /* dropdowns y submenús dentro del overlay */
+  .navbar .dropdown-menu,
+  .navbar .dropdown-menu.show,
+  .navbar-nav > .nav-item.dropdown > .dropdown-menu,
   .dropdown-submenu.dropend > .dropdown-menu {
-    margin-left: .25rem;
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important; /* (display lo controla .show) */
   }
 }

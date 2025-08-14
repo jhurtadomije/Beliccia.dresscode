@@ -9,11 +9,11 @@ export default function Header() {
   const [expanded, setExpanded] = useState(false);              // efecto hover general
   const [scrolled, setScrolled] = useState(false);
   const [modalEstilosVisible, setModalEstilosVisible] = useState(false);
-  const [hasOpenDesktopMenu, setHasOpenDesktopMenu] = useState(false); // <-- NUEVO
+  const [hasOpenDesktopMenu, setHasOpenDesktopMenu] = useState(false);
 
   const collapseRef = useRef(null);
   const togglerRef = useRef(null);
-  const hoverTimersRef = useRef(new Map()); // para gestionar retrasos de hover en desktop
+  const hoverTimersRef = useRef(new Map());
   const collapseHdrTimeout = useRef(null);
 
   const toggleMenu = () => setMenuOpen(prev => !prev);
@@ -26,39 +26,33 @@ export default function Header() {
     root.querySelectorAll('.dropdown-toggle[aria-expanded="true"]').forEach(btn => btn.setAttribute('aria-expanded', 'false'));
   };
 
-  // ------------------ SUBMENÚS EN MÓVIL (click) ------------------
-  useEffect(() => {
+  // ✅ NUEVO: manejador de desplegables en móvil (sin listeners externos)
+  const toggleDropdown = (e) => {
+    // Solo actuamos en móvil
     if (window.innerWidth >= 992) return;
-    const root = collapseRef.current;
-    if (!root) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const btn = e.currentTarget;
+    const menu = btn.nextElementSibling; // el <ul.dropdown-menu> siguiente
+    if (!menu) return;
 
-    const toggles = root.querySelectorAll(
-      '.dropdown-submenu > .dropdown-toggle, .nav-item.dropdown > .dropdown-toggle'
-    );
-    const handlers = [];
+    const isOpen = menu.classList.contains('show');
 
-    toggles.forEach(toggle => {
-      const handler = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggles.forEach(t => {
-          if (t !== toggle && t.nextElementSibling) {
-            t.nextElementSibling.classList.remove('show');
-            t.setAttribute('aria-expanded', 'false');
-          }
-        });
-        if (toggle.nextElementSibling) {
-          toggle.nextElementSibling.classList.toggle('show');
-          const expandedNow = toggle.getAttribute('aria-expanded') === 'true';
-          toggle.setAttribute('aria-expanded', expandedNow ? 'false' : 'true');
-        }
-      };
-      toggle.addEventListener('click', handler);
-      handlers.push({ el: toggle, handler });
-    });
+    // Cerrar hermanos del mismo nivel
+    const parentMenu = menu.parentElement?.parentElement; // el <ul> padre
+    if (parentMenu) {
+      parentMenu.querySelectorAll(':scope > li > .dropdown-menu.show').forEach(ul => {
+        if (ul !== menu) ul.classList.remove('show');
+      });
+      parentMenu
+        .querySelectorAll(':scope > li > .dropdown-toggle[aria-expanded="true"]')
+        .forEach(b => { if (b !== btn) b.setAttribute('aria-expanded', 'false'); });
+    }
 
-    return () => handlers.forEach(({ el, handler }) => el.removeEventListener('click', handler));
-  }, [menuOpen]);
+    // Toggle actual
+    menu.classList.toggle('show', !isOpen);
+    btn.setAttribute('aria-expanded', (!isOpen).toString());
+  };
 
   // ------------------ SUBMENÚS EN DESKTOP (hover-intent) ------------------
   useEffect(() => {
@@ -67,7 +61,7 @@ export default function Header() {
     if (!root) return;
 
     const HOVER_OPEN_DELAY = 70;   // ms
-    const HOVER_CLOSE_DELAY = 320; // ms (un poco más alto para que no “desaparezca”)
+    const HOVER_CLOSE_DELAY = 320; // ms
 
     const items = root.querySelectorAll(
       '.navbar-nav > .nav-item.dropdown, .dropdown-submenu.dropend'
@@ -92,13 +86,13 @@ export default function Header() {
     items.forEach((item) => {
       const onEnter = () => {
         const tm = timers.get(item);
-        if (tm && tm.close) { clearTimeout(tm.close); tm.close = null; }
+        if (tm?.close) { clearTimeout(tm.close); tm.close = null; }
         const openTm = setTimeout(() => openItem(item), HOVER_OPEN_DELAY);
         timers.set(item, { ...(timers.get(item) || {}), open: openTm });
       };
       const onLeave = () => {
         const tm = timers.get(item);
-        if (tm && tm.open) { clearTimeout(tm.open); tm.open = null; }
+        if (tm?.open) { clearTimeout(tm.open); tm.open = null; }
         const closeTm = setTimeout(() => closeItem(item), HOVER_CLOSE_DELAY);
         timers.set(item, { ...(timers.get(item) || {}), close: closeTm });
       };
@@ -226,13 +220,24 @@ export default function Header() {
 
               {/* Colecciones */}
               <li className="nav-item dropdown">
-                <button type="button" className="nav-link dropdown-toggle btn-reset-link" id="coleccionesDropdown" aria-expanded="false">
+                <button
+                  type="button"
+                  className="nav-link dropdown-toggle btn-reset-link"
+                  id="coleccionesDropdown"
+                  aria-expanded="false"
+                  onClick={toggleDropdown}   // <-- aquí
+                >
                   Colecciones
                 </button>
                 <ul className="dropdown-menu" aria-labelledby="coleccionesDropdown">
                   {/* Novias */}
                   <li className="dropdown-submenu dropend">
-                    <button type="button" className="dropdown-item dropdown-toggle" aria-expanded="false">
+                    <button
+                      type="button"
+                      className="dropdown-item dropdown-toggle"
+                      aria-expanded="false"
+                      onClick={toggleDropdown}   // <-- y aquí
+                    >
                       Novias
                     </button>
                     <ul className="dropdown-menu">
@@ -251,13 +256,23 @@ export default function Header() {
 
                   {/* Fiesta */}
                   <li className="dropdown-submenu dropend">
-                    <button type="button" className="dropdown-item dropdown-toggle" aria-expanded="false">
+                    <button
+                      type="button"
+                      className="dropdown-item dropdown-toggle"
+                      aria-expanded="false"
+                      onClick={toggleDropdown}
+                    >
                       Fiesta
                     </button>
                     <ul className="dropdown-menu">
                       {/* Madrinas */}
                       <li className="dropdown-submenu dropend">
-                        <button type="button" className="dropdown-item dropdown-toggle" aria-expanded="false">
+                        <button
+                          type="button"
+                          className="dropdown-item dropdown-toggle"
+                          aria-expanded="false"
+                          onClick={toggleDropdown}
+                        >
                           Madrinas
                         </button>
                         <ul className="dropdown-menu">
@@ -266,7 +281,12 @@ export default function Header() {
                       </li>
                       {/* Invitadas */}
                       <li className="dropdown-submenu dropend">
-                        <button type="button" className="dropdown-item dropdown-toggle" aria-expanded="false">
+                        <button
+                          type="button"
+                          className="dropdown-item dropdown-toggle"
+                          aria-expanded="false"
+                          onClick={toggleDropdown}
+                        >
                           Invitadas
                         </button>
                         <ul className="dropdown-menu">
@@ -278,7 +298,12 @@ export default function Header() {
 
                   {/* Complementos */}
                   <li className="dropdown-submenu dropend">
-                    <button type="button" className="dropdown-item dropdown-toggle" aria-expanded="false">
+                    <button
+                      type="button"
+                      className="dropdown-item dropdown-toggle"
+                      aria-expanded="false"
+                      onClick={toggleDropdown}
+                    >
                       Complementos
                     </button>
                     <ul className="dropdown-menu">
@@ -295,7 +320,13 @@ export default function Header() {
 
               {/* Contacto */}
               <li className="nav-item dropdown">
-                <button type="button" className="nav-link dropdown-toggle btn-reset-link" id="contactDropdown" aria-expanded="false">
+                <button
+                  type="button"
+                  className="nav-link dropdown-toggle btn-reset-link"
+                  id="contactDropdown"
+                  aria-expanded="false"
+                  onClick={toggleDropdown}
+                >
                   Contacto
                 </button>
                 <ul className="dropdown-menu" aria-labelledby="contactDropdown">
@@ -316,7 +347,17 @@ export default function Header() {
       </nav>
 
       {/* Overlay móvil para cerrar tocando fuera */}
-      {menuOpen && <div className="mobile-backdrop" onClick={() => { closeAllSubmenus(); setHasOpenDesktopMenu(false); setExpanded(false); closeMenu(); }} />}
+      {menuOpen && (
+        <div
+          className="mobile-backdrop"
+          onClick={() => {
+            closeAllSubmenus();
+            setHasOpenDesktopMenu(false);
+            setExpanded(false);
+            closeMenu();
+          }}
+        />
+      )}
 
       {/* Modal Estilos Novia */}
       {modalEstilosVisible && (
