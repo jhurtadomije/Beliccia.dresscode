@@ -9,13 +9,19 @@ export default function Carrito() {
   const { items, removeFromCart, updateQuantity, clearCart } = useCart();
 
   const money = (n) =>
-    new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
-      .format(Number(n || 0));
+    new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(Number(n || 0));
 
-  const getId = (p) => p?.id ?? p?.sku ?? p?._id ?? p?.slug ?? p?.nombre;
+  // Priorizar slug, luego id...
+  const getId = (p) => p?.slug ?? p?.id ?? p?.sku ?? p?._id ?? p?.nombre;
+
+  const getUnitPrice = (p) =>
+    Number(p?.precio ?? p?.precio_base ?? 0);
 
   const total = items.reduce(
-    (sum, p) => sum + Number(p.precio || 0) * Number(p.quantity || 1),
+    (sum, p) => sum + getUnitPrice(p) * Number(p.quantity || 1),
     0
   );
 
@@ -35,6 +41,8 @@ export default function Carrito() {
                 p?.imagen ||
                 '';
               const imgUrl = resolveImageUrl(firstImage) || PLACEHOLDER;
+              const unitPrice = getUnitPrice(p);
+              const qty = Number(p.quantity || 1);
 
               return (
                 <div
@@ -59,8 +67,11 @@ export default function Carrito() {
                   <div className="flex-grow-1">
                     <h5 className="mb-1">{p?.nombre || 'Producto'}</h5>
                     <div className="d-flex align-items-center">
-                      <span className="me-2">{money(p?.precio)}</span>
-                      <label className="me-2 mb-0" htmlFor={`qty-${id}`}>
+                      <span className="me-2">{money(unitPrice)}</span>
+                      <label
+                        className="me-2 mb-0"
+                        htmlFor={`qty-${id}`}
+                      >
                         ×
                       </label>
                       <input
@@ -68,13 +79,19 @@ export default function Carrito() {
                         type="number"
                         min={1}
                         step={1}
-                        value={Number(p.quantity || 1)}
+                        value={qty}
                         onChange={(e) => {
-                          const val = Math.max(1, Number(e.target.value || 1));
+                          const val = Math.max(
+                            1,
+                            Number(e.target.value || 1)
+                          );
                           updateQuantity(id, val);
                         }}
                         onBlur={(e) => {
-                          if (!e.target.value || Number(e.target.value) < 1) {
+                          if (
+                            !e.target.value ||
+                            Number(e.target.value) < 1
+                          ) {
                             updateQuantity(id, 1);
                           }
                         }}
@@ -85,7 +102,7 @@ export default function Carrito() {
                   </div>
 
                   <div className="text-end me-3 fw-semibold">
-                    {money(Number(p?.precio || 0) * Number(p?.quantity || 1))}
+                    {money(unitPrice * qty)}
                   </div>
 
                   <button
@@ -105,12 +122,17 @@ export default function Carrito() {
             </div>
 
             <div className="text-end mt-3">
-              <button className="btn btn-secondary me-2" onClick={clearCart}>
+              <button
+                className="btn btn-secondary me-2"
+                onClick={clearCart}
+              >
                 Vaciar Carrito
               </button>
               <button
                 className="btn btn-primary"
-                onClick={() => alert('Checkout no implementado')}
+                onClick={() =>
+                  alert('Checkout no implementado (pendiente pasarela)')
+                }
               >
                 Finalizar Compra
               </button>

@@ -1,8 +1,13 @@
 // src/context/CartContext.jsx
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Creamos el contexto
 const CartContext = createContext();
+
+// Helper para normalizar el identificador
+const getProductId = (p) =>
+  p?.slug ?? p?.id ?? p?.sku ?? p?._id ?? p?.nombre;
 
 // Provider que envolverá nuestra app
 export function CartProvider({ children }) {
@@ -23,31 +28,36 @@ export function CartProvider({ children }) {
 
   // Añadir producto (o incrementar cantidad)
   function addToCart(product) {
-    setItems(prev => {
-      const exists = prev.find(i => i.id === product.id);
+    setItems((prev) => {
+      const key = getProductId(product);
+      if (!key) {
+        // Si por lo que sea no tenemos forma de identificarlo, no lo añadimos
+        console.warn('Producto sin id/slug válido en addToCart:', product);
+        return prev;
+      }
+
+      const exists = prev.find((i) => i.id === key);
       if (exists) {
-        return prev.map(i =>
-          i.id === product.id
-            ? { ...i, quantity: i.quantity + 1 }
-            : i
+        return prev.map((i) =>
+          i.id === key ? { ...i, quantity: (i.quantity || 1) + 1 } : i
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+
+      // Guardamos el producto con id normalizado
+      return [...prev, { ...product, id: key, quantity: 1 }];
     });
   }
 
-  // Eliminar producto por id
+  // Eliminar producto por id normalizado
   function removeFromCart(id) {
-    setItems(prev => prev.filter(i => i.id !== id));
+    setItems((prev) => prev.filter((i) => i.id !== id));
   }
 
   // Actualizar cantidad manualmente
   function updateQuantity(id, quantity) {
-    setItems(prev =>
-      prev.map(i =>
-        i.id === id
-          ? { ...i, quantity: Math.max(1, quantity) }
-          : i
+    setItems((prev) =>
+      prev.map((i) =>
+        i.id === id ? { ...i, quantity: Math.max(1, quantity) } : i
       )
     );
   }

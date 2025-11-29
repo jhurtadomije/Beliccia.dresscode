@@ -14,7 +14,11 @@ const asNumber = (v) => {
 
 // ==== URL helpers (API o estático /imagenes) ====
 const API_ORIGIN = (() => {
-  try { return new URL(API_BASE).origin; } catch { return ''; }
+  try {
+    return new URL(API_BASE).origin;
+  } catch {
+    return '';
+  }
 })();
 
 function resolveImageUrl(raw) {
@@ -43,50 +47,40 @@ function extractSizesFromText(text) {
 }
 
 export default function ProductoDetalle() {
-  const { id } = useParams();
+  const { id } = useParams();        // id lo usamos como slug
   const location = useLocation();
   const { addToCart } = useCart();
 
   const [item, setItem] = useState(null);
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState([]);  // aquí guardaremos objetos { url, ... }
   const [mainIdx, setMainIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // Carga del producto + imágenes
+  // Carga del producto (desde /api/productos/:slug)
   useEffect(() => {
     let alive = true;
     setLoading(true);
     setErr(null);
 
-    api.get(`/productos/${encodeURIComponent(id)}`)
+    api
+      .get(`/productos/${encodeURIComponent(id)}`)
       .then(({ data }) => {
         if (!alive) return;
         setItem(data);
 
-        return api.get(`/productos/${encodeURIComponent(id)}/images`)
-          .then(({ data: list }) => {
-            if (!alive) return;
-            const arr = Array.isArray(list) && list.length ? list : [];
-            if (arr.length) {
-              setImages(arr);
-              setMainIdx(0);
-            } else {
-              const fallbackArr = Array.isArray(data?.imagenes) && data.imagenes.length
-                ? data.imagenes
-                : (data?.imagen ? [data.imagen] : []);
-              setImages(fallbackArr);
-              setMainIdx(0);
-            }
-          })
-          .catch(() => {
-            const fallbackArr = Array.isArray(data?.imagenes) && data.imagenes.length
-              ? data.imagenes
-              : (data?.imagen ? [data.imagen] : []);
-            setImages(fallbackArr);
-            setMainIdx(0);
-          });
+        // Imágenes desde la propia respuesta: data.imagenes (array de objetos)
+        if (Array.isArray(data?.imagenes) && data.imagenes.length) {
+          setImages(data.imagenes); // [{ id, url, alt_text, ... }, ...]
+          setMainIdx(0);
+        } else if (data?.imagen) {
+          // por si acaso tienes un campo simple "imagen"
+          setImages([{ url: data.imagen }]);
+          setMainIdx(0);
+        } else {
+          setImages([]);
+        }
       })
       .catch((e) => {
         console.error(e);
@@ -98,32 +92,48 @@ export default function ProductoDetalle() {
         setLoading(false);
       });
 
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [id]);
 
-  const price = asNumber(item?.precio);
+  // Adaptamos los campos a tu API:
+  const price = asNumber(item?.precio_base);            // antes item?.precio
   const canBuy = price !== null && price <= BUY_LIMIT;
-  const showPrice = canBuy; // sólo mostramos precio si ≤ BUY_LIMIT
+  const showPrice = price !== null;                     // puedes mantener el límite si quieres
+
+  const descripcionLarga = item?.descripcion_larga || '';
+  const descripcionCorta = item?.descripcion_corta || '';
 
   const sizes = useMemo(
-    () => extractSizesFromText(item?.descripcion || item?.description || ''),
-    [item]
+    () => extractSizesFromText(descripcionLarga || descripcionCorta),
+    [descripcionLarga, descripcionCorta]
   );
-  const gallery = useMemo(
-    () => (images?.length ? images : [PLACEHOLDER]),
-    [images]
-  );
+
+  // Convertimos images (objetos) a lista de URLs para la galería
+  const gallery = useMemo(() => {
+    if (Array.isArray(images) && images.length) {
+      // si viene [{ url, alt_text, ... }] -> nos quedamos con url
+      return images.map((img) => (typeof img === 'string' ? img : img.url)).filter(Boolean);
+    }
+    return [PLACEHOLDER];
+  }, [images]);
 
   const onAddToCart = useCallback(() => {
     if (!item) return;
-    addToCart(item);
+    // Aquí podrías enriquecer con talla seleccionada cuando la tengas
+    addToCart({
+      ...item,
+      precio: price ?? 0, // adaptamos a la estructura que espere tu CartContext
+    });
     alert('¡Añadido al carrito!');
-  }, [addToCart, item]);
+  }, [addToCart, item, price]);
 
   // -------- Volver inteligente --------
-  const stateFrom = (location.state && typeof location.state.from === 'string')
-    ? location.state.from
-    : null;
+  const stateFrom =
+    location.state && typeof location.state.from === 'string'
+      ? location.state.from
+      : null;
 
   const guessedBack = useMemo(() => {
     const cat = String(item?.categoria || '').toLowerCase();
@@ -138,17 +148,25 @@ export default function ProductoDetalle() {
 
   const backTo = stateFrom || guessedBack;
 
-  if (loading) return <section className="py-5 text-center">Cargando producto…</section>;
-  if (err) return <section className="py-5 text-center text-danger">{err}</section>;
-  if (!item) return <section className="py-5 text-center text-muted">Producto no encontrado.</section>;
+  if (loading)
+    return <section className="py-5 text-center">Cargando producto…</section>;
+  if (err)
+    return (
+      <section className="py-5 text-center text-danger">{err}</section>
+    );
+  if (!item)
+    return (
+      <section className="py-5 text-center text-muted">
+        Producto no encontrado.
+      </section>
+    );
 
   const nombre = item?.nombre || item?.name || 'Producto';
-  const descripcion = item?.descripcion || item?.description || '';
+  const descripcion = descripcionLarga || descripcionCorta;
 
   return (
     <section className="py-5">
       <div className="container">
-
         <div className="row g-4">
           {/* Galería */}
           <div className="col-12 col-md-7">
@@ -157,8 +175,14 @@ export default function ProductoDetalle() {
                 src={resolveImageUrl(gallery[mainIdx] || PLACEHOLDER)}
                 alt={nombre}
                 className="w-100"
-                style={{ objectFit: 'cover', aspectRatio: '3 / 4', borderRadius: 12 }}
-                onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
+                style={{
+                  objectFit: 'cover',
+                  aspectRatio: '3 / 4',
+                  borderRadius: 12,
+                }}
+                onError={(e) => {
+                  e.currentTarget.src = PLACEHOLDER;
+                }}
               />
             </div>
             {gallery.length > 1 && (
@@ -168,7 +192,9 @@ export default function ProductoDetalle() {
                     key={i}
                     type="button"
                     onClick={() => setMainIdx(i)}
-                    className={`p-0 border-0 bg-transparent ${i === mainIdx ? 'opacity-100' : 'opacity-75'}`}
+                    className={`p-0 border-0 bg-transparent ${
+                      i === mainIdx ? 'opacity-100' : 'opacity-75'
+                    }`}
                     style={{ cursor: 'pointer' }}
                     aria-label={`Ver imagen ${i + 1}`}
                   >
@@ -176,11 +202,19 @@ export default function ProductoDetalle() {
                       src={resolveImageUrl(img)}
                       alt={`${nombre} - foto ${i + 1}`}
                       style={{
-                        width: 96, height: 128, objectFit: 'cover',
-                        borderRadius: 8, border: i === mainIdx ? '2px solid #333' : '1px solid #eee'
+                        width: 96,
+                        height: 128,
+                        objectFit: 'cover',
+                        borderRadius: 8,
+                        border:
+                          i === mainIdx
+                            ? '2px solid #333'
+                            : '1px solid #eee',
                       }}
                       loading="lazy"
-                      onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
+                      onError={(e) => {
+                        e.currentTarget.src = PLACEHOLDER;
+                      }}
                     />
                   </button>
                 ))}
@@ -195,11 +229,15 @@ export default function ProductoDetalle() {
             {showPrice ? (
               <p className="h5 mb-3">€{price.toFixed(2)}</p>
             ) : (
-              <p className="text-muted mb-3">Consulta disponibilidad y condiciones.</p>
+              <p className="text-muted mb-3">
+                Consulta disponibilidad y condiciones.
+              </p>
             )}
 
             {descripcion && (
-              <p className="mb-3" style={{ whiteSpace: 'pre-wrap' }}>{descripcion}</p>
+              <p className="mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+                {descripcion}
+              </p>
             )}
 
             {/* Tallas (si se detectan) */}
@@ -207,20 +245,26 @@ export default function ProductoDetalle() {
               <>
                 <h6 className="mt-3">Tallas Disponibles</h6>
                 <div className="d-flex flex-wrap gap-2 mb-3">
-                  {CANONICAL_SIZES.map(sz => {
+                  {CANONICAL_SIZES.map((sz) => {
                     const available = sizes.includes(sz);
                     return (
                       <span
                         key={sz}
-                        className={`badge ${available ? 'bg-dark' : 'bg-light text-muted'} `}
+                        className={`badge ${
+                          available ? 'bg-dark' : 'bg-light text-muted'
+                        } `}
                         style={{
                           textDecoration: available ? 'none' : 'line-through',
                           border: available ? 'none' : '1px solid #ddd',
                           padding: '0.6rem 0.8rem',
                           borderRadius: '999px',
-                          fontWeight: 500
+                          fontWeight: 500,
                         }}
-                        aria-label={available ? `${sz} disponible` : `${sz} no disponible`}
+                        aria-label={
+                          available
+                            ? `${sz} disponible`
+                            : `${sz} no disponible`
+                        }
                       >
                         {sz}
                       </span>
@@ -233,25 +277,31 @@ export default function ProductoDetalle() {
             {/* CTAs */}
             <div className="d-grid gap-2 mt-3">
               {canBuy ? (
-                <button className="btn btn-success btn-lg" onClick={onAddToCart}>
+                <button
+                  className="btn btn-success btn-lg"
+                  onClick={onAddToCart}
+                >
                   Añadir al carrito
                 </button>
               ) : (
-                <button className="btn btn-primary btn-lg" onClick={() => setShowModal(true)}>
+                <button
+                  className="btn btn-primary btn-lg"
+                  onClick={() => setShowModal(true)}
+                >
                   Solicitar información
                 </button>
               )}
             </div>
 
-            {/* Separador y Volver con más aire */}
+            {/* Separador y Volver */}
             <div className="mt-4 pt-3 border-top">
-            <Link
+              <Link
                 to={backTo}
                 className="btn btn-outline-secondary"
                 style={{ textDecoration: 'none' }}
-            >
+              >
                 Volver
-            </Link>
+              </Link>
             </div>
           </div>
         </div>
@@ -266,8 +316,15 @@ export default function ProductoDetalle() {
           aria-modal="true"
           aria-label={`Solicitar información de ${nombre}`}
         >
-          <div className="custom-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="btn-close" onClick={() => setShowModal(false)} aria-label="Cerrar">
+          <div
+            className="custom-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="btn-close"
+              onClick={() => setShowModal(false)}
+              aria-label="Cerrar"
+            >
               &times;
             </button>
 
@@ -280,10 +337,16 @@ export default function ProductoDetalle() {
                   src={resolveImageUrl(img)}
                   alt={`${nombre} - foto ${i + 1}`}
                   loading="lazy"
-                  onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
+                  onError={(e) => {
+                    e.currentTarget.src = PLACEHOLDER;
+                  }}
                   style={{
-                    maxWidth: 90, maxHeight: 90, marginRight: 8,
-                    borderRadius: 8, objectFit: 'cover', border: '1px solid #eee'
+                    maxWidth: 90,
+                    maxHeight: 90,
+                    marginRight: 8,
+                    borderRadius: 8,
+                    objectFit: 'cover',
+                    border: '1px solid #eee',
                   }}
                 />
               ))}
@@ -296,10 +359,31 @@ export default function ProductoDetalle() {
                 setShowModal(false);
               }}
             >
-              <input name="name" autoComplete="name" className="form-control mb-2" placeholder="Nombre" required />
-              <input name="email" autoComplete="email" className="form-control mb-2" placeholder="Correo electrónico" type="email" required />
-              <textarea name="message" autoComplete="off" className="form-control mb-2" placeholder="Mensaje" required />
-              <button className="btn btn-success w-100" type="submit">Enviar solicitud</button>
+              <input
+                name="name"
+                autoComplete="name"
+                className="form-control mb-2"
+                placeholder="Nombre"
+                required
+              />
+              <input
+                name="email"
+                autoComplete="email"
+                className="form-control mb-2"
+                placeholder="Correo electrónico"
+                type="email"
+                required
+              />
+              <textarea
+                name="message"
+                autoComplete="off"
+                className="form-control mb-2"
+                placeholder="Mensaje"
+                required
+              />
+              <button className="btn btn-success w-100" type="submit">
+                Enviar solicitud
+              </button>
             </form>
           </div>
         </div>

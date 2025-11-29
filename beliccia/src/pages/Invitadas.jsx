@@ -14,12 +14,24 @@ const asNumber = (v) => {
 
 // Origen API para rutas /api/...
 const API_ORIGIN = (() => {
-  try { return new URL(API_BASE).origin; } catch { return ''; }
+  try {
+    return new URL(API_BASE).origin;
+  } catch {
+    return '';
+  }
 })();
 
 // Normaliza URL de imagen (API o /imagenes)
 function resolveImageUrl(raw) {
   if (!raw) return PLACEHOLDER;
+
+  // Si viene un objeto { url, ... } desde la API
+  if (typeof raw === 'object' && raw !== null) {
+    const url = raw.url || raw.path || '';
+    if (!url) return PLACEHOLDER;
+    return resolveImageUrl(url);
+  }
+
   if (/^https?:\/\//i.test(raw)) return raw;
   if (raw.startsWith('/api/')) return `${API_ORIGIN}${raw}`;
   if (raw.startsWith('/imagenes/')) {
@@ -29,12 +41,16 @@ function resolveImageUrl(raw) {
   return raw;
 }
 
-const getId = (p) => p?.id ?? p?.sku ?? p?._id ?? p?.slug ?? p?.nombre ?? String(Math.random());
+// ⚠️ priorizamos slug para que el detalle vaya por /producto/:slug
+const getId = (p) => p?.slug ?? p?.id ?? p?.sku ?? p?._id ?? p?.nombre;
+
+// Primer “raw” de imagen (objeto o string)
 const getFirstImageRaw = (p) => {
   const arr = Array.isArray(p?.imagenes) ? p.imagenes.filter(Boolean) : [];
   return arr[0] || p?.imagen || '';
 };
-const hasRawImagePath = (p) => Boolean(getFirstImageRaw(p)?.trim());
+
+const hasRawImagePath = (p) => Boolean(getFirstImageRaw(p));
 
 // Detecta si el src actual del <img> es el placeholder
 const isPlaceholderSrc = (src) => {
@@ -53,15 +69,22 @@ function InvitadaCard({ producto, onPedirCita, onImageStatus }) {
   const from = location.pathname + location.search;
 
   const nombre = producto?.nombre || producto?.name || 'Producto';
-  const descripcion = producto?.descripcion || producto?.description || '';
+  const descripcion =
+    producto?.descripcion_larga ||
+    producto?.descripcion_corta ||
+    producto?.descripcion ||
+    producto?.description ||
+    '';
+
   const id = getId(producto);
 
   const firstRaw = useMemo(() => getFirstImageRaw(producto), [producto]);
   const imageUrl = resolveImageUrl(firstRaw);
 
-  const price = asNumber(producto?.precio);
+  // ⚠️ Adaptado: usamos precio_base de la API
+  const price = asNumber(producto?.precio_base);
   const canBuy = price !== null && price <= BUY_LIMIT;
-  const showPrice = canBuy; // solo mostramos precio si ≤ 250
+  const showPrice = price !== null && price <= BUY_LIMIT; // solo mostramos precio si ≤ 250
 
   return (
     <div className="card-flip-container h-100">
@@ -74,7 +97,7 @@ function InvitadaCard({ producto, onPedirCita, onImageStatus }) {
             alt={nombre}
             loading="lazy"
             onLoad={(e) => {
-              // ¡Solo marcamos "ok" si NO es el placeholder!
+              // Solo marcamos "ok" si NO es el placeholder
               if (!isPlaceholderSrc(e.currentTarget.src)) {
                 onImageStatus?.(id, true);
               }
@@ -87,7 +110,9 @@ function InvitadaCard({ producto, onPedirCita, onImageStatus }) {
           />
           <div className="card-body text-center d-flex flex-column justify-content-center align-items-center">
             <h5 className="card-title">{nombre}</h5>
-            {showPrice && <p className="card-text mb-0">€{price.toFixed(2)}</p>}
+            {showPrice && (
+              <p className="card-text mb-0">€{price.toFixed(2)}</p>
+            )}
             <button
               className="btn btn-outline-dark mt-4 mb-3"
               onClick={() => setFlipped(true)}
@@ -102,19 +127,35 @@ function InvitadaCard({ producto, onPedirCita, onImageStatus }) {
         <div className="card-face card-back">
           <div className="card-body text-center d-flex flex-column justify-content-between align-items-center">
             <h5 className="card-title">{nombre}</h5>
-            {!!descripcion && <p className="card-text mb-3">{descripcion}</p>}
-            {showPrice && <p className="fw-bold">Precio: €{price.toFixed(2)}</p>}
-            {!canBuy && <p className="text-muted mb-2">Consulta disponibilidad y pide tu cita</p>}
+            {!!descripcion && (
+              <p className="card-text mb-3">{descripcion}</p>
+            )}
+            {showPrice && (
+              <p className="fw-bold">Precio: €{price.toFixed(2)}</p>
+            )}
+            {!canBuy && (
+              <p className="text-muted mb-2">
+                Consulta disponibilidad y pide tu cita.
+              </p>
+            )}
 
             {canBuy ? (
               <button
                 className="btn btn-success mb-2 w-100"
-                onClick={() => addToCart(producto)}
+                onClick={() =>
+                  addToCart({
+                    ...producto,
+                    precio: price ?? 0, // adaptamos al contexto de carrito
+                  })
+                }
               >
                 Añadir al carrito
               </button>
             ) : (
-              <button className="btn btn-primary mb-2 w-100" onClick={onPedirCita}>
+              <button
+                className="btn btn-primary mb-2 w-100"
+                onClick={onPedirCita}
+              >
                 Solicitar información
               </button>
             )}
@@ -127,7 +168,10 @@ function InvitadaCard({ producto, onPedirCita, onImageStatus }) {
               Ver más
             </Link>
 
-            <button className="btn btn-secondary mt-2" onClick={() => setFlipped(false)}>
+            <button
+              className="btn btn-secondary mt-2"
+              onClick={() => setFlipped(false)}
+            >
               Volver
             </button>
           </div>
@@ -154,7 +198,9 @@ export default function Invitadas() {
   }, []);
 
   const handleImageStatus = useCallback((id, ok) => {
-    setImgOk(prev => (prev[id] === ok ? prev : { ...prev, [id]: ok }));
+    setImgOk((prev) =>
+      prev[id] === ok ? prev : { ...prev, [id]: ok }
+    );
   }, []);
 
   useEffect(() => {
@@ -162,13 +208,19 @@ export default function Invitadas() {
     setCargando(true);
     setError(null);
 
-    api.get('/productos', { params: { categoria: 'fiesta', subcategoria: 'invitada' } })
+    // Invitadas: intentamos filtrar por categoria/subcategoria
+    api
+      .get('/productos', {
+        params: { categoria: 'fiesta', subcategoria: 'invitada' },
+      })
       .then(({ data }) => {
-        const arr =
-          Array.isArray(data) ? data :
-          Array.isArray(data?.resultados) ? data.resultados :
-          Array.isArray(data?.items) ? data.items :
-          [];
+        const arr = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.resultados)
+          ? data.resultados
+          : Array.isArray(data?.items)
+          ? data.items
+          : [];
 
         // Pre-orden: primero los que traen *ruta* de imagen, luego sin ruta
         const preSorted = [...arr].sort(
@@ -178,13 +230,16 @@ export default function Invitadas() {
         if (alive) setProductos(preSorted);
       })
       .catch(() => {
-        if (alive) setError('No se pudieron cargar los vestidos de invitadas.');
+        if (alive)
+          setError('No se pudieron cargar los vestidos de invitadas.');
       })
       .finally(() => {
         if (alive) setCargando(false);
       });
 
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   // Orden final por estado real de carga: ok > unknown > fail
@@ -192,9 +247,9 @@ export default function Invitadas() {
     const score = (p) => {
       const id = getId(p);
       const st = imgOk[id];
-      if (st === true) return 2;      // imagen real confirmada
+      if (st === true) return 2; // imagen real confirmada
       if (st === undefined) return 1; // aún no sabemos
-      return 0;                       // falló -> placeholder
+      return 0; // falló -> placeholder
     };
     return [...productos].sort((a, b) => {
       const s = score(b) - score(a);
@@ -204,8 +259,16 @@ export default function Invitadas() {
     });
   }, [productos, imgOk]);
 
-  if (cargando) return <section className="py-5 text-center">Cargando invitadas…</section>;
-  if (error) return <section className="py-5 text-center text-danger">{error}</section>;
+  if (cargando)
+    return (
+      <section className="py-5 text-center">
+        Cargando invitadas…
+      </section>
+    );
+  if (error)
+    return (
+      <section className="py-5 text-center text-danger">{error}</section>
+    );
 
   return (
     <section className="py-5">
@@ -213,10 +276,15 @@ export default function Invitadas() {
         <h2 className="text-center mb-4">Colección Invitadas</h2>
         <div className="row g-4">
           {displayList.length === 0 ? (
-            <div className="col-12 text-center text-muted">No hay productos disponibles.</div>
+            <div className="col-12 text-center text-muted">
+              No hay productos disponibles.
+            </div>
           ) : (
             displayList.map((p) => (
-              <div className="col-12 col-sm-6 col-md-4" key={getId(p)}>
+              <div
+                className="col-12 col-sm-6 col-md-4"
+                key={getId(p) || p.id || p.sku || p._id || p.nombre}
+              >
                 <InvitadaCard
                   producto={p}
                   onPedirCita={() => abrirModal(p)}
@@ -235,9 +303,16 @@ export default function Invitadas() {
           onClick={() => setShowModal(false)}
           role="dialog"
           aria-modal="true"
-          aria-label={`Solicitar información de ${productoSeleccionado?.nombre || productoSeleccionado?.name || 'producto'}`}
+          aria-label={`Solicitar información de ${
+            productoSeleccionado?.nombre ||
+            productoSeleccionado?.name ||
+            'producto'
+          }`}
         >
-          <div className="custom-modal" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="custom-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               className="btn-close"
               onClick={() => setShowModal(false)}
@@ -247,14 +322,17 @@ export default function Invitadas() {
             </button>
 
             <h5 className="mb-3">
-              {productoSeleccionado?.nombre || productoSeleccionado?.name || 'Producto'}
+              {productoSeleccionado?.nombre ||
+                productoSeleccionado?.name ||
+                'Producto'}
             </h5>
 
             <div className="modal-gallery mb-3 d-flex align-items-center">
-              {(Array.isArray(productoSeleccionado?.imagenes) && productoSeleccionado.imagenes.length
-                  ? productoSeleccionado.imagenes
-                  : [getFirstImageRaw(productoSeleccionado) || PLACEHOLDER]
-               )
+              {(Array.isArray(productoSeleccionado?.imagenes) &&
+              productoSeleccionado.imagenes.length
+                ? productoSeleccionado.imagenes
+                : [getFirstImageRaw(productoSeleccionado) || PLACEHOLDER]
+              )
                 .slice(0, 8)
                 .map((img, i) => {
                   const imgUrl = resolveImageUrl(img);
@@ -262,11 +340,22 @@ export default function Invitadas() {
                     <img
                       key={i}
                       src={imgUrl}
-                      alt={`${productoSeleccionado?.nombre || 'Producto'} - foto ${i + 1}`}
+                      alt={`${
+                        productoSeleccionado?.nombre || 'Producto'
+                      } - foto ${i + 1}`}
                       className="modal-image"
                       loading="lazy"
-                      onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
-                      style={{ maxWidth: 90, maxHeight: 90, marginRight: 8, borderRadius: 8, objectFit: 'cover', border: '1px solid #eee' }}
+                      onError={(e) => {
+                        e.currentTarget.src = PLACEHOLDER;
+                      }}
+                      style={{
+                        maxWidth: 90,
+                        maxHeight: 90,
+                        marginRight: 8,
+                        borderRadius: 8,
+                        objectFit: 'cover',
+                        border: '1px solid #eee',
+                      }}
                     />
                   );
                 })}
@@ -279,10 +368,34 @@ export default function Invitadas() {
                 setShowModal(false);
               }}
             >
-              <input name="name" autoComplete="name" className="form-control mb-2" placeholder="Nombre" required />
-              <input name="email" autoComplete="email" className="form-control mb-2" placeholder="Correo electrónico" type="email" required />
-              <textarea name="message" autoComplete="off" className="form-control mb-2" placeholder="Mensaje" required />
-              <button className="btn btn-success w-100" type="submit">Enviar solicitud</button>
+              <input
+                name="name"
+                autoComplete="name"
+                className="form-control mb-2"
+                placeholder="Nombre"
+                required
+              />
+              <input
+                name="email"
+                autoComplete="email"
+                className="form-control mb-2"
+                placeholder="Correo electrónico"
+                type="email"
+                required
+              />
+              <textarea
+                name="message"
+                autoComplete="off"
+                className="form-control mb-2"
+                placeholder="Mensaje"
+                required
+              />
+              <button
+                className="btn btn-success w-100"
+                type="submit"
+              >
+                Enviar solicitud
+              </button>
             </form>
           </div>
         </div>

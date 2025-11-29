@@ -17,6 +17,15 @@ function join(base, p) {
 
 export function resolveImageUrl(raw) {
   if (!raw) return PLACEHOLDER;
+
+  // ✅ Si viene un objeto desde la API: { url, path, ... }
+  if (typeof raw === 'object') {
+    const candidate = raw.url || raw.path || raw.src || raw.image || '';
+    if (!candidate) return PLACEHOLDER;
+    // volvemos a pasar por la misma función, pero ya como string
+    return resolveImageUrl(candidate);
+  }
+
   const s = String(raw).trim();
 
   // 1) Absoluta → respetar

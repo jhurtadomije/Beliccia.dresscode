@@ -315,7 +315,7 @@ export default function Header() {
                 </ul>
               </li>
 
-              <li className="nav-item"><NavLink className="nav-link" to="/#about">Sobre Nosotros</NavLink></li>
+              <li className="nav-item"><NavLink className="nav-link" to="/#about">Conócenos</NavLink></li>
               <li className="nav-item"><NavLink className="nav-link" to="/#services">Servicios</NavLink></li>
 
               {/* Contacto */}
