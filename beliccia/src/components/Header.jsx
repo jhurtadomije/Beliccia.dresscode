@@ -309,7 +309,7 @@ export default function Header() {
                     <ul className="dropdown-menu">
                       <li><NavLink className="dropdown-item" to="/tocados">Tocados</NavLink></li>
                       <li><NavLink className="dropdown-item" to="/bolsos">Bolsos</NavLink></li>
-                      <li><NavLink className="dropdown-item" to="/pendientes">Pendientes</NavLink></li>
+                      <li><NavLink className="dropdown-item" to="/otros">Otros</NavLink></li>
                     </ul>
                   </li>
                 </ul>

@@ -1,10 +1,11 @@
 // src/pages/ProductoDetalle.jsx
-import { useEffect, useMemo, useState, useCallback } from 'react';
-import { useParams, useLocation, Link } from 'react-router-dom';
-import api, { API_BASE, IMAGE_BASE } from '../services/api';
-import { useCart } from '../context/CartContext';
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useParams, useLocation, Link } from "react-router-dom";
+import api from "../services/api";
+import { useCart } from "../context/CartContext";
+import { resolveImageUrl } from "../services/imageUrl";
 
-const PLACEHOLDER = '/placeholder.png';
+const PLACEHOLDER = "/placeholder.png";
 const BUY_LIMIT = 250;
 
 const asNumber = (v) => {
@@ -12,53 +13,43 @@ const asNumber = (v) => {
   return Number.isFinite(n) ? n : null;
 };
 
-// ==== URL helpers (API o estático /imagenes) ====
-const API_ORIGIN = (() => {
-  try {
-    return new URL(API_BASE).origin;
-  } catch {
-    return '';
-  }
-})();
-
-function resolveImageUrl(raw) {
-  if (!raw) return PLACEHOLDER;
-  if (/^https?:\/\//i.test(raw)) return raw;                 // absoluta
-  if (raw.startsWith('/api/')) return `${API_ORIGIN}${raw}`; // servida por API
-  if (raw.startsWith('/imagenes/')) {
-    const rel = raw.replace(/^\/?imagenes\//, '');
-    return `${IMAGE_BASE}/${rel}`;                           // estática
-  }
-  return raw; // fallback tal cual
-}
-
-// ==== Tallas: extracción desde descripción "T 52", "T XL", ... ====
+// Tallas estándar para pintar disponibilidad
 const CANONICAL_SIZES = [
-  'XS','S','M','L','XL','XXL','3XL',
-  '34','36','38','40','42','44','46','48','50','52','54','56'
+  "XS",
+  "S",
+  "M",
+  "L",
+  "XL",
+  "XXL",
+  "3XL",
+  "34",
+  "36",
+  "38",
+  "40",
+  "42",
+  "44",
+  "46",
+  "48",
+  "50",
+  "52",
+  "54",
+  "56",
 ];
 
-function extractSizesFromText(text) {
-  if (!text) return [];
-  const matches = [...text.matchAll(/\bT\s*([0-9]{2}|XS|S|M|L|XL|XXL|3XL)\b/gi)];
-  const found = matches.map(m => m[1].toUpperCase());
-  const set = new Set(found.filter(x => CANONICAL_SIZES.includes(x)));
-  return [...set];
-}
-
 export default function ProductoDetalle() {
-  const { id } = useParams();        // id lo usamos como slug
+  // En tu código usamos slug en la URL, pero lo llamas "id"
+  const { id } = useParams(); // slug
   const location = useLocation();
   const { addToCart } = useCart();
 
   const [item, setItem] = useState(null);
-  const [images, setImages] = useState([]);  // aquí guardaremos objetos { url, ... }
+  const [images, setImages] = useState([]); // array de objetos { id, url, ... }
   const [mainIdx, setMainIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // Carga del producto (desde /api/productos/:slug)
+  // Carga del producto: /api/productos/:slug
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -70,13 +61,13 @@ export default function ProductoDetalle() {
         if (!alive) return;
         setItem(data);
 
-        // Imágenes desde la propia respuesta: data.imagenes (array de objetos)
+        // data.imagenes viene ya como array [{ id, url, alt_text, es_portada, orden }]
         if (Array.isArray(data?.imagenes) && data.imagenes.length) {
-          setImages(data.imagenes); // [{ id, url, alt_text, ... }, ...]
+          setImages(data.imagenes);
           setMainIdx(0);
-        } else if (data?.imagen) {
-          // por si acaso tienes un campo simple "imagen"
-          setImages([{ url: data.imagen }]);
+        } else if (data?.imagen_portada || data?.imagen) {
+          // fallback por si acaso
+          setImages([{ url: data.imagen_portada || data.imagen }]);
           setMainIdx(0);
         } else {
           setImages([]);
@@ -85,7 +76,7 @@ export default function ProductoDetalle() {
       .catch((e) => {
         console.error(e);
         if (!alive) return;
-        setErr('No se pudo cargar el producto.');
+        setErr("No se pudo cargar el producto.");
       })
       .finally(() => {
         if (!alive) return;
@@ -97,59 +88,68 @@ export default function ProductoDetalle() {
     };
   }, [id]);
 
-  // Adaptamos los campos a tu API:
-  const price = asNumber(item?.precio_base);            // antes item?.precio
+  // Precio: usamos precio_base de tu tabla productos
+  const price = asNumber(item?.precio_base);
   const canBuy = price !== null && price <= BUY_LIMIT;
-  const showPrice = price !== null;                     // puedes mantener el límite si quieres
+  const showPrice = price !== null && price <= BUY_LIMIT; // mismo criterio que en las listas
 
-  const descripcionLarga = item?.descripcion_larga || '';
-  const descripcionCorta = item?.descripcion_corta || '';
+  const descripcionLarga = item?.descripcion_larga || "";
+  const descripcionCorta = item?.descripcion_corta || "";
+  const descripcion = descripcionLarga || descripcionCorta;
 
-  const sizes = useMemo(
-    () => extractSizesFromText(descripcionLarga || descripcionCorta),
-    [descripcionLarga, descripcionCorta]
-  );
+  // Tallas desde producto_variantes
+  const sizes = useMemo(() => {
+    if (!Array.isArray(item?.variantes)) return [];
+    const set = new Set(
+      item.variantes
+        .filter((v) => v.activo && v.stock > 0 && v.talla)
+        .map((v) => String(v.talla).toUpperCase())
+    );
+    return [...set];
+  }, [item]);
 
-  // Convertimos images (objetos) a lista de URLs para la galería
+  // Galería: convertimos imágenes (objetos) a URLs
   const gallery = useMemo(() => {
     if (Array.isArray(images) && images.length) {
-      // si viene [{ url, alt_text, ... }] -> nos quedamos con url
-      return images.map((img) => (typeof img === 'string' ? img : img.url)).filter(Boolean);
+      return images
+        .map((img) => (typeof img === "string" ? img : img.url))
+        .filter(Boolean);
     }
-    return [PLACEHOLDER];
-  }, [images]);
+    const fallback = item?.imagen_portada || item?.imagen || PLACEHOLDER;
+    return [fallback];
+  }, [images, item]);
 
   const onAddToCart = useCallback(() => {
     if (!item) return;
-    // Aquí podrías enriquecer con talla seleccionada cuando la tengas
     addToCart({
       ...item,
-      precio: price ?? 0, // adaptamos a la estructura que espere tu CartContext
+      precio: price ?? 0, // adaptado a lo que espera el CartContext
     });
-    alert('¡Añadido al carrito!');
+    alert("¡Añadido al carrito!");
   }, [addToCart, item, price]);
 
   // -------- Volver inteligente --------
   const stateFrom =
-    location.state && typeof location.state.from === 'string'
+    location.state && typeof location.state.from === "string"
       ? location.state.from
       : null;
 
   const guessedBack = useMemo(() => {
-    const cat = String(item?.categoria || '').toLowerCase();
-    const sub = String(item?.subcategoria || '').toLowerCase();
-
-    if (cat === 'fiesta' && (sub === 'madrina' || sub === 'madrinas')) return '/madrinas';
-    if (cat === 'fiesta' && (sub === 'invitada' || sub === 'invitadas')) return '/invitadas';
-    if (cat === 'complementos' || cat === 'accesorios') return '/accesorios';
-    if (cat === 'novias') return '/novias';
-    return '/';
+    const cat = String(item?.categoria || "").toLowerCase();
+    // La API te devuelve c.nombre como "Novias", "Madrinas", "Invitadas", "Complementos"
+    if (cat === "novias") return "/novias";
+    if (cat === "madrinas") return "/madrinas";
+    if (cat === "invitadas") return "/invitadas";
+    if (cat === "complementos") return "/accesorios";
+    return "/";
   }, [item]);
 
   const backTo = stateFrom || guessedBack;
 
   if (loading)
-    return <section className="py-5 text-center">Cargando producto…</section>;
+    return (
+      <section className="py-5 text-center">Cargando producto…</section>
+    );
   if (err)
     return (
       <section className="py-5 text-center text-danger">{err}</section>
@@ -161,8 +161,7 @@ export default function ProductoDetalle() {
       </section>
     );
 
-  const nombre = item?.nombre || item?.name || 'Producto';
-  const descripcion = descripcionLarga || descripcionCorta;
+  const nombre = item?.nombre || "Producto";
 
   return (
     <section className="py-5">
@@ -176,8 +175,8 @@ export default function ProductoDetalle() {
                 alt={nombre}
                 className="w-100"
                 style={{
-                  objectFit: 'cover',
-                  aspectRatio: '3 / 4',
+                  objectFit: "cover",
+                  aspectRatio: "3 / 4",
                   borderRadius: 12,
                 }}
                 onError={(e) => {
@@ -193,9 +192,9 @@ export default function ProductoDetalle() {
                     type="button"
                     onClick={() => setMainIdx(i)}
                     className={`p-0 border-0 bg-transparent ${
-                      i === mainIdx ? 'opacity-100' : 'opacity-75'
+                      i === mainIdx ? "opacity-100" : "opacity-75"
                     }`}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: "pointer" }}
                     aria-label={`Ver imagen ${i + 1}`}
                   >
                     <img
@@ -204,12 +203,12 @@ export default function ProductoDetalle() {
                       style={{
                         width: 96,
                         height: 128,
-                        objectFit: 'cover',
+                        objectFit: "cover",
                         borderRadius: 8,
                         border:
                           i === mainIdx
-                            ? '2px solid #333'
-                            : '1px solid #eee',
+                            ? "2px solid #333"
+                            : "1px solid #eee",
                       }}
                       loading="lazy"
                       onError={(e) => {
@@ -226,6 +225,15 @@ export default function ProductoDetalle() {
           <div className="col-12 col-md-5">
             <h1 className="h3 mb-2">{nombre}</h1>
 
+            {/* Marca / colección si quieres mostrar el contexto */}
+            {(item?.marca || item?.coleccion) && (
+              <p className="text-muted mb-2">
+                {item?.marca && <span>{item.marca}</span>}
+                {item?.marca && item?.coleccion && <span> · </span>}
+                {item?.coleccion && <span>{item.coleccion}</span>}
+              </p>
+            )}
+
             {showPrice ? (
               <p className="h5 mb-3">€{price.toFixed(2)}</p>
             ) : (
@@ -235,15 +243,15 @@ export default function ProductoDetalle() {
             )}
 
             {descripcion && (
-              <p className="mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+              <p className="mb-3" style={{ whiteSpace: "pre-wrap" }}>
                 {descripcion}
               </p>
             )}
 
-            {/* Tallas (si se detectan) */}
+            {/* Tallas (desde variantes) */}
             {sizes.length > 0 && (
               <>
-                <h6 className="mt-3">Tallas Disponibles</h6>
+                <h6 className="mt-3">Tallas disponibles</h6>
                 <div className="d-flex flex-wrap gap-2 mb-3">
                   {CANONICAL_SIZES.map((sz) => {
                     const available = sizes.includes(sz);
@@ -251,13 +259,13 @@ export default function ProductoDetalle() {
                       <span
                         key={sz}
                         className={`badge ${
-                          available ? 'bg-dark' : 'bg-light text-muted'
-                        } `}
+                          available ? "bg-dark" : "bg-light text-muted"
+                        }`}
                         style={{
-                          textDecoration: available ? 'none' : 'line-through',
-                          border: available ? 'none' : '1px solid #ddd',
-                          padding: '0.6rem 0.8rem',
-                          borderRadius: '999px',
+                          textDecoration: available ? "none" : "line-through",
+                          border: available ? "none" : "1px solid #ddd",
+                          padding: "0.6rem 0.8rem",
+                          borderRadius: "999px",
                           fontWeight: 500,
                         }}
                         aria-label={
@@ -293,12 +301,12 @@ export default function ProductoDetalle() {
               )}
             </div>
 
-            {/* Separador y Volver */}
+            {/* Volver */}
             <div className="mt-4 pt-3 border-top">
               <Link
                 to={backTo}
                 className="btn btn-outline-secondary"
-                style={{ textDecoration: 'none' }}
+                style={{ textDecoration: "none" }}
               >
                 Volver
               </Link>
@@ -345,8 +353,8 @@ export default function ProductoDetalle() {
                     maxHeight: 90,
                     marginRight: 8,
                     borderRadius: 8,
-                    objectFit: 'cover',
-                    border: '1px solid #eee',
+                    objectFit: "cover",
+                    border: "1px solid #eee",
                   }}
                 />
               ))}
@@ -355,7 +363,7 @@ export default function ProductoDetalle() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                alert('¡Gracias! Te contactaremos.');
+                alert("¡Gracias! Te contactaremos.");
                 setShowModal(false);
               }}
             >

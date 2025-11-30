@@ -20,4 +20,4 @@ router.put('/:id', requireAuth, requireAdmin, PedidoController.actualizar);
 // Borrar pedido (admin)
 router.delete('/:id', requireAuth, requireAdmin, PedidoController.borrar);
 
-export default router;   // 👈 AHORA SÍ hay default
+export default router;  

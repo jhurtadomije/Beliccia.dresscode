@@ -1,94 +1,83 @@
 // src/pages/Invitadas.jsx
-import { useEffect, useMemo, useState, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import api, { API_BASE, IMAGE_BASE } from '../services/api';
-import { useCart } from '../context/CartContext';
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import api from "../services/api";
+import { useCart } from "../context/CartContext";
+import { resolveImageUrl } from "../services/imageUrl";
 
-const PLACEHOLDER = '/placeholder.png'; // asegúrate de tenerlo en /public
-const BUY_LIMIT = 250;
+const PLACEHOLDER = "/placeholder.png"; // asegúrate de tenerlo en /public
+const BUY_LIMIT = 3000;
 
 const asNumber = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 };
 
-// Origen API para rutas /api/...
-const API_ORIGIN = (() => {
-  try {
-    return new URL(API_BASE).origin;
-  } catch {
-    return '';
-  }
-})();
+// Priorizamos slug para que el detalle vaya por /producto/:slug
+const getId = (p) => p?.slug ?? p?.id ?? p?.nombre;
 
-// Normaliza URL de imagen (API o /imagenes)
-function resolveImageUrl(raw) {
-  if (!raw) return PLACEHOLDER;
+// ---------- helpers con tags_origen ----------
 
-  // Si viene un objeto { url, ... } desde la API
-  if (typeof raw === 'object' && raw !== null) {
-    const url = raw.url || raw.path || '';
-    if (!url) return PLACEHOLDER;
-    return resolveImageUrl(url);
-  }
+const deaccent = (s) =>
+  String(s || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 
-  if (/^https?:\/\//i.test(raw)) return raw;
-  if (raw.startsWith('/api/')) return `${API_ORIGIN}${raw}`;
-  if (raw.startsWith('/imagenes/')) {
-    const rel = raw.replace(/^\/?imagenes\//, '');
-    return `${IMAGE_BASE}/${rel}`;
-  }
-  return raw;
-}
+const norm = (s) => deaccent(String(s || "").toLowerCase().trim());
 
-// ⚠️ priorizamos slug para que el detalle vaya por /producto/:slug
-const getId = (p) => p?.slug ?? p?.id ?? p?.sku ?? p?._id ?? p?.nombre;
-
-// Primer “raw” de imagen (objeto o string)
-const getFirstImageRaw = (p) => {
-  const arr = Array.isArray(p?.imagenes) ? p.imagenes.filter(Boolean) : [];
-  return arr[0] || p?.imagen || '';
+const getTags = (producto) => {
+  const raw = norm(producto?.tags_origen);
+  if (!raw) return [];
+  return raw.split(/[,\s]+/).filter(Boolean);
 };
 
-const hasRawImagePath = (p) => Boolean(getFirstImageRaw(p));
-
-// Detecta si el src actual del <img> es el placeholder
-const isPlaceholderSrc = (src) => {
-  try {
-    const u = new URL(src, window.location.origin);
-    return u.pathname.endsWith('/placeholder.png');
-  } catch {
-    return String(src).includes('/placeholder.png');
-  }
+const hasAnyTag = (producto, expected) => {
+  const tags = getTags(producto);
+  if (!tags.length) return false;
+  return tags.some((t) => expected.includes(t));
 };
 
-function InvitadaCard({ producto, onPedirCita, onImageStatus }) {
+// Invitada = categoría fiesta + tag invitada
+const isInvitada = (p) => {
+  const cat = norm(p?.categoria); // "Fiesta", "Novias", etc. (nombre que devuelve la API)
+  const esFiesta = cat.includes("fiesta");
+  const esInvitadaPorTag = hasAnyTag(p, ["invitada", "invitadas"]);
+  return esFiesta && esInvitadaPorTag;
+};
+
+// ---------- Card de invitada ----------
+
+function InvitadaCard({ producto, onPedirCita }) {
   const [flipped, setFlipped] = useState(false);
   const { addToCart } = useCart();
   const location = useLocation();
   const from = location.pathname + location.search;
 
-  const nombre = producto?.nombre || producto?.name || 'Producto';
+  const nombre = producto?.nombre || "Producto de invitada";
   const descripcion =
     producto?.descripcion_larga ||
     producto?.descripcion_corta ||
     producto?.descripcion ||
-    producto?.description ||
-    '';
+    "";
 
   const id = getId(producto);
 
-  const firstRaw = useMemo(() => getFirstImageRaw(producto), [producto]);
-  const imageUrl = resolveImageUrl(firstRaw);
+  const firstImage = useMemo(() => {
+    if (producto?.imagen_portada) return producto.imagen_portada;
+    if (producto?.imagen) return producto.imagen;
+    return "";
+  }, [producto]);
 
-  // ⚠️ Adaptado: usamos precio_base de la API
+  const imageUrl = resolveImageUrl(firstImage) || PLACEHOLDER;
+
+  // Adaptado a la API nueva: precio_base
   const price = asNumber(producto?.precio_base);
   const canBuy = price !== null && price <= BUY_LIMIT;
   const showPrice = price !== null && price <= BUY_LIMIT; // solo mostramos precio si ≤ 250
 
   return (
     <div className="card-flip-container h-100">
-      <div className={`card card-flip ${flipped ? 'flipped' : ''} shadow`}>
+      <div className={`card card-flip ${flipped ? "flipped" : ""} shadow`}>
         {/* Cara frontal */}
         <div className="card-face card-front">
           <img
@@ -96,17 +85,10 @@ function InvitadaCard({ producto, onPedirCita, onImageStatus }) {
             className="card-img-top"
             alt={nombre}
             loading="lazy"
-            onLoad={(e) => {
-              // Solo marcamos "ok" si NO es el placeholder
-              if (!isPlaceholderSrc(e.currentTarget.src)) {
-                onImageStatus?.(id, true);
-              }
-            }}
             onError={(e) => {
               e.currentTarget.src = PLACEHOLDER;
-              onImageStatus?.(id, false);
             }}
-            style={{ objectFit: 'contain', aspectRatio: '3 / 4' }}
+            style={{ objectFit: "contain", aspectRatio: "3 / 4" }}
           />
           <div className="card-body text-center d-flex flex-column justify-content-center align-items-center">
             <h5 className="card-title">{nombre}</h5>
@@ -130,12 +112,14 @@ function InvitadaCard({ producto, onPedirCita, onImageStatus }) {
             {!!descripcion && (
               <p className="card-text mb-3">{descripcion}</p>
             )}
+
             {showPrice && (
               <p className="fw-bold">Precio: €{price.toFixed(2)}</p>
             )}
             {!canBuy && (
               <p className="text-muted mb-2">
-                Consulta disponibilidad y pide tu cita.
+                Este artículo no está disponible para venta online. Solicita
+                información y te responderemos a la mayor brevedad posible.
               </p>
             )}
 
@@ -181,57 +165,40 @@ function InvitadaCard({ producto, onPedirCita, onImageStatus }) {
   );
 }
 
+// ---------- Página de Invitadas ----------
+
 export default function Invitadas() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
-
-  // Mapa: id -> true (cargó real), false (falló), undefined (aún no sabemos)
-  const [imgOk, setImgOk] = useState({});
-
   const [showModal, setShowModal] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
-
-  const abrirModal = useCallback((p) => {
-    setProductoSeleccionado(p);
-    setShowModal(true);
-  }, []);
-
-  const handleImageStatus = useCallback((id, ok) => {
-    setImgOk((prev) =>
-      prev[id] === ok ? prev : { ...prev, [id]: ok }
-    );
-  }, []);
 
   useEffect(() => {
     let alive = true;
     setCargando(true);
     setError(null);
 
-    // Invitadas: intentamos filtrar por categoria/subcategoria
     api
-      .get('/productos', {
-        params: { categoria: 'fiesta', subcategoria: 'invitada' },
+      .get("/productos", {
+        params: {
+          categoria: "fiesta", // slug de categoría "Fiesta"
+          page: 1,
+          limit: 100,
+        },
       })
       .then(({ data }) => {
-        const arr = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.resultados)
-          ? data.resultados
-          : Array.isArray(data?.items)
-          ? data.items
-          : [];
+        const arr = Array.isArray(data?.data) ? data.data : [];
 
-        // Pre-orden: primero los que traen *ruta* de imagen, luego sin ruta
-        const preSorted = [...arr].sort(
-          (a, b) => Number(hasRawImagePath(b)) - Number(hasRawImagePath(a))
-        );
+        // Nos quedamos solo con los de invitada vía tags_origen
+        const invitadas = arr.filter(isInvitada);
 
-        if (alive) setProductos(preSorted);
+        if (alive) setProductos(invitadas);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error(err);
         if (alive)
-          setError('No se pudieron cargar los vestidos de invitadas.');
+          setError("No se pudieron cargar los vestidos de invitadas.");
       })
       .finally(() => {
         if (alive) setCargando(false);
@@ -241,23 +208,6 @@ export default function Invitadas() {
       alive = false;
     };
   }, []);
-
-  // Orden final por estado real de carga: ok > unknown > fail
-  const displayList = useMemo(() => {
-    const score = (p) => {
-      const id = getId(p);
-      const st = imgOk[id];
-      if (st === true) return 2; // imagen real confirmada
-      if (st === undefined) return 1; // aún no sabemos
-      return 0; // falló -> placeholder
-    };
-    return [...productos].sort((a, b) => {
-      const s = score(b) - score(a);
-      if (s !== 0) return s;
-      // empate: preferimos el que tenga ruta de imagen
-      return Number(hasRawImagePath(b)) - Number(hasRawImagePath(a));
-    });
-  }, [productos, imgOk]);
 
   if (cargando)
     return (
@@ -275,20 +225,19 @@ export default function Invitadas() {
       <div className="container">
         <h2 className="text-center mb-4">Colección Invitadas</h2>
         <div className="row g-4">
-          {displayList.length === 0 ? (
+          {productos.length === 0 ? (
             <div className="col-12 text-center text-muted">
               No hay productos disponibles.
             </div>
           ) : (
-            displayList.map((p) => (
-              <div
-                className="col-12 col-sm-6 col-md-4"
-                key={getId(p) || p.id || p.sku || p._id || p.nombre}
-              >
+            productos.map((p) => (
+              <div className="col-12 col-sm-6 col-md-4" key={getId(p)}>
                 <InvitadaCard
                   producto={p}
-                  onPedirCita={() => abrirModal(p)}
-                  onImageStatus={handleImageStatus}
+                  onPedirCita={() => {
+                    setProductoSeleccionado(p);
+                    setShowModal(true);
+                  }}
                 />
               </div>
             ))
@@ -304,9 +253,7 @@ export default function Invitadas() {
           role="dialog"
           aria-modal="true"
           aria-label={`Solicitar información de ${
-            productoSeleccionado?.nombre ||
-            productoSeleccionado?.name ||
-            'producto'
+            productoSeleccionado?.nombre || "producto"
           }`}
         >
           <div
@@ -322,49 +269,44 @@ export default function Invitadas() {
             </button>
 
             <h5 className="mb-3">
-              {productoSeleccionado?.nombre ||
-                productoSeleccionado?.name ||
-                'Producto'}
+              {productoSeleccionado?.nombre || "Producto"}
             </h5>
 
             <div className="modal-gallery mb-3 d-flex align-items-center">
-              {(Array.isArray(productoSeleccionado?.imagenes) &&
-              productoSeleccionado.imagenes.length
-                ? productoSeleccionado.imagenes
-                : [getFirstImageRaw(productoSeleccionado) || PLACEHOLDER]
-              )
-                .slice(0, 8)
-                .map((img, i) => {
-                  const imgUrl = resolveImageUrl(img);
-                  return (
-                    <img
-                      key={i}
-                      src={imgUrl}
-                      alt={`${
-                        productoSeleccionado?.nombre || 'Producto'
-                      } - foto ${i + 1}`}
-                      className="modal-image"
-                      loading="lazy"
-                      onError={(e) => {
-                        e.currentTarget.src = PLACEHOLDER;
-                      }}
-                      style={{
-                        maxWidth: 90,
-                        maxHeight: 90,
-                        marginRight: 8,
-                        borderRadius: 8,
-                        objectFit: 'cover',
-                        border: '1px solid #eee',
-                      }}
-                    />
-                  );
-                })}
+              {[
+                resolveImageUrl(
+                  productoSeleccionado?.imagen_portada ||
+                    productoSeleccionado?.imagen ||
+                    PLACEHOLDER
+                ),
+              ].map((imgUrl, i) => (
+                <img
+                  key={i}
+                  src={imgUrl}
+                  alt={`${
+                    productoSeleccionado?.nombre || "Producto"
+                  } - foto ${i + 1}`}
+                  className="modal-image"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.src = PLACEHOLDER;
+                  }}
+                  style={{
+                    maxWidth: 90,
+                    maxHeight: 90,
+                    marginRight: 8,
+                    borderRadius: 8,
+                    objectFit: "cover",
+                    border: "1px solid #eee",
+                  }}
+                />
+              ))}
             </div>
 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                alert('¡Gracias! Te contactaremos.');
+                alert("¡Gracias! Te contactaremos.");
                 setShowModal(false);
               }}
             >

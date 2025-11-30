@@ -2,7 +2,7 @@
 .fab-whatsapp {
   position: fixed;
   left: 1.1rem;
-  bottom: 7rem;         /* WhatsApp por encima de Instagram */
+  bottom: 7rem;         
   z-index: 1700;
   display: flex;
   align-items: center;

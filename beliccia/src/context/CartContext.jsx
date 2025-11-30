@@ -1,29 +1,39 @@
-// src/context/CartContext.jsx
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+} from "react";
 
-// Creamos el contexto
+// Contexto
 const CartContext = createContext();
 
-// Helper para normalizar el identificador
-const getProductId = (p) =>
-  p?.slug ?? p?.id ?? p?.sku ?? p?._id ?? p?.nombre;
+// Identificador normalizado para el carrito
+// Prioriza slug (estable en la URL) y luego id numérico de BBDD
+const getProductId = (p) => p?.slug ?? p?.id ?? null;
 
-// Provider que envolverá nuestra app
+// Helper precios
+const asNumber = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
+
 export function CartProvider({ children }) {
   // Carga inicial desde localStorage
   const [items, setItems] = useState(() => {
     try {
-      const stored = localStorage.getItem('cart');
+      const stored = localStorage.getItem("cart");
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
     }
   });
 
-  // Guarda en localStorage cada vez que cambia el carrito
+  // Persistir en localStorage
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(items));
+    localStorage.setItem("cart", JSON.stringify(items));
   }, [items]);
 
   // Añadir producto (o incrementar cantidad)
@@ -31,33 +41,60 @@ export function CartProvider({ children }) {
     setItems((prev) => {
       const key = getProductId(product);
       if (!key) {
-        // Si por lo que sea no tenemos forma de identificarlo, no lo añadimos
-        console.warn('Producto sin id/slug válido en addToCart:', product);
+        console.warn(
+          "Producto sin slug/id válido en addToCart:",
+          product
+        );
         return prev;
       }
 
-      const exists = prev.find((i) => i.id === key);
-      if (exists) {
+      // Normalizamos el precio: primero `precio` si viene del front,
+      // si no, usamos `precio_base` de la API.
+      const unitPrice = asNumber(
+        product.precio ?? product.precio_base
+      );
+
+      const existing = prev.find((i) => i.id === key);
+
+      if (existing) {
         return prev.map((i) =>
-          i.id === key ? { ...i, quantity: (i.quantity || 1) + 1 } : i
+          i.id === key
+            ? {
+                ...i,
+                quantity: (i.quantity || 1) + 1,
+              }
+            : i
         );
       }
 
-      // Guardamos el producto con id normalizado
-      return [...prev, { ...product, id: key, quantity: 1 }];
+      return [
+        ...prev,
+        {
+          ...product,
+          // id normalizado para el carrito (slug o id)
+          id: key,
+          // id real de BBDD para cuando hablemos con la API de carritos/pedidos
+          producto_id: product.id ?? null,
+          // precio normalizado (número)
+          precio: unitPrice,
+          quantity: 1,
+        },
+      ];
     });
   }
 
-  // Eliminar producto por id normalizado
+  // Eliminar producto
   function removeFromCart(id) {
     setItems((prev) => prev.filter((i) => i.id !== id));
   }
 
-  // Actualizar cantidad manualmente
+  // Actualizar cantidad
   function updateQuantity(id, quantity) {
     setItems((prev) =>
       prev.map((i) =>
-        i.id === id ? { ...i, quantity: Math.max(1, quantity) } : i
+        i.id === id
+          ? { ...i, quantity: Math.max(1, Number(quantity) || 1) }
+          : i
       )
     );
   }
@@ -67,20 +104,42 @@ export function CartProvider({ children }) {
     setItems([]);
   }
 
+  // Totales derivados (útil para icono del header, resumen, etc.)
+  const totalItems = useMemo(
+    () => items.reduce((acc, i) => acc + (i.quantity || 0), 0),
+    [items]
+  );
+
+  const totalAmount = useMemo(
+    () =>
+      items.reduce(
+        (acc, i) => acc + asNumber(i.precio) * (i.quantity || 0),
+        0
+      ),
+    [items]
+  );
+
   return (
     <CartContext.Provider
-      value={{ items, addToCart, removeFromCart, updateQuantity, clearCart }}
+      value={{
+        items,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        totalItems,
+        totalAmount,
+      }}
     >
       {children}
     </CartContext.Provider>
   );
 }
 
-// Hook para usar el contexto
 export function useCart() {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart debe usarse dentro de un CartProvider');
+  const ctx = useContext(CartContext);
+  if (!ctx) {
+    throw new Error("useCart debe usarse dentro de un CartProvider");
   }
-  return context;
+  return ctx;
 }

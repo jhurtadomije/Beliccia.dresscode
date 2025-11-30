@@ -28,9 +28,8 @@ export default function AdminProductos() {
         setCargando(true);
         setError("");
 
-        // Cargamos productos + tablas de referencia en paralelo
         const [prodRes, catRes, marRes, colRes] = await Promise.all([
-          api.get("/productos", { params: { limite: 200 } }),
+          api.get("/productos", { params: { page: 1, limit: 200 } }),
           api.get("/categorias"),
           api.get("/marcas"),
           api.get("/colecciones"),
@@ -38,13 +37,11 @@ export default function AdminProductos() {
 
         if (!alive) return;
 
-        const prodData = prodRes.data;
-        const arr = Array.isArray(prodData)
-          ? prodData
-          : Array.isArray(prodData?.resultados)
-          ? prodData.resultados
-          : Array.isArray(prodData?.items)
-          ? prodData.items
+        const payload = prodRes.data;
+        const arr = Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload)
+          ? payload
           : [];
 
         setProductos(arr);
@@ -72,16 +69,36 @@ export default function AdminProductos() {
         setError("No se pudieron cargar los productos.");
       } finally {
         if (alive) {
-        setCargando(false);
+          setCargando(false);
+        }
       }
     }
-  }
+
     cargarDatos();
+
     return () => {
       alive = false;
     };
   }, []);
 
+  // --- BORRAR PRODUCTO ---
+  const handleDelete = async (producto) => {
+  const ok = window.confirm(
+    `¿Seguro que quieres borrar el producto "${producto.nombre}"? ` +
+    `Se eliminarán también sus imágenes.`
+  );
+  if (!ok) return;
+
+  try {
+    await api.delete(`/productos/${producto.id}`);
+    setProductos((prev) => prev.filter((p) => p.id !== producto.id));
+  } catch (err) {
+    console.error(err);
+    alert('No se pudo borrar el producto. Revisa la consola.');
+  }
+};
+
+// --- Filtrado de productos y búsqueda ---
   const filtrados = productos.filter((p) => {
     if (!busqueda.trim()) return true;
     const q = busqueda.toLowerCase();
@@ -92,7 +109,9 @@ export default function AdminProductos() {
 
     const categoriaNombre = (categoriasMap[p.categoria_id] || "").toLowerCase();
     const marcaNombre = (marcasMap[p.marca_id] || "").toLowerCase();
-    const coleccionNombre = (coleccionesMap[p.coleccion_id] || "").toLowerCase();
+    const coleccionNombre = (
+      coleccionesMap[p.coleccion_id] || ""
+    ).toLowerCase();
 
     return (
       nombre.includes(q) ||
@@ -153,7 +172,7 @@ export default function AdminProductos() {
             <table className="table align-middle">
               <thead>
                 <tr>
-                  <th>Imagen</th>
+                  <th style={{ width: 90 }}>Imagen</th>
                   <th>Nombre</th>
                   <th>Código interno</th>
                   <th>Categoría</th>
@@ -162,20 +181,23 @@ export default function AdminProductos() {
                   <th>Precio base</th>
                   <th>Online</th>
                   <th>Visible</th>
-                  <th></th>
+                  <th style={{ width: 130 }}></th>
                 </tr>
               </thead>
               <tbody>
                 {filtrados.map((p) => {
                   const imgRaw =
+                    p.imagen_portada ||
                     (Array.isArray(p.imagenes) && p.imagenes[0]) ||
                     p.imagen ||
                     "";
                   const imgUrl = resolveImageUrl(imgRaw) || PLACEHOLDER;
 
-                  const categoriaNombre = categoriasMap[p.categoria_id] || "-";
-                  const marcaNombre = marcasMap[p.marca_id] || "-";
-                  const coleccionNombre = coleccionesMap[p.coleccion_id] || "-";
+                  const categoriaNombre =
+                    p.categoria || categoriasMap[p.categoria_id] || "-";
+                  const marcaNombre = p.marca || marcasMap[p.marca_id] || "-";
+                  const coleccionNombre =
+                    p.coleccion || coleccionesMap[p.coleccion_id] || "-";
 
                   return (
                     <tr key={p.id || p.slug || p.codigo_interno}>
@@ -194,12 +216,7 @@ export default function AdminProductos() {
                           }}
                         />
                       </td>
-                      <td>
-                        <div className="fw-semibold">{p.nombre}</div>
-                        <div className="text-muted small text-truncate">
-                          {p.descripcion_corta || p.descripcion_larga || ""}
-                        </div>
-                      </td>
+                      <td className="fw-semibold">{p.nombre}</td>
                       <td>{p.codigo_interno || "-"}</td>
                       <td>{categoriaNombre}</td>
                       <td>{marcaNombre}</td>
@@ -222,7 +239,7 @@ export default function AdminProductos() {
                       <td className="text-end">
                         <div className="btn-group btn-group-sm">
                           <Link
-                            to={`/admin/productos/${p.id}`}
+                            to={`/admin/productos/${p.slug}`}
                             className="btn btn-outline-dark"
                           >
                             Editar
@@ -230,11 +247,7 @@ export default function AdminProductos() {
                           <button
                             type="button"
                             className="btn btn-outline-danger"
-                            onClick={() =>
-                              alert(
-                                "Eliminar producto lo montamos en el siguiente paso 😉"
-                              )
-                            }
+                            onClick={() => handleDelete(p)}
                           >
                             Borrar
                           </button>

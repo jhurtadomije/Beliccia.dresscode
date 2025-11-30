@@ -123,70 +123,68 @@ export default function ProductoNuevo() {
   }
 
   async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    if (!form.nombre.trim()) {
-      setError("El nombre del producto es obligatorio.");
-      return;
-    }
-    if (!form.slug.trim()) {
-      setError("El slug es obligatorio.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      // Construimos FormData para texto + imágenes
-      const fd = new FormData();
-
-      fd.append("nombre", form.nombre.trim());
-      fd.append("slug", form.slug.trim());
-      fd.append("codigo_interno", form.codigo_interno || "");
-      fd.append("categoria_id", form.categoria_id || "");
-      fd.append("marca_id", form.marca_id || "");
-      fd.append("coleccion_id", form.coleccion_id || "");
-      fd.append("descripcion_corta", form.descripcion_corta || "");
-      fd.append("descripcion_larga", form.descripcion_larga || "");
-      fd.append("precio_base", form.precio_base || "");
-      fd.append("venta_online", form.venta_online ? "1" : "0");
-      fd.append("visible_web", form.visible_web ? "1" : "0");
-      fd.append("tags_origen", form.tags_origen || "");
-      fd.append("carpeta_imagenes", form.carpeta_imagenes || "");
-      const variantes = (form.tallas || []).map((talla) => ({
-        talla,
-        stock: 0,      // stock inicial, lo ajustaremos luego en el panel de stock
-        color: "",     // de momento sin color
-      }));
-      fd.append("variantes", JSON.stringify(variantes));
-
-      imagenes.forEach((file) => {
-        fd.append("imagenes", file); // 👈 nombre del campo igual que en multer.array('imagenes')
-      });
-
-      const headers = {};
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      // OJO: axios/instance tiene 'Content-Type: application/json' por defecto.
-      // Aquí lo sobreescribimos:
-      headers["Content-Type"] = "multipart/form-data";
-
-      await api.post("/productos", fd, { headers });
-
-      alert("Producto creado correctamente.");
-      navigate("/admin/productos");
-    } catch (err) {
-      console.error(err);
-      setError(
-        err.response?.data?.message ||
-          "Error al crear el producto. Revisa los datos."
-      );
-    } finally {
-      setLoading(false);
-    }
+  if (!form.nombre.trim()) {
+    setError("El nombre del producto es obligatorio.");
+    return;
   }
+  if (!form.slug.trim()) {
+    setError("El slug es obligatorio.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const fd = new FormData();
+    fd.append("nombre", form.nombre.trim());
+    fd.append("slug", form.slug.trim());
+    fd.append("codigo_interno", form.codigo_interno || "");
+    fd.append("categoria_id", form.categoria_id || "");
+    fd.append("marca_id", form.marca_id || "");
+    fd.append("coleccion_id", form.coleccion_id || "");
+    fd.append("descripcion_corta", form.descripcion_corta || "");
+    fd.append("descripcion_larga", form.descripcion_larga || "");
+    fd.append("precio_base", form.precio_base || "");
+    fd.append("venta_online", form.venta_online ? "1" : "0");
+    fd.append("visible_web", form.visible_web ? "1" : "0");
+    fd.append("tags_origen", form.tags_origen || "");
+    fd.append("carpeta_imagenes", form.carpeta_imagenes || "");
+
+    const variantes = (form.tallas || []).map((talla) => ({
+      talla,
+      stock: 0,
+      color: "",
+    }));
+    fd.append("variantes", JSON.stringify(variantes));
+
+    imagenes.forEach((file) => {
+      fd.append("imagenes", file); // ⬅️ mismo nombre que en multer.array("imagenes")
+    });
+
+    await api.post("/productos", fd, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        // MUY IMPORTANTE: forzamos multipart para que NO lo trate como JSON
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    alert("Producto creado correctamente.");
+    navigate("/admin/productos");
+  } catch (err) {
+    console.error(err);
+    setError(
+      err.response?.data?.message ||
+        "Error al crear el producto. Revisa los datos."
+    );
+  } finally {
+    setLoading(false);
+  }
+}
+
 
   return (
     <section className="py-4">
@@ -363,7 +361,7 @@ export default function ProductoNuevo() {
               </div>
 
               <div className="col-12">
-                <label className="form-label">Tipo de Corte (ej. 'corte-recto')</label>
+                <label className="form-label">Introduce un Tag (ej: 'corte-recto', bolsos, pendientes, madrinas, invitadas)</label>
                 <input
                   type="text"
                   name="tags_origen"

@@ -1,10 +1,11 @@
 // src/pages/Madrinas.jsx
-import { useEffect, useMemo, useState, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import api, { API_BASE, IMAGE_BASE } from '../services/api';
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useCart } from "../context/CartContext";
+import api from "../services/api";
+import { resolveImageUrl } from "../services/imageUrl";
 
-const PLACEHOLDER = '/placeholder.png'; // asegúrate de tenerlo en /public
+const PLACEHOLDER = "/placeholder.png"; // asegúrate de tenerlo en /public
 const BUY_LIMIT = 250; // tope para permitir compra online
 
 const asNumber = (v) => {
@@ -12,37 +13,39 @@ const asNumber = (v) => {
   return Number.isFinite(n) ? n : null;
 };
 
-// Origen absoluto de la API para componer URLs /api/...
-const API_ORIGIN = (() => {
-  try {
-    return new URL(API_BASE).origin;
-  } catch {
-    return '';
-  }
-})();
+// Priorizamos slug como identificador para la ruta de detalle
+const getId = (p) => p?.slug ?? p?.id ?? p?.nombre;
 
-// Normaliza cualquier valor de imagen que nos llegue
-function resolveImageUrl(raw) {
-  if (!raw) return PLACEHOLDER;
+// --------- helpers de tags_origen ---------
 
-  // Si viene un objeto { url, ... } desde la API
-  if (typeof raw === 'object' && raw !== null) {
-    const url = raw.url || raw.path || '';
-    if (!url) return PLACEHOLDER;
-    return resolveImageUrl(url);
-  }
+const deaccent = (s) =>
+  String(s || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 
-  if (/^https?:\/\//i.test(raw)) return raw; // absoluta
-  if (raw.startsWith('/api/')) return `${API_ORIGIN}${raw}`; // servida por la API
-  if (raw.startsWith('/imagenes/')) {
-    const rel = raw.replace(/^\/?imagenes\//, '');
-    return `${IMAGE_BASE}/${rel}`; // estática
-  }
-  return raw; // fallback
-}
+const norm = (s) => deaccent(String(s || "").toLowerCase().trim());
 
-// Prioriza slug para enlazar al detalle
-const getId = (p) => p?.slug ?? p?.id ?? p?.sku ?? p?._id ?? p?.nombre;
+const getTags = (producto) => {
+  const raw = norm(producto?.tags_origen);
+  if (!raw) return [];
+  return raw.split(/[,\s]+/).filter(Boolean);
+};
+
+const hasAnyTag = (producto, expected) => {
+  const tags = getTags(producto);
+  if (!tags.length) return false;
+  return tags.some((t) => expected.includes(t));
+};
+
+// Madrina = producto de categoría "fiesta" (o similar) + tag "madrina"
+const isMadrina = (p) => {
+  const cat = norm(p?.categoria); // "Fiesta", "Novias", etc. viene de la API
+  const esFiesta = cat.includes("fiesta");
+  const esMadrinaPorTag = hasAnyTag(p, ["madrina", "madrinas"]);
+  return esFiesta && esMadrinaPorTag;
+};
+
+// ---------- Card de madrina ----------
 
 function MadrinaCard({ producto, onPedirCita }) {
   const [flipped, setFlipped] = useState(false);
@@ -50,34 +53,32 @@ function MadrinaCard({ producto, onPedirCita }) {
   const location = useLocation();
   const from = location.pathname + location.search;
 
-  const nombre = producto?.nombre || producto?.name || 'Producto';
+  const nombre = producto?.nombre || "Producto";
 
   const descripcion =
     producto?.descripcion_larga ||
     producto?.descripcion_corta ||
     producto?.descripcion ||
-    producto?.description ||
-    '';
+    "";
 
   const id = getId(producto);
 
-  const imagenes = useMemo(() => {
-    if (Array.isArray(producto?.imagenes) && producto.imagenes.length)
-      return producto.imagenes;
-    if (producto?.imagen) return [producto.imagen];
-    return [PLACEHOLDER];
+  const firstImage = useMemo(() => {
+    if (producto?.imagen_portada) return producto.imagen_portada;
+    if (producto?.imagen) return producto.imagen;
+    return "";
   }, [producto]);
 
-  const imageUrl = resolveImageUrl(producto?.imagen || imagenes[0]);
+  const imageUrl = resolveImageUrl(firstImage) || PLACEHOLDER;
 
-  // ⚠️ Adaptado a la API nueva: precio_base
+  // Adaptado a la API nueva: precio_base
   const price = asNumber(producto?.precio_base);
   const canBuy = price !== null && price <= BUY_LIMIT;
-  const showPrice = price !== null && price <= BUY_LIMIT; // solo mostramos si <= tope
+  const showPrice = price !== null && price <= BUY_LIMIT;
 
   return (
     <div className="card-flip-container h-100">
-      <div className={`card card-flip ${flipped ? 'flipped' : ''} shadow`}>
+      <div className={`card card-flip ${flipped ? "flipped" : ""} shadow`}>
         {/* Cara frontal */}
         <div className="card-face card-front">
           <img
@@ -88,7 +89,7 @@ function MadrinaCard({ producto, onPedirCita }) {
             onError={(e) => {
               e.currentTarget.src = PLACEHOLDER;
             }}
-            style={{ objectFit: 'contain', aspectRatio: '3 / 4' }}
+            style={{ objectFit: "contain", aspectRatio: "3 / 4" }}
           />
           <div className="card-body text-center d-flex flex-column justify-content-center align-items-center">
             <h5 className="card-title">{nombre}</h5>
@@ -112,6 +113,7 @@ function MadrinaCard({ producto, onPedirCita }) {
             {!!descripcion && (
               <p className="card-text mb-3">{descripcion}</p>
             )}
+
             {showPrice ? (
               <p className="fw-bold">Precio: €{price.toFixed(2)}</p>
             ) : (
@@ -127,7 +129,7 @@ function MadrinaCard({ producto, onPedirCita }) {
                 onClick={() =>
                   addToCart({
                     ...producto,
-                    precio: price ?? 0, // adaptamos al carrito si espera "precio"
+                    precio: price ?? 0, // el carrito espera "precio"
                   })
                 }
               >
@@ -163,6 +165,8 @@ function MadrinaCard({ producto, onPedirCita }) {
   );
 }
 
+// ---------- Página de Madrinas ----------
+
 export default function Madrinas() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -170,35 +174,31 @@ export default function Madrinas() {
   const [showModal, setShowModal] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
-  const abrirModal = useCallback((p) => {
-    setProductoSeleccionado(p);
-    setShowModal(true);
-  }, []);
-
   useEffect(() => {
     let alive = true;
     setCargando(true);
     setError(null);
 
-    // Madrinas: estamos enviando filtros, aunque ahora mismo el backend
-    // solo filtra por categoria/coleccion/marca (slug). Pero esto no rompe nada.
     api
-      .get('/productos', {
-        params: { categoria: 'fiesta', subcategoria: 'madrina', limit: 24 },
+      .get("/productos", {
+        params: {
+          categoria: "fiesta", // slug de categoría en tu BBDD (Fiesta)
+          page: 1,
+          limit: 100,
+        },
       })
       .then(({ data }) => {
-        const arr = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.resultados)
-          ? data.resultados
-          : Array.isArray(data?.items)
-          ? data.items
-          : [];
-        if (alive) setProductos(arr);
+        const arr = Array.isArray(data?.data) ? data.data : [];
+
+        // Nos quedamos solo con los que sean "madrina" según tags_origen
+        const madrinas = arr.filter(isMadrina);
+
+        if (alive) setProductos(madrinas);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error(err);
         if (alive)
-          setError('No se pudieron cargar los vestidos de madrina.');
+          setError("No se pudieron cargar los vestidos de madrina.");
       })
       .finally(() => {
         if (alive) setCargando(false);
@@ -213,6 +213,7 @@ export default function Madrinas() {
     return (
       <section className="py-5 text-center">Cargando madrinas…</section>
     );
+
   if (error)
     return (
       <section className="py-5 text-center text-danger">{error}</section>
@@ -229,13 +230,13 @@ export default function Madrinas() {
             </div>
           ) : (
             productos.map((p) => (
-              <div
-                className="col-12 col-sm-6 col-md-4"
-                key={getId(p) || p.id || p.sku || p._id || p.nombre}
-              >
+              <div className="col-12 col-sm-6 col-md-4" key={getId(p)}>
                 <MadrinaCard
                   producto={p}
-                  onPedirCita={() => abrirModal(p)}
+                  onPedirCita={() => {
+                    setProductoSeleccionado(p);
+                    setShowModal(true);
+                  }}
                 />
               </div>
             ))
@@ -251,9 +252,7 @@ export default function Madrinas() {
           role="dialog"
           aria-modal="true"
           aria-label={`Solicitar información de ${
-            productoSeleccionado?.nombre ||
-            productoSeleccionado?.name ||
-            'producto'
+            productoSeleccionado?.nombre || "producto"
           }`}
         >
           <div
@@ -269,49 +268,44 @@ export default function Madrinas() {
             </button>
 
             <h5 className="mb-3">
-              {productoSeleccionado?.nombre ||
-                productoSeleccionado?.name ||
-                'Producto'}
+              {productoSeleccionado?.nombre || "Producto"}
             </h5>
 
             <div className="modal-gallery mb-3 d-flex align-items-center">
-              {(Array.isArray(productoSeleccionado?.imagenes) &&
-              productoSeleccionado.imagenes.length
-                ? productoSeleccionado.imagenes
-                : [productoSeleccionado?.imagen || PLACEHOLDER]
-              )
-                .slice(0, 8)
-                .map((img, i) => {
-                  const imgUrl = resolveImageUrl(img);
-                  return (
-                    <img
-                      key={i}
-                      src={imgUrl}
-                      alt={`${
-                        productoSeleccionado?.nombre || 'Producto'
-                      } - foto ${i + 1}`}
-                      className="modal-image"
-                      loading="lazy"
-                      onError={(e) => {
-                        e.currentTarget.src = PLACEHOLDER;
-                      }}
-                      style={{
-                        maxWidth: 90,
-                        maxHeight: 90,
-                        marginRight: 8,
-                        borderRadius: 8,
-                        objectFit: 'cover',
-                        border: '1px solid #eee',
-                      }}
-                    />
-                  );
-                })}
+              {[
+                resolveImageUrl(
+                  productoSeleccionado?.imagen_portada ||
+                    productoSeleccionado?.imagen ||
+                    PLACEHOLDER
+                ),
+              ].map((imgUrl, i) => (
+                <img
+                  key={i}
+                  src={imgUrl}
+                  alt={`${
+                    productoSeleccionado?.nombre || "Producto"
+                  } - foto ${i + 1}`}
+                  className="modal-image"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.src = PLACEHOLDER;
+                  }}
+                  style={{
+                    maxWidth: 90,
+                    maxHeight: 90,
+                    marginRight: 8,
+                    borderRadius: 8,
+                    objectFit: "cover",
+                    border: "1px solid #eee",
+                  }}
+                />
+              ))}
             </div>
 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                alert('¡Gracias! Te contactaremos.');
+                alert("¡Gracias! Te contactaremos.");
                 setShowModal(false);
               }}
             >

@@ -1,3 +1,4 @@
+// src/components/Collections.jsx
 import { useEffect } from 'react';
 
 export default function Collections() {

@@ -1,29 +1,29 @@
 // src/pages/Carrito.jsx
-import React from 'react';
-import { useCart } from '../context/CartContext';
-import { resolveImageUrl } from '../services/imageUrl';
+import React from "react";
+import { useCart } from "../context/CartContext";
+import { resolveImageUrl } from "../services/imageUrl";
 
-const PLACEHOLDER = '/placeholder.png';
+const PLACEHOLDER = "/placeholder.png";
+
+const money = (n) =>
+  new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+  }).format(Number(n || 0));
+
+const asNumber = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
 
 export default function Carrito() {
-  const { items, removeFromCart, updateQuantity, clearCart } = useCart();
-
-  const money = (n) =>
-    new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(Number(n || 0));
-
-  // Priorizar slug, luego id...
-  const getId = (p) => p?.slug ?? p?.id ?? p?.sku ?? p?._id ?? p?.nombre;
-
-  const getUnitPrice = (p) =>
-    Number(p?.precio ?? p?.precio_base ?? 0);
-
-  const total = items.reduce(
-    (sum, p) => sum + getUnitPrice(p) * Number(p.quantity || 1),
-    0
-  );
+  const {
+    items,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    totalAmount,
+  } = useCart();
 
   return (
     <section className="py-5">
@@ -35,13 +35,20 @@ export default function Carrito() {
         ) : (
           <>
             {items.map((p) => {
-              const id = getId(p);
+              // id ya viene normalizado desde CartContext (slug o id)
+              const id = p.id;
+
               const firstImage =
                 (Array.isArray(p?.imagenes) && p.imagenes[0]) ||
+                p?.imagen_portada ||
                 p?.imagen ||
-                '';
+                "";
+
               const imgUrl = resolveImageUrl(firstImage) || PLACEHOLDER;
-              const unitPrice = getUnitPrice(p);
+
+              // precio normalizado: en el contexto guardamos `precio`,
+              // pero por si acaso, caemos en `precio_base`
+              const unitPrice = asNumber(p?.precio ?? p?.precio_base);
               const qty = Number(p.quantity || 1);
 
               return (
@@ -51,13 +58,13 @@ export default function Carrito() {
                 >
                   <img
                     src={imgUrl}
-                    alt={p?.nombre || 'Producto'}
+                    alt={p?.nombre || "Producto"}
                     style={{
                       width: 70,
                       height: 90,
-                      objectFit: 'cover',
+                      objectFit: "cover",
                       borderRadius: 8,
-                      marginRight: '1rem',
+                      marginRight: "1rem",
                     }}
                     onError={(e) => {
                       e.currentTarget.src = PLACEHOLDER;
@@ -65,7 +72,15 @@ export default function Carrito() {
                   />
 
                   <div className="flex-grow-1">
-                    <h5 className="mb-1">{p?.nombre || 'Producto'}</h5>
+                    <h5 className="mb-1">{p?.nombre || "Producto"}</h5>
+
+                    {/* Si quieres mostrar talla / variante */}
+                    {p?.talla && (
+                      <p className="text-muted mb-1 small">
+                        Talla: {p.talla}
+                      </p>
+                    )}
+
                     <div className="d-flex align-items-center">
                       <span className="me-2">{money(unitPrice)}</span>
                       <label
@@ -95,7 +110,7 @@ export default function Carrito() {
                             updateQuantity(id, 1);
                           }
                         }}
-                        style={{ width: '4.5rem' }}
+                        style={{ width: "4.5rem" }}
                         className="form-control form-control-sm"
                       />
                     </div>
@@ -118,7 +133,7 @@ export default function Carrito() {
             <hr />
             <div className="d-flex justify-content-end align-items-baseline">
               <h4 className="mb-0 me-3">Total:</h4>
-              <h4 className="mb-0">{money(total)}</h4>
+              <h4 className="mb-0">{money(totalAmount)}</h4>
             </div>
 
             <div className="text-end mt-3">
@@ -131,7 +146,9 @@ export default function Carrito() {
               <button
                 className="btn btn-primary"
                 onClick={() =>
-                  alert('Checkout no implementado (pendiente pasarela)')
+                  alert(
+                    "Checkout todavía no implementado (pendiente pasarela / pedidos)."
+                  )
                 }
               >
                 Finalizar Compra

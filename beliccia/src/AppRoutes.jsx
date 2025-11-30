@@ -15,6 +15,8 @@ import LoginAdmin from "./pages/admin/LoginAdmin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProductos from "./pages/admin/AdminProductos";
 import AdminProductoNuevo from "./pages/admin/AdminProductoNuevo";
+import AdminProductoEditar from './pages/admin/AdminProductoEditar'; 
+
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function AppRoutes() {
@@ -42,8 +44,8 @@ export default function AppRoutes() {
         <Route path="tocados" element={<Accesorios categoria="tocados" />} />
         <Route path="bolsos" element={<Accesorios categoria="bolsos" />} />
         <Route
-          path="pendientes"
-          element={<Accesorios categoria="pendientes" />}
+          path="otros"
+          element={<Accesorios categoria="otros" />}
         />
 
         <Route path="visitanos" element={<Visitanos />} />
@@ -75,6 +77,15 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute requireAdmin>
               <AdminProductoNuevo />
+            </ProtectedRoute>
+          }
+        />
+        {/* Editar producto */}
+        <Route
+          path="admin/productos/:slug"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminProductoEditar />
             </ProtectedRoute>
           }
         />
