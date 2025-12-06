@@ -1,25 +1,20 @@
-# Env
+# --- ENV ---
 .env
 .env.*
 !.env.example
 
-# Node
+# --- Node ---
 node_modules/
 npm-debug.log*
-yarn.lock
-pnpm-lock.yaml
+yarn-error.log*
+pnpm-debug.log*
 
-# Vite/React build
+# --- Builds ---
 dist/
 .vite/
 
-# Logs
-logs/
-*.log
-
-# OS/IDE
-.DS_Store
-Thumbs.db
+# --- IDE/OS ---
 .vscode/
 .idea/
-
+.DS_Store
+Thumbs.db
