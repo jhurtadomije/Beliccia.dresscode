@@ -47,9 +47,9 @@ export function AuthProvider({ children }) {
 
     console.log("Respuesta login API:", data);
 
-    // Aquí usamos EXACTAMENTE lo que devuelve tu backend
+    // ✅ Tu backend devuelve: { ok, token, user }
     const token = data.token;
-    const usuario = data.usuario;
+    const usuario = data.user;
 
     if (!token || !usuario) {
       return {
@@ -59,10 +59,10 @@ export function AuthProvider({ children }) {
       };
     }
 
-    // Normalizamos el usuario para que el resto del front use .role
+    // ✅ Normalizamos para que el front pueda usar user.role siempre
     const user = {
       ...usuario,
-      role: usuario.rol, // 👈 clave: mapear rol -> role
+      role: usuario.rol || usuario.role, // alias seguro
     };
 
     setToken(token);
@@ -81,6 +81,7 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }
 }
+
 
 
 

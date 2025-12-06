@@ -170,8 +170,8 @@ class ProductoRepository {
         descripcion_corta || null,
         descripcion_larga || null,
         precio_base || null,
-        venta_online ? 1 : 0,
-        visible_web ? 1 : 1,
+        venta_online ?? 0,
+        visible_web ?? 1,
         tags_origen || null
       ]
     );
