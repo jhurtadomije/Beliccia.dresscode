@@ -1,20 +1,40 @@
-# --- ENV ---
+# --------------------
+# ENV (cualquier carpeta)
+# --------------------
 .env
 .env.*
 !.env.example
 
-# --- Node ---
+# --------------------
+# Node
+# --------------------
 node_modules/
+**/node_modules/
+
 npm-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.log
 
-# --- Builds ---
+# --------------------
+# Vite / React build
+# --------------------
 dist/
+**/dist/
 .vite/
+**/.vite/
 
-# --- IDE/OS ---
+# --------------------
+# IDE / OS
+# --------------------
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+# --------------------
+# Opcional: uploads locales
+# (actívalo si NO quieres subir imágenes)
+# --------------------
+# beliccia-api/uploads/
+*.sql
