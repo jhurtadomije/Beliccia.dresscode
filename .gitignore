@@ -1,3 +1,25 @@
-.vercel
+# Env
 .env
-node_modules
+.env.*
+!.env.example
+
+# Node
+node_modules/
+npm-debug.log*
+yarn.lock
+pnpm-lock.yaml
+
+# Vite/React build
+dist/
+.vite/
+
+# Logs
+logs/
+*.log
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
