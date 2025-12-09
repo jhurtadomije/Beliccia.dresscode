@@ -1,43 +1,68 @@
-import express from 'express';
-import 'express-async-errors';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import routes from './routes/index.js';
-import { errorHandler } from './middlewares/error.middleware.js';
-import path from 'path';
+// src/app.js
+import express from "express";
+import "express-async-errors";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import path from "path";
+
+import routes from "./routes/index.js";
+import pagosRoutes from "./routes/pagos.routes.js";
+import webhooksRoutes from "./routes/webhooks.routes.js";
+import { stripeWebhook } from "./controllers/StripeWebhookController.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
 
-// 👇 Helmet configurado para permitir cross-origin en recursos (imágenes)
+// ✅ Helmet
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' }, // 👈 CLAVE
-    
+    crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
 
+// ✅ CORS
 app.use(
   cors({
     origin: [
-      'http://localhost:5173',          // dev Vite
-      'https://beliccia.es',            // producción beliccia
-      'https://www.tudominio.com',
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      "https://beliccia.es",
+      "https://www.tudominio.com",
     ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Session-Id",
+      "x-session-id",
+    ],
     credentials: true,
   })
 );
 
+app.use(morgan("dev"));
+
+// ✅ 1) WEBHOOK REAL con RAW antes de JSON
+app.post(
+  "/api/webhooks/stripe",
+  express.raw({ type: "application/json" }),
+  stripeWebhook
+);
+
+// ✅ 2) JSON para el resto
 app.use(express.json());
-app.use(morgan('dev'));
+app.use(express.urlencoded({ extended: true }));
 
-app.use('/api', routes);
+// ✅ Servir imágenes
+app.use("/imagenes", express.static(path.join(process.cwd(), "uploads")));
 
-// Servir /imagenes desde /uploads
-app.use('/imagenes', express.static(path.join(process.cwd(), 'uploads')));
+// ✅ Rutas de negocio
+app.use("/api/pagos", pagosRoutes);
+app.use("/api/webhooks", webhooksRoutes);
+app.use("/api", routes);
 
+// ✅ Error handler SIEMPRE al final
 app.use(errorHandler);
 
 export default app;

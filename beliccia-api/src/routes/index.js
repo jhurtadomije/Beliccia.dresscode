@@ -2,6 +2,7 @@ import { Router } from "express";
 import productosRoutes from "./productos.routes.js";
 import pedidosRoutes from "./pedidos.routes.js";
 import authRoutes from "./auth.routes.js";
+import carritoRoutes from "./carrito.routes.js";
 
 import categoriasRoutes from "./categorias.routes.js";
 import marcasRoutes from "./marcas.routes.js";
@@ -17,6 +18,7 @@ router.use("/colecciones", coleccionesRoutes);
 
 router.use("/productos", productosRoutes);
 router.use("/pedidos", pedidosRoutes);
+router.use("/carrito", carritoRoutes);
 
 
 export default router;

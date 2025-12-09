@@ -1,7 +1,17 @@
 // src/utils/animation.js
-const animations = ['fadeIn', 'slideInLeft', 'slideInRight', 'zoomIn'];
+const ANIMATIONS = Object.freeze([
+  "fadeIn",
+  "slideInLeft",
+  "slideInRight",
+  "zoomIn",
+]);
 
-export function getRandomAnimation() {
-  const index = Math.floor(Math.random() * animations.length);
-  return animations[index];
+export function getRandomAnimation(list = ANIMATIONS) {
+  // Por si algún día llamas con una lista vacía o algo raro
+  if (!Array.isArray(list) || list.length === 0) return "fadeIn";
+
+  const index = Math.floor(Math.random() * list.length);
+  return list[index];
 }
+
+export const animations = ANIMATIONS;

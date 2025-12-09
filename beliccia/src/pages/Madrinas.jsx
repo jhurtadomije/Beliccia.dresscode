@@ -6,7 +6,7 @@ import api from "../services/api";
 import { resolveImageUrl } from "../services/imageUrl";
 
 const PLACEHOLDER = "/placeholder.png"; // asegúrate de tenerlo en /public
-const BUY_LIMIT = 250; // tope para permitir compra online
+const BUY_LIMIT = 3250; // tope para permitir compra online
 
 const asNumber = (v) => {
   const n = Number(v);
@@ -126,12 +126,7 @@ function MadrinaCard({ producto, onPedirCita }) {
             {canBuy ? (
               <button
                 className="btn btn-success mb-2 w-100"
-                onClick={() =>
-                  addToCart({
-                    ...producto,
-                    precio: price ?? 0, // el carrito espera "precio"
-                  })
-                }
+                onClick={() => addToCart({ producto_id: producto.id})}
               >
                 Añadir al carrito
               </button>

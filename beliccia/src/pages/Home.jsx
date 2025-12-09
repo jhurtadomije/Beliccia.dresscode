@@ -13,6 +13,9 @@ export default function Home() {
       <Hero />
       
       <Collections />
+      
+      <About />
+      <Services />
       <section id="instagram" className="py-5">
         <div className="container">
           <h2 className="text-center mb-4">Últimas en Instagram</h2>
@@ -20,8 +23,6 @@ export default function Home() {
           
         </div>
       </section>
-      <About />
-      <Services />
       <Contact />
     </>
   );

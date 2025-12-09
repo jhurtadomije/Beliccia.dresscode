@@ -13,7 +13,7 @@ export default function Visitanos() {
       <div className="container">
         <h2 className="text-center mb-4">Visítanos</h2>
 
-        {/* Mapa de Google (usar URL embebible) */}
+        {/* Mapa de Google  */}
         <div className="mb-5">
           <div className="ratio ratio-4x3 rounded overflow-hidden shadow-sm">
             <iframe
@@ -25,6 +25,7 @@ export default function Visitanos() {
               allowFullScreen
             />
           </div>
+          <Contact />
         </div>
 
         {/* Datos de contacto */}
@@ -64,7 +65,7 @@ export default function Visitanos() {
         </div>
 
         {/* Formulario de contacto */}
-        <Contact />
+        
       </div>
     </section>
   );

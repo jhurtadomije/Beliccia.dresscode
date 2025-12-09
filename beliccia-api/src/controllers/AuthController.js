@@ -24,13 +24,13 @@ class AuthController {
   }
 
   static async register(req, res, next) {
-    try {
-      const user = await AuthService.register(req.body);
-      return res.status(201).json({ ok: true, user });
-    } catch (err) {
-      next(err);
-    }
+  try {
+    const result = await AuthService.register(req.body);
+    return res.status(201).json({ ok: true, ...result });
+  } catch (err) {
+    next(err);
   }
+}
 }
 
 export default AuthController;

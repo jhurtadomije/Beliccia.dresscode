@@ -126,12 +126,7 @@ function InvitadaCard({ producto, onPedirCita }) {
             {canBuy ? (
               <button
                 className="btn btn-success mb-2 w-100"
-                onClick={() =>
-                  addToCart({
-                    ...producto,
-                    precio: price ?? 0, // adaptamos al contexto de carrito
-                  })
-                }
+                onClick={() => addToCart({ producto_id: producto.id})}
               >
                 Añadir al carrito
               </button>

@@ -2,6 +2,8 @@
 import React from "react";
 import { useCart } from "../context/CartContext";
 import { resolveImageUrl } from "../services/imageUrl";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const PLACEHOLDER = "/placeholder.png";
 
@@ -17,13 +19,19 @@ const asNumber = (v) => {
 };
 
 export default function Carrito() {
-  const {
-    items,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-    totalAmount,
-  } = useCart();
+  const { items, removeFromCart, updateQuantity, clearCart, totalAmount } =
+    useCart();
+
+  const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
+  const handleCheckout = () => {
+    if (!items.length) return;
+    if (!isLoggedIn) {
+      navigate("/checkout/auth");
+      return;
+    }
+    navigate("/checkout");
+  };
 
   return (
     <section className="py-5">
@@ -76,17 +84,12 @@ export default function Carrito() {
 
                     {/* Si quieres mostrar talla / variante */}
                     {p?.talla && (
-                      <p className="text-muted mb-1 small">
-                        Talla: {p.talla}
-                      </p>
+                      <p className="text-muted mb-1 small">Talla: {p.talla}</p>
                     )}
 
                     <div className="d-flex align-items-center">
                       <span className="me-2">{money(unitPrice)}</span>
-                      <label
-                        className="me-2 mb-0"
-                        htmlFor={`qty-${id}`}
-                      >
+                      <label className="me-2 mb-0" htmlFor={`qty-${id}`}>
                         ×
                       </label>
                       <input
@@ -96,17 +99,11 @@ export default function Carrito() {
                         step={1}
                         value={qty}
                         onChange={(e) => {
-                          const val = Math.max(
-                            1,
-                            Number(e.target.value || 1)
-                          );
+                          const val = Math.max(1, Number(e.target.value || 1));
                           updateQuantity(id, val);
                         }}
                         onBlur={(e) => {
-                          if (
-                            !e.target.value ||
-                            Number(e.target.value) < 1
-                          ) {
+                          if (!e.target.value || Number(e.target.value) < 1) {
                             updateQuantity(id, 1);
                           }
                         }}
@@ -137,19 +134,12 @@ export default function Carrito() {
             </div>
 
             <div className="text-end mt-3">
-              <button
-                className="btn btn-secondary me-2"
-                onClick={clearCart}
-              >
+              <button className="btn btn-secondary me-2" onClick={clearCart}>
                 Vaciar Carrito
               </button>
               <button
                 className="btn btn-primary"
-                onClick={() =>
-                  alert(
-                    "Checkout todavía no implementado (pendiente pasarela / pedidos)."
-                  )
-                }
+                onClick={handleCheckout}
               >
                 Finalizar Compra
               </button>

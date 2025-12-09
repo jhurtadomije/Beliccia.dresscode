@@ -16,6 +16,57 @@ class VariantesRepository {
     return rows;
   }
 
+  // ✅ NUEVO: buscar variante por id
+  static async findById(id) {
+    const pool = getPool();
+    const [rows] = await pool.query(
+      `
+      SELECT id, producto_id, sku, talla, color, stock, activo
+      FROM producto_variantes
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [id]
+    );
+    return rows[0] || null;
+  }
+
+static async findDefaultByProductoId(productoId) {
+  const pool = getPool();
+  const [rows] = await pool.query(
+    `
+    SELECT id, producto_id, sku, talla, color, stock, activo
+    FROM producto_variantes
+    WHERE producto_id = ? AND activo = 1
+    ORDER BY id ASC
+    LIMIT 1
+    `,
+    [productoId]
+  );
+  return rows[0] || null;
+}
+
+static async createDefaultForProducto(productoId) {
+  const pool = getPool();
+  const sku = `P-${productoId}`;
+
+  const [result] = await pool.query(
+    `
+    INSERT INTO producto_variantes
+      (producto_id, sku, talla, color, stock, activo)
+    VALUES (?, ?, NULL, NULL, 1, 1)
+    `,
+    [productoId, sku]
+  );
+
+  const [rows] = await pool.query(
+    `SELECT * FROM producto_variantes WHERE id = ?`,
+    [result.insertId]
+  );
+
+  return rows[0] || null;
+}
+
   static async crear({ producto_id, sku, talla, color, stock = 0, activo = 1 }) {
     const pool = getPool();
 

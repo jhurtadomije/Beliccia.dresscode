@@ -1,22 +1,81 @@
-/* MOBILE FIRST: controles y paginación básicos */
-.swiper-button-next,
-.swiper-button-prev {
-  color: var(--secondary-color);
+/* =========================
+   INSTAGRAM BOOTSTRAP CAROUSEL
+   Controles + bullets
+========================= */
+
+#instaCarousel .carousel-control-prev,
+#instaCarousel .carousel-control-next {
+  width: 3rem;
+  opacity: 0.9;
+}
+
+#instaCarousel .carousel-control-prev-icon,
+#instaCarousel .carousel-control-next-icon {
+  filter: none; /* por si bootstrap mete el icono blanco */
+}
+
+/* Si quieres que se vean más “finos” */
+#instaCarousel .carousel-control-prev-icon,
+#instaCarousel .carousel-control-next-icon {
   width: 2.2rem;
   height: 2.2rem;
 }
-.swiper-pagination-bullet-active {
-  background: var(--primary-color);
+
+#instaCarousel .carousel-indicators button {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  opacity: 0.4;
 }
 
-/* ESCRITORIO: controles más grandes y separados */
+#instaCarousel .carousel-indicators .active {
+  opacity: 1;
+}
+.insta-card {
+  height: 700px;              /* móvil */
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+}
+.insta-card-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;        /* centra el embed vertical */
+  justify-content: center;    /* centra horizontal */
+  padding: 4rem;
+}
+.instagram-embed {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.instagram-embed blockquote {
+  margin: 0 !important;
+}
+
+/* Desktop */
 @media (min-width: 768px) {
-  .swiper-button-next,
-  .swiper-button-prev {
+  #instaCarousel .carousel-control-prev,
+  #instaCarousel .carousel-control-next {
+    width: 4rem;
+  }
+
+  #instaCarousel .carousel-control-prev-icon,
+  #instaCarousel .carousel-control-next-icon {
     width: 2.8rem;
     height: 2.8rem;
   }
-  .swiper-pagination {
-    bottom: 1.5rem !important;
+  .insta-card {
+    height: 650px;
+    
+    
   }
 }

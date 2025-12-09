@@ -1,6 +1,6 @@
 // src/pages/admin/LoginAdmin.jsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function LoginAdmin() {
@@ -74,6 +74,11 @@ export default function LoginAdmin() {
             {loading ? "Accediendo…" : "Entrar"}
           </button>
         </form>
+        <div className="text-center mt-3">
+          <Link to="/" className="btn btn-outline-dark">
+            Volver a la web
+          </Link>
+        </div>
       </div>
     </section>
   );

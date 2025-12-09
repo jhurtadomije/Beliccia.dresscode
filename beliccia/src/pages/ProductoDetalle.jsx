@@ -108,6 +108,19 @@ export default function ProductoDetalle() {
     return [...set];
   }, [item]);
 
+  // Variante por defecto para añadir al carrito
+  const defaultVariant = useMemo(() => {
+    const vars = Array.isArray(item?.variantes) ? item.variantes : [];
+    if (!vars.length) return null;
+
+    return (
+      vars.find((v) => v.activo && v.stock > 0) ||
+      vars.find((v) => v.activo) ||
+      vars[0] ||
+      null
+    );
+  }, [item]);
+
   // Galería: convertimos imágenes (objetos) a URLs
   const gallery = useMemo(() => {
     if (Array.isArray(images) && images.length) {
@@ -121,12 +134,18 @@ export default function ProductoDetalle() {
 
   const onAddToCart = useCallback(() => {
     if (!item) return;
+
+    if (!defaultVariant?.id) {
+      alert("Este producto no tiene variantes disponibles.");
+      return;
+    }
+
     addToCart({
-      ...item,
-      precio: price ?? 0, // adaptado a lo que espera el CartContext
+      producto_variante_id: defaultVariant.id,
     });
+
     alert("¡Añadido al carrito!");
-  }, [addToCart, item, price]);
+  }, [addToCart, item, defaultVariant]);
 
   // -------- Volver inteligente --------
   const stateFrom =
@@ -147,13 +166,9 @@ export default function ProductoDetalle() {
   const backTo = stateFrom || guessedBack;
 
   if (loading)
-    return (
-      <section className="py-5 text-center">Cargando producto…</section>
-    );
+    return <section className="py-5 text-center">Cargando producto…</section>;
   if (err)
-    return (
-      <section className="py-5 text-center text-danger">{err}</section>
-    );
+    return <section className="py-5 text-center text-danger">{err}</section>;
   if (!item)
     return (
       <section className="py-5 text-center text-muted">
@@ -206,9 +221,7 @@ export default function ProductoDetalle() {
                         objectFit: "cover",
                         borderRadius: 8,
                         border:
-                          i === mainIdx
-                            ? "2px solid #333"
-                            : "1px solid #eee",
+                          i === mainIdx ? "2px solid #333" : "1px solid #eee",
                       }}
                       loading="lazy"
                       onError={(e) => {
@@ -269,9 +282,7 @@ export default function ProductoDetalle() {
                           fontWeight: 500,
                         }}
                         aria-label={
-                          available
-                            ? `${sz} disponible`
-                            : `${sz} no disponible`
+                          available ? `${sz} disponible` : `${sz} no disponible`
                         }
                       >
                         {sz}
@@ -288,6 +299,7 @@ export default function ProductoDetalle() {
                 <button
                   className="btn btn-success btn-lg"
                   onClick={onAddToCart}
+                  disabled={!defaultVariant}
                 >
                   Añadir al carrito
                 </button>
@@ -324,10 +336,7 @@ export default function ProductoDetalle() {
           aria-modal="true"
           aria-label={`Solicitar información de ${nombre}`}
         >
-          <div
-            className="custom-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="custom-modal" onClick={(e) => e.stopPropagation()}>
             <button
               className="btn-close"
               onClick={() => setShowModal(false)}

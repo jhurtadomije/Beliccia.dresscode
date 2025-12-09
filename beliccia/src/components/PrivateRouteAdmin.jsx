@@ -1,3 +1,4 @@
+// PrivateRouteAdmin.jsx
 import { Navigate } from "react-router-dom";
 
 export default function PrivateRouteAdmin({ children }) {

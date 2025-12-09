@@ -1,3 +1,4 @@
+//utils/hamburguer.js
 export function setupHamburgerAnimation() {
     const toggler = document.querySelector('.navbar-toggler');
     if (!toggler) return;

@@ -1,7 +1,21 @@
 // src/components/Footer.jsx
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
+
+function PlaceholderLink({ children }) {
+  return (
+    <span
+      className="text-decoration-none text-secondary"
+      style={{ cursor: "not-allowed", opacity: 0.75 }}
+      title="Disponible más adelante"
+    >
+      {children}
+    </span>
+  );
+}
 
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
     <footer className="bg--background-color text-secondary pt-5">
       <div className="container">
@@ -11,28 +25,28 @@ export default function Footer() {
             <h6 className="text-uppercase fw-bold">Categorías</h6>
             <ul className="list-unstyled">
               <li>
-                <a
-                  href="#collections"
+                <Link
+                  to="/novias"
                   className="text-decoration-none text-secondary"
                 >
                   Vestidos de novia
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#collections"
+                <Link
+                  to="/fiesta"
                   className="text-decoration-none text-secondary"
                 >
                   Vestidos de fiesta
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#collections"
+                <Link
+                  to="/complementos"
                   className="text-decoration-none text-secondary"
                 >
-                  Vestidos de comunión
-                </a>
+                  Complementos
+                </Link>
               </li>
             </ul>
           </div>
@@ -41,28 +55,18 @@ export default function Footer() {
             <h6 className="text-uppercase fw-bold">¿Necesitas ayuda?</h6>
             <ul className="list-unstyled">
               <li>
-                <a
-                  href="#contact"
-                  className="text-decoration-none text-secondary"
-                >
-                  Preguntas frecuentes
-                </a>
+                <PlaceholderLink>Preguntas frecuentes</PlaceholderLink>
               </li>
               <li>
-                <a
-                  href="#contact"
+                <Link
+                  to="/#contact"
                   className="text-decoration-none text-secondary"
                 >
                   Contacto
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-decoration-none text-secondary"
-                >
-                  Mapa web
-                </a>
+                <PlaceholderLink>Mapa web</PlaceholderLink>
               </li>
             </ul>
           </div>
@@ -71,28 +75,13 @@ export default function Footer() {
             <h6 className="text-uppercase fw-bold">Puntos de venta</h6>
             <ul className="list-unstyled">
               <li>
-                <a
-                  href="#"
-                  className="text-decoration-none text-secondary"
-                >
-                  Tiendas recomendadas
-                </a>
+                <PlaceholderLink>Tiendas recomendadas</PlaceholderLink>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-decoration-none text-secondary"
-                >
-                  Abre tu tienda
-                </a>
+                <PlaceholderLink>Abre tu tienda</PlaceholderLink>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-decoration-none text-secondary"
-                >
-                  Hazte distribuidor
-                </a>
+                <PlaceholderLink>Hazte distribuidor</PlaceholderLink>
               </li>
             </ul>
           </div>
@@ -101,20 +90,10 @@ export default function Footer() {
             <h6 className="text-uppercase fw-bold">Empresa</h6>
             <ul className="list-unstyled">
               <li>
-                <a
-                  href="#"
-                  className="text-decoration-none text-secondary"
-                >
-                  Sobre nosotros
-                </a>
+                <PlaceholderLink>Sobre nosotros</PlaceholderLink>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-decoration-none text-secondary"
-                >
-                  Únete a nuestro equipo
-                </a>
+                <PlaceholderLink>Únete a nuestro equipo</PlaceholderLink>
               </li>
               <li>
                 {/* Área privada dependientas/admin */}
@@ -131,52 +110,39 @@ export default function Footer() {
 
         {/* Redes sociales */}
         <div className="text-center my-4">
-          <a href="#" className="text-secondary me-3">
-            <i className="fab fa-facebook fa-lg"></i>
-          </a>
-          <a href="#" className="text-secondary me-3">
-            <i className="fab fa-instagram fa-lg"></i>
-          </a>
-          <a href="#" className="text-secondary me-3">
-            <i className="fab fa-pinterest fa-lg"></i>
-          </a>
-          <a href="#" className="text-secondary me-3">
-            <i className="fab fa-youtube fa-lg"></i>
-          </a>
-          <a href="#" className="text-secondary">
-            <i className="fab fa-linkedin fa-lg"></i>
-          </a>
+          {/* Si aún no tienes URLs reales, mejor dejar placeholders */}
+          <span className="text-secondary me-3" aria-label="Facebook">
+            <i className="fab fa-facebook fa-lg" />
+          </span>
+          <span className="text-secondary me-3" aria-label="Instagram">
+            <i className="fab fa-instagram fa-lg" />
+          </span>
+          <span className="text-secondary me-3" aria-label="Pinterest">
+            <i className="fab fa-pinterest fa-lg" />
+          </span>
+          <span className="text-secondary me-3" aria-label="YouTube">
+            <i className="fab fa-youtube fa-lg" />
+          </span>
+          <span className="text-secondary" aria-label="LinkedIn">
+            <i className="fab fa-linkedin fa-lg" />
+          </span>
         </div>
 
         {/* Legales */}
         <div className="text-center border-top pt-3">
           <p className="mb-1">
-            &copy; 2025 Beliccia Dress Code | Todos los derechos reservados.
+            &copy; {year} Beliccia Dress Code | Todos los derechos reservados.
           </p>
+
           <ul className="list-inline mb-0">
             <li className="list-inline-item">
-              <a
-                href="#"
-                className="text-decoration-none text-secondary"
-              >
-                Información legal
-              </a>
+              <PlaceholderLink>Información legal</PlaceholderLink>
             </li>
             <li className="list-inline-item">
-              <a
-                href="#"
-                className="text-decoration-none text-secondary"
-              >
-                Política de privacidad
-              </a>
+              <PlaceholderLink>Política de privacidad</PlaceholderLink>
             </li>
             <li className="list-inline-item">
-              <a
-                href="#"
-                className="text-decoration-none text-secondary"
-              >
-                Política de cookies
-              </a>
+              <PlaceholderLink>Política de cookies</PlaceholderLink>
             </li>
           </ul>
         </div>

@@ -1,23 +1,20 @@
 // beliccia-api/src/routes/pedidos.routes.js
-import { Router } from 'express';
-import PedidoController from '../controllers/PedidoController.js';
-import { requireAuth, requireAdmin } from '../middlewares/auth.middleware.js';
+import { Router } from "express";
+import PedidoController from "../controllers/PedidoController.js";
+import { requireAuth, requireAdmin } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-// Lista pedidos (solo admin)
-router.get('/', requireAuth, requireAdmin, PedidoController.listar);
+// Cliente
+router.post("/desde-carrito", requireAuth, PedidoController.crearDesdeCarrito);
 
-// Detalle de un pedido
-router.get('/:id', requireAuth, requireAdmin, PedidoController.detalle);
+// ✅ Unificadas con lógica interna de permisos
+router.get("/", requireAuth, PedidoController.listar);
+router.get("/:id", requireAuth, PedidoController.detalle);
 
-// Crear pedido (cliente autenticado, por ejemplo)
-router.post('/', requireAuth, PedidoController.crear);
+// Admin-only (si quieres mantenerlo estricto)
+router.put("/:id", requireAuth, requireAdmin, PedidoController.actualizar);
+router.delete("/:id", requireAuth, requireAdmin, PedidoController.borrar);
 
-// Actualizar pedido (admin)
-router.put('/:id', requireAuth, requireAdmin, PedidoController.actualizar);
+export default router;
 
-// Borrar pedido (admin)
-router.delete('/:id', requireAuth, requireAdmin, PedidoController.borrar);
-
-export default router;  

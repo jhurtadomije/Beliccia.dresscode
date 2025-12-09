@@ -103,12 +103,7 @@ function NoviaCard({ producto, onSolicitarInfo }) {
             {canBuy ? (
               <button
                 className="btn btn-success mb-2 w-100"
-                onClick={() =>
-                  addToCart({
-                    ...producto,
-                    precio: price ?? 0,
-                  })
-                }
+                onClick={() => addToCart({ producto_id: producto.id})}
               >
                 Añadir al carrito
               </button>
