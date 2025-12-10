@@ -1,31 +1,40 @@
-// src/pages/Login.jsx
+// src/pages/auth/Login.jsx  (ajusta ruta real)
 import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
+import GoogleButton from "../../components/GoogleButton";
 
 export default function Login() {
-  const { login, loading } = useAuth();
+  const { login, loginWithGoogle, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // destino seguro
   const from = location.state?.from || "/perfil/pedidos";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [err, setErr] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErr("");
+    setError("");
 
     const res = await login(email, password);
-
     if (!res?.ok) {
-      setErr(res?.message || "No se pudo iniciar sesión.");
+      setError(res?.message || "No se pudo iniciar sesión.");
       return;
     }
 
+    navigate(from, { replace: true });
+  };
+
+  const handleGoogle = async (credential) => {
+    setError("");
+    const res = await loginWithGoogle(credential);
+    if (!res?.ok) {
+      setError(res?.message || "Error con Google.");
+      return;
+    }
     navigate(from, { replace: true });
   };
 
@@ -34,9 +43,9 @@ export default function Login() {
       <div className="container" style={{ maxWidth: 520 }}>
         <h2 className="mb-3 text-center">Iniciar sesión</h2>
 
-        {err && <div className="alert alert-danger">{err}</div>}
+        {error && <div className="alert alert-danger">{error}</div>}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="card p-4 shadow-sm">
           <input
             className="form-control mb-2"
             type="email"
@@ -60,12 +69,20 @@ export default function Login() {
           <button className="btn btn-dark w-100" disabled={loading}>
             {loading ? "Accediendo..." : "Entrar"}
           </button>
+
+          <div className="text-center my-3 text-muted small">
+            o
+          </div>
+
+          <div className="d-flex justify-content-center">
+            <GoogleButton onCredential={handleGoogle} />
+          </div>
         </form>
 
         <div className="text-center mt-3">
-          <small className="text-muted">
+          <small>
             ¿No tienes cuenta?{" "}
-            <Link to="/registro" state={{ from }}>
+            <Link to="/register" state={{ from }}>
               Crear cuenta
             </Link>
           </small>

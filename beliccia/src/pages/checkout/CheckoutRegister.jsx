@@ -1,11 +1,12 @@
-// src/pages/CheckoutRegister.jsx
+// src/pages/checkout/CheckoutRegister.jsx
 import { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import api from "../services/api";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../services/api";
+import GoogleButton from "../../components/GoogleButton";
 
 export default function CheckoutRegister() {
-  const { register, loading } = useAuth();
+  const { register, loginWithGoogle, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,9 +21,21 @@ export default function CheckoutRegister() {
   });
 
   const [error, setError] = useState("");
+  const [merging, setMerging] = useState(false);
 
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+
+  const doMerge = async () => {
+    try {
+      setMerging(true);
+      await api.post("/carrito/merge");
+    } catch (e) {
+      console.warn("Merge carrito falló:", e?.response?.data || e);
+    } finally {
+      setMerging(false);
+    }
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -35,15 +48,24 @@ export default function CheckoutRegister() {
       return;
     }
 
-    // ✅ merge carrito invitado -> usuario recién creado
-    try {
-      await api.post("/carrito/merge");
-    } catch {
-      console.warn("Merge carrito falló");
-    }
-
+    await doMerge();
     navigate(from, { replace: true });
   };
+
+  const handleGoogle = async (credential) => {
+    setError("");
+
+    const res = await loginWithGoogle(credential);
+    if (!res?.ok) {
+      setError(res?.message || "No se pudo registrar con Google.");
+      return;
+    }
+    (await res?.ok) && (await new Promise((r) => setTimeout(r, 50)));
+    await doMerge();
+    navigate(from, { replace: true });
+  };
+
+  const disabled = loading || merging;
 
   return (
     <section className="py-5">
@@ -52,7 +74,7 @@ export default function CheckoutRegister() {
 
         {error && <div className="alert alert-danger">{error}</div>}
 
-        <form onSubmit={onSubmit}>
+        <form onSubmit={onSubmit} className="card p-4 shadow-sm">
           <input
             className="form-control mb-2"
             name="nombre"
@@ -76,6 +98,7 @@ export default function CheckoutRegister() {
             value={form.email}
             onChange={onChange}
             required
+            autoComplete="email"
           />
           <input
             className="form-control mb-2"
@@ -93,11 +116,18 @@ export default function CheckoutRegister() {
             onChange={onChange}
             required
             minLength={6}
+            autoComplete="new-password"
           />
 
-          <button className="btn btn-dark w-100" disabled={loading}>
-            {loading ? "Creando cuenta..." : "Registrarme y continuar"}
+          <button className="btn btn-dark w-100" disabled={disabled}>
+            {disabled ? "Creando cuenta..." : "Registrarme y continuar"}
           </button>
+
+          <div className="text-center my-3 text-muted small">o</div>
+
+          <div className="d-flex justify-content-center">
+            <GoogleButton onCredential={handleGoogle} text="signup_with" />
+          </div>
         </form>
 
         <div className="mt-3 text-center">

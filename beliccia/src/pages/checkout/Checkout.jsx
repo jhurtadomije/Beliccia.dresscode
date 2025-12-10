@@ -1,9 +1,9 @@
 // src/pages/Checkout.jsx
 import { useEffect, useMemo, useState } from "react";
-import { useCart } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
-import api from "../services/api";
-import { resolveImageUrl } from "../services/imageUrl";
+import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../services/api";
+import { resolveImageUrl } from "../../services/imageUrl";
 
 const PLACEHOLDER = "/placeholder.png";
 

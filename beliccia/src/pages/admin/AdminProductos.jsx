@@ -133,6 +133,9 @@ export default function AdminProductos() {
               Gestiona los artículos que aparecen en la web de Beliccia.
             </p>
           </div>
+          <Link to="/admin" className="btn btn-outline-dark">
+            Volver al dashboard
+          </Link>
 
           <Link to="/admin/productos/nuevo" className="btn btn-dark">
             + Nuevo producto

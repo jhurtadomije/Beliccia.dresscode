@@ -2,7 +2,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
-import InstagramFloatingStories from "./InstagramFloatingStories";
+import InstagramFloatingStories from "./instagram/InstagramFloatingStories";
 import WhatsAppFloatingButton from "./WhatsAppFloatingButton";
 
 const HEADER_HEIGHT = "9rem";

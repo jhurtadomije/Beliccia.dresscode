@@ -44,9 +44,9 @@ export default function AdminDashboard() {
                 <p className="card-text flex-grow-1">
                   Revisa pedidos de clientes, estados y seguimiento.
                 </p>
-                <button className="btn btn-outline-secondary mt-2" disabled>
-                  Próximamente
-                </button>
+                <Link to="/admin/pedidos" className="btn btn-dark me-2">
+                  Gestionar pedidos
+                </Link>
               </div>
             </div>
           </div>
@@ -58,9 +58,9 @@ export default function AdminDashboard() {
                 <p className="card-text flex-grow-1">
                   Listado de clientas registradas y sus datos básicos.
                 </p>
-                <button className="btn btn-outline-secondary mt-2" disabled>
-                  Próximamente
-                </button>
+                <Link to="/admin/usuarios" className="btn btn-outline-dark">
+                  Gestionar usuarios
+                </Link>
               </div>
             </div>
           </div>

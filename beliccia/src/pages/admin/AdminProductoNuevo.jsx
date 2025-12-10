@@ -161,13 +161,13 @@ export default function ProductoNuevo() {
     fd.append("variantes", JSON.stringify(variantes));
 
     imagenes.forEach((file) => {
-      fd.append("imagenes", file); // ⬅️ mismo nombre que en multer.array("imagenes")
+      fd.append("imagenes", file); 
     });
 
     await api.post("/productos", fd, {
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        // MUY IMPORTANTE: forzamos multipart para que NO lo trate como JSON
+        // multipart para que NO lo trate como JSON
         "Content-Type": "multipart/form-data",
       },
     });

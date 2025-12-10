@@ -1,5 +1,5 @@
 // src/context/AuthContext.jsx
-
+/* eslint-disable react-refresh/only-export-components */
 
 import React, {
   createContext,
@@ -21,7 +21,7 @@ const normalizeRole = (u) =>
 
 /**
  * Persistencia inmediata + headers globales
- * Evita race condition con /carrito/merge justo tras login/register
+ * Evita race condition con /carrito/merge justo tras login/register/google
  */
 function persistAuth(nextToken, nextUser) {
   try {
@@ -35,7 +35,7 @@ function persistAuth(nextToken, nextUser) {
     // silencio seguro
   }
 
-  // ✅ Authorization inmediato
+  // ✅ Authorization inmediato (útil para llamadas justo tras login)
   if (nextToken) {
     api.defaults.headers.common.Authorization = `Bearer ${nextToken}`;
   } else {
@@ -63,7 +63,13 @@ export function AuthProvider({ children }) {
 
   const [loading, setLoading] = useState(false);
 
-  // ✅ Mantener consistencia
+  // ✅ asegura que al montar el provider el header quede alineado
+  useEffect(() => {
+    persistAuth(token, user);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ✅ sincroniza si cambian por setState
   useEffect(() => {
     persistAuth(token, user);
   }, [token, user]);
@@ -88,7 +94,7 @@ export function AuthProvider({ children }) {
         role: usuario.rol || usuario.role,
       };
 
-      // ✅ Persistencia inmediata (clave)
+      // ✅ clave para evitar race con merge
       persistAuth(nextToken, nextUser);
 
       setToken(nextToken);
@@ -125,7 +131,7 @@ export function AuthProvider({ children }) {
         role: usuario.rol || usuario.role,
       };
 
-      // ✅ Persistencia inmediata
+      // ✅ clave para evitar race con merge
       persistAuth(nextToken, nextUser);
 
       setToken(nextToken);
@@ -143,13 +149,53 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const loginWithGoogle = useCallback(async (credential) => {
+    setLoading(true);
+    try {
+      const { data } = await api.post("/auth/google", { credential });
+
+      const nextToken = data?.token;
+      const usuario = data?.user;
+
+      if (!nextToken || !usuario) {
+        return { ok: false, message: "Respuesta inválida del login Google." };
+      }
+
+      const nextUser = {
+        ...usuario,
+        role: usuario.rol || usuario.role,
+      };
+
+      // ✅ igual que login normal
+      persistAuth(nextToken, nextUser);
+
+      setToken(nextToken);
+      setUser(nextUser);
+
+      return { ok: true, token: nextToken, user: nextUser };
+    } catch (err) {
+      return {
+        ok: false,
+        message:
+          err.response?.data?.message ||
+          "No se pudo iniciar sesión con Google.",
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const logout = useCallback(() => {
     persistAuth(null, null);
     setToken(null);
     setUser(null);
+
+    // Si quieres resetear también la sesión invitado:
     try {
-      localStorage.removeItem("beliccia_cart_session_id")
-    } catch {}
+      localStorage.removeItem("beliccia_cart_session_id");
+    } catch {
+      // silencio seguro
+    }
   }, []);
 
   const role = useMemo(() => normalizeRole(user), [user]);
@@ -166,11 +212,16 @@ export function AuthProvider({ children }) {
       token,
       role,
       isLoggedIn,
-      isAdmin: canAccessAdmin, // alias compatible
+
+      // alias compatible por si algún componente lo usa
+      isAdmin: canAccessAdmin,
       canAccessAdmin,
+
       loading,
+
       login,
       register,
+      loginWithGoogle,
       logout,
     }),
     [
@@ -182,6 +233,7 @@ export function AuthProvider({ children }) {
       loading,
       login,
       register,
+      loginWithGoogle,
       logout,
     ]
   );

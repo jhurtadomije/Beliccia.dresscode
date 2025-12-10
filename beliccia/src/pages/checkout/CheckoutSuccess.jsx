@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
-import { useCart } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
-import api from "../services/api";
+import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../services/api";
 
 export default function CheckoutSuccess() {
   const [params] = useSearchParams();
@@ -119,12 +119,16 @@ export default function CheckoutSuccess() {
       // 2) limpiar sesión de carrito invitado para evitar "arrastres"
       try {
         localStorage.removeItem("beliccia_cart_session_id");
-      } catch {}
+      } catch {
+        // silencio seguro
+      }
 
       // 3) refrescar UI
       try {
         await fetchRef.current?.();
-      } catch {}
+      } catch {
+        // silencio seguro
+      }
 
       // 4) redirigir
       navigate("/", { replace: true });

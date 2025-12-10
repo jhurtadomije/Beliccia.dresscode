@@ -1,7 +1,5 @@
 
-import "../assets/css/instagramFloatingButton.css";
-
-
+import "../../assets/css/instagramFloatingButton.css";
 
 export default function InstagramFloatingStories() {
   const instagramStoriesUrl = "https://www.instagram.com/stories/beliccia.dresscode/";

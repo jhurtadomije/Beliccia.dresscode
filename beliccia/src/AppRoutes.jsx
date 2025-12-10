@@ -11,21 +11,25 @@ import Visitanos from "./pages/Visitanos";
 import Carrito from "./pages/Carrito";
 import ProductoDetalle from "./pages/ProductoDetalle";
 
-import Login from "./pages/Login";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
 import PerfilPedidos from "./pages/perfil/PerfilPedidos";
 import PerfilPedidoDetalle from "./pages/perfil/PerfilPedidoDetalle";
 
-import Checkout from "./pages/Checkout";
-import CheckoutAuth from "./pages/CheckoutAuth";
-import CheckoutRegister from "./pages/CheckoutRegister";
-import CheckoutSuccess from "./pages/CheckoutSuccess";
-import CheckoutCancel from "./pages/CheckoutCancel";
+import Checkout from "./pages/checkout/Checkout";
+import CheckoutAuth from "./pages/checkout/CheckoutAuth";
+import CheckoutRegister from "./pages/checkout/CheckoutRegister";
+import CheckoutSuccess from "./pages/checkout/CheckoutSuccess";
+import CheckoutCancel from "./pages/checkout/CheckoutCancel";
 
 import LoginAdmin from "./pages/admin/LoginAdmin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProductos from "./pages/admin/AdminProductos";
 import AdminProductoNuevo from "./pages/admin/AdminProductoNuevo";
 import AdminProductoEditar from "./pages/admin/AdminProductoEditar";
+import AdminPedidos from "./pages/admin/pedidos/AdminPedidos";
+import AdminPedidoDetalle from "./pages/admin/pedidos/AdminPedidoDetalle";
+import AdminUsuarios from "./pages/admin/usuarios/AdminUsuarios";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -60,6 +64,7 @@ export default function AppRoutes() {
 
         {/* ✅ Login general con header/footer */}
         <Route path="login" element={<Login />} />
+        <Route path="register" element={<Register />} />
 
         {/* ✅ Perfil usuario */}
         <Route
@@ -126,6 +131,32 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute requireAdmin redirectTo="/admin/login">
             <AdminProductoEditar />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/pedidos"
+        element={
+          <ProtectedRoute requireAdmin redirectTo="/admin/login">
+            <AdminPedidos />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/pedidos/:id"
+        element={
+          <ProtectedRoute requireAdmin redirectTo="/admin/login">
+            <AdminPedidoDetalle />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/usuarios"
+        element={
+          <ProtectedRoute requireAdmin redirectTo="/admin/login">
+            <AdminUsuarios />
           </ProtectedRoute>
         }
       />

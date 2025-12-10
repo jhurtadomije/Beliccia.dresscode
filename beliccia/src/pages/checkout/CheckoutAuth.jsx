@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import api from "../services/api";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../services/api";
+import GoogleButton from "../../components/GoogleButton";
 
 export default function CheckoutAuth() {
-  const { login, loading: authLoading } = useAuth();
+  const { login, loginWithGoogle, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -16,6 +17,17 @@ export default function CheckoutAuth() {
   const [err, setErr] = useState("");
   const [merging, setMerging] = useState(false);
 
+  const doMerge = async () => {
+    try {
+      setMerging(true);
+      await api.post("/carrito/merge");
+    } catch (error) {
+      // no bloqueamos el flujo
+      console.warn("Merge carrito falló:", error?.response?.data || error);
+    } finally {
+      setMerging(false);
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErr("");
@@ -76,6 +88,19 @@ export default function CheckoutAuth() {
     navigate(from, { replace: true });
   };
 
+  const handleGoogle = async (credential) => {
+    setErr("");
+
+    const res = await loginWithGoogle(credential);
+    if (!res?.ok) {
+      setErr(res?.message || "No se pudo iniciar sesión con Google.");
+      return;
+    }
+
+    await doMerge();
+    navigate(from, { replace: true });
+  };
+
   const disabled = authLoading || merging;
 
   return (
@@ -109,6 +134,12 @@ export default function CheckoutAuth() {
           <button className="btn btn-dark w-100" disabled={disabled}>
             {disabled ? "Accediendo..." : "Entrar y continuar"}
           </button>
+
+          <div className="text-center my-3 text-muted small">o</div>
+
+          <div className="d-flex justify-content-center">
+            <GoogleButton onCredential={handleGoogle} />
+          </div>
         </form>
 
         {/* ✅ CTA registro */}

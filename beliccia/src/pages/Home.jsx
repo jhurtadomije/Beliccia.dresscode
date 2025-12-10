@@ -1,11 +1,11 @@
 // src/pages/Home.jsx
 import Hero from '../components/Hero';
 import Collections from '../components/Collections';
-import InstagramCarousel from '../components/InstagramCarousel';
+import InstagramCarousel from '../components/instagram/InstagramCarousel';
 import About from '../components/About';
 import Services from '../components/Services';
 import Contact from '../components/Contact';
-import InstagramStoriesCTA from '../components/InstagramFloatingStories';
+import InstagramStoriesCTA from '../components/instagram/InstagramFloatingStories';
 
 export default function Home() {
   return (
