@@ -24,13 +24,34 @@ class AuthController {
   }
 
   static async register(req, res, next) {
-  try {
-    const result = await AuthService.register(req.body);
-    return res.status(201).json({ ok: true, ...result });
-  } catch (err) {
-    next(err);
+    try {
+      const result = await AuthService.register(req.body);
+      return res.status(201).json({ ok: true, ...result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async google(req, res) {
+    try {
+      const { credential } = req.body;
+
+      const result = await AuthService.loginWithGoogle(credential);
+
+      return res.json({
+        ok: true,
+        token: result.token,
+        user: result.user,
+      });
+    } catch (err) {
+      console.error(" Error google login:", err);
+      return res.status(err.status || 500).json({
+        ok: false,
+        message: err.message || "Error interno",
+      });
+    }
   }
 }
-}
+
 
 export default AuthController;

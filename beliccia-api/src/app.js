@@ -50,19 +50,19 @@ app.post(
   stripeWebhook
 );
 
-// ✅ 2) JSON para el resto
+//  2) JSON para el resto
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Servir imágenes
+//  Servir imágenes
 app.use("/imagenes", express.static(path.join(process.cwd(), "uploads")));
 
-// ✅ Rutas de negocio
+//  Rutas de negocio
 app.use("/api/pagos", pagosRoutes);
 app.use("/api/webhooks", webhooksRoutes);
 app.use("/api", routes);
 
-// ✅ Error handler SIEMPRE al final
+//  Error handler SIEMPRE al final
 app.use(errorHandler);
 
 export default app;
