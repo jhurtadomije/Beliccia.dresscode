@@ -2,6 +2,8 @@
 import PedidoRepository from "../repositories/PedidoRepository.js";
 import CarritoRepository from "../repositories/CarritoRepository.js";
 import CarritoItemsRepository from "../repositories/CarritoItemsRepository.js";
+import EmailService from "./EmailService.js";
+import UsuarioRepository from "../repositories/UsuarioRepository.js";
 
 class PedidoService {
   static async listar({
@@ -222,16 +224,79 @@ class PedidoService {
       carritoId: carrito.id,
     });
 
+    // ✅ Emails (NO rompen el flujo si fallan)
+    try {
+      const user = await UsuarioRepository.findById(usuarioId);
+      const emailCliente = user?.email;
+
+      // 1) Aviso interno a info@beliccia.es
+      await EmailService.pedidoCreadoInternal({ pedido });
+
+      // 2) Confirmación al cliente
+      if (emailCliente) {
+        await EmailService.pedidoCreadoCliente({
+          email: emailCliente,
+          nombre: user?.nombre || user?.name || null,
+          pedido,
+        });
+      }
+    } catch (e) {
+      console.error("⚠️ Emails pedido (crear) falló:", e?.message || e);
+    }
+
     return pedido;
   }
 
   static async actualizar(id, data) {
+    // 1) before
+    const before = await PedidoRepository.findById(id);
+    if (!before) {
+      const e = new Error("Pedido no encontrado");
+      e.status = 404;
+      throw e;
+    }
+
+    // 2) update
     const pedido = await PedidoRepository.update(id, data);
     if (!pedido) {
       const e = new Error("Pedido no encontrado");
       e.status = 404;
       throw e;
     }
+
+    // 3) after (para asegurar valores finales)
+    const after = await PedidoRepository.findById(id);
+
+    // 4) emails si cambió algo relevante
+    try {
+      const user = await UsuarioRepository.findById(after.usuario_id);
+      const emailCliente = user?.email;
+
+      if (emailCliente) {
+        // ✅ Cambio de estado del pedido
+        if (before.estado !== after.estado) {
+          await EmailService.pedidoEstadoActualizadoCliente({
+            email: emailCliente,
+            nombre: user?.nombre || null,
+            pedido: after,
+            estadoAnterior: before.estado,
+          });
+        }
+
+        // ✅ Cambio de estado del pago
+        if (before.estado_pago !== after.estado_pago) {
+          await EmailService.pedidoPagoActualizadoCliente({
+            email: emailCliente,
+            nombre: user?.nombre || null,
+            pedido: after,
+            estadoPagoAnterior: before.estado_pago,
+          });
+        }
+      }
+    } catch (e) {
+      console.error("⚠️ Emails pedido (actualizar) falló:", e?.message || e);
+    }
+
     return pedido;
   }
 

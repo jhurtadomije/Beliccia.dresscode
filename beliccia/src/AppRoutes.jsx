@@ -21,6 +21,9 @@ import CheckoutAuth from "./pages/checkout/CheckoutAuth";
 import CheckoutRegister from "./pages/checkout/CheckoutRegister";
 import CheckoutSuccess from "./pages/checkout/CheckoutSuccess";
 import CheckoutCancel from "./pages/checkout/CheckoutCancel";
+import PerfilDashboard from "./pages/perfil/PerfilDashboard";
+import PerfilCitas from "./pages/perfil/PerfilCitas";
+import PerfilCitaDetalle from "./pages/perfil/PerfilCitaDetalle";
 
 import LoginAdmin from "./pages/admin/LoginAdmin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -30,6 +33,8 @@ import AdminProductoEditar from "./pages/admin/AdminProductoEditar";
 import AdminPedidos from "./pages/admin/pedidos/AdminPedidos";
 import AdminPedidoDetalle from "./pages/admin/pedidos/AdminPedidoDetalle";
 import AdminUsuarios from "./pages/admin/usuarios/AdminUsuarios";
+import AdminCitas from "./pages/admin/citas/AdminCitas";
+import AdminCitaDetalle from "./pages/admin/citas/AdminCitaDetalle";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -80,6 +85,39 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute redirectTo="/login">
               <PerfilPedidoDetalle />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="perfil"
+          element={
+            <ProtectedRoute redirectTo="/login">
+              <PerfilDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="perfil/citas"
+          element={
+            <ProtectedRoute redirectTo="/login">
+              <PerfilCitas />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="perfil/citas/:id"
+          element={
+            <ProtectedRoute redirectTo="/login">
+              <PerfilCitaDetalle />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="perfil/citas"
+          element={
+            <ProtectedRoute redirectTo="/login">
+              <PerfilCitas />
             </ProtectedRoute>
           }
         />
@@ -157,6 +195,23 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute requireAdmin redirectTo="/admin/login">
             <AdminUsuarios />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/citas"
+        element={
+          <ProtectedRoute requireAdmin redirectTo="/admin/login">
+            <AdminCitas />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/citas/:id"
+        element={
+          <ProtectedRoute requireAdmin redirectTo="/admin/login">
+            <AdminCitaDetalle />
           </ProtectedRoute>
         }
       />

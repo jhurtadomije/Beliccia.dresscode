@@ -6,13 +6,15 @@ import { useCart } from "../context/CartContext";
 import { resolveImageUrl } from "../services/imageUrl";
 
 const PLACEHOLDER = "/placeholder.png";
-const BUY_LIMIT = 3500;
 
 // Convierte valor a número o null
 const asNumber = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 };
+
+// Normaliza flags tinyint(1) / string / boolean
+const isFlagTrue = (v) => v === 1 || v === "1" || v === true;
 
 // Priorizamos el slug como identificador para la ruta de detalle
 const getId = (p) => p?.slug ?? p?.id ?? p?.nombre;
@@ -37,7 +39,6 @@ function NoviaCard({ producto, onSolicitarInfo }) {
   const id = getId(producto);
   const nombre = producto?.nombre || "Vestido de novia";
 
-  // Imagen principal: usamos imagen_portada que devuelve la API
   const firstImage = useMemo(() => {
     if (producto?.imagen_portada) return producto.imagen_portada;
     if (producto?.imagen) return producto.imagen;
@@ -47,8 +48,14 @@ function NoviaCard({ producto, onSolicitarInfo }) {
   const imageUrl = resolveImageUrl(firstImage) || PLACEHOLDER;
 
   const price = asNumber(producto?.precio_base);
-  const canBuy = price !== null && price <= BUY_LIMIT;
-  const showPrice = price !== null && price <= BUY_LIMIT;
+  const isOnline = isFlagTrue(producto?.venta_online);
+  const isVisible = isFlagTrue(producto?.visible_web);
+
+  // Por seguridad: si nos llega algo marcado como no visible, no lo pintamos
+  if (!isVisible) return null;
+
+  const canBuy = isOnline && price !== null;
+  const showPrice = isOnline && price !== null;
 
   const descripcion =
     producto?.descripcion_larga ||
@@ -73,9 +80,15 @@ function NoviaCard({ producto, onSolicitarInfo }) {
           />
           <div className="card-body text-center d-flex flex-column justify-content-center align-items-center">
             <h5 className="card-title">{nombre}</h5>
-            {showPrice && (
-              <p className="card-text mb-0">€{price.toFixed(2)}</p>
+
+            {showPrice && <p className="card-text mb-0">€{price.toFixed(2)}</p>}
+
+            {!isOnline && (
+              <p className="card-text mb-0 text-muted small">
+                Solo disponible en tienda física.
+              </p>
             )}
+
             <button
               className="btn btn-outline-dark mt-4 mb-3"
               aria-label={`Ver detalles de ${nombre}`}
@@ -94,16 +107,20 @@ function NoviaCard({ producto, onSolicitarInfo }) {
 
             {showPrice ? (
               <p className="fw-bold">Precio: €{price.toFixed(2)}</p>
+            ) : isOnline ? (
+              <p className="text-muted mb-2">
+                Consultar precio y disponibilidad.
+              </p>
             ) : (
               <p className="text-muted mb-2">
-                Consulta disponibilidad y condiciones.
+                Solo disponible en tienda física. Solicita cita para probártelo.
               </p>
             )}
 
             {canBuy ? (
               <button
                 className="btn btn-success mb-2 w-100"
-                onClick={() => addToCart({ producto_id: producto.id})}
+                onClick={() => addToCart({ producto_id: producto.id })}
               >
                 Añadir al carrito
               </button>
@@ -112,7 +129,7 @@ function NoviaCard({ producto, onSolicitarInfo }) {
                 className="btn btn-primary mb-2 w-100"
                 onClick={onSolicitarInfo}
               >
-                Solicitar información
+                Solicitar información / cita
               </button>
             )}
 
@@ -145,6 +162,8 @@ export default function Novias() {
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [sendingCita, setSendingCita] = useState(false);
+  const [citaMsg, setCitaMsg] = useState(null);
 
   const [searchParams] = useSearchParams();
   const corteSlug = searchParams.get("corte"); // "a", "recto", "sirena", "princesa"
@@ -176,6 +195,9 @@ export default function Novias() {
 
         let novias = arr;
 
+        // filtramos por visible_web
+        novias = novias.filter((p) => isFlagTrue(p.visible_web));
+
         // Filtro opcional por estilo usando tags_origen
         if (corteSlug) {
           novias = novias.filter((p) => matchEstilo(p, corteSlug));
@@ -203,9 +225,7 @@ export default function Novias() {
     );
 
   if (error)
-    return (
-      <section className="py-5 text-center text-danger">{error}</section>
-    );
+    return <section className="py-5 text-center text-danger">{error}</section>;
 
   return (
     <section
@@ -228,13 +248,12 @@ export default function Novias() {
             </div>
           ) : (
             productos.map((p) => (
-              <div
-                className="col-12 col-sm-6 col-md-4"
-                key={getId(p)}
-              >
+              <div className="col-12 col-sm-6 col-md-4" key={getId(p)}>
                 <NoviaCard
                   producto={p}
                   onSolicitarInfo={() => {
+                    setCitaMsg(null);
+                    setSendingCita(false);
                     setProductoSeleccionado(p);
                     setShowModal(true);
                   }}
@@ -245,19 +264,24 @@ export default function Novias() {
         </div>
       </div>
 
-      {/* Modal de contacto */}
+      {/* Modal de contacto (de momento sigue usando alert) */}
       {showModal && productoSeleccionado && (
         <div
           className="custom-modal-backdrop"
-          onClick={() => setShowModal(false)}
+          onClick={() => {
+            setShowModal(false);
+            setCitaMsg(null);
+            setSendingCita(false);
+          }}
         >
-          <div
-            className="custom-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="custom-modal" onClick={(e) => e.stopPropagation()}>
             <button
               className="btn-close"
-              onClick={() => setShowModal(false)}
+              onClick={() => {
+                setShowModal(false);
+                setCitaMsg(null);
+                setSendingCita(false);
+              }}
               aria-label="Cerrar"
             >
               &times;
@@ -277,9 +301,9 @@ export default function Novias() {
                 <img
                   key={i}
                   src={imgUrl}
-                  alt={`${
-                    productoSeleccionado?.nombre || "Producto"
-                  } - foto ${i + 1}`}
+                  alt={`${productoSeleccionado?.nombre || "Producto"} - foto ${
+                    i + 1
+                  }`}
                   className="modal-image"
                   loading="lazy"
                   onError={(e) => {
@@ -299,10 +323,49 @@ export default function Novias() {
 
             <form
               className="mt-2"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                alert("¡Gracias! Te contactaremos pronto.");
-                setShowModal(false);
+
+                const formEl = e.currentTarget; // ✅ guardamos referencia segura
+                setCitaMsg(null);
+                setSendingCita(true);
+
+                const form = new FormData(formEl);
+
+                const payload = {
+                  nombre: String(form.get("name") || "").trim(),
+                  email: String(form.get("email") || "").trim(),
+                  telefono: String(form.get("telefono") || "").trim() || null,
+                  tipo: "info",
+                  mensaje: String(form.get("message") || "").trim(),
+                  producto_id: productoSeleccionado?.id ?? null,
+                  categoria_id: productoSeleccionado?.categoria_id ?? null,
+                };
+
+                try {
+                  await api.post("/citas", payload);
+
+                  setCitaMsg({
+                    type: "ok",
+                    text: "✅ ¡Listo! Hemos recibido tu solicitud.",
+                  });
+
+                  // ✅ reset seguro
+                  formEl.reset();
+
+                  setTimeout(() => setShowModal(false), 800);
+                } catch (err) {
+                  console.error(err);
+
+                  const backendMsg =
+                    err?.response?.data?.error ||
+                    err?.response?.data?.message ||
+                    "No se pudo enviar la solicitud. Inténtalo de nuevo.";
+
+                  setCitaMsg({ type: "err", text: `❌ ${backendMsg}` });
+                } finally {
+                  setSendingCita(false);
+                }
               }}
             >
               <input
@@ -320,6 +383,12 @@ export default function Novias() {
                 type="email"
                 required
               />
+              <input
+                name="telefono"
+                autoComplete="tel"
+                className="form-control mb-2"
+                placeholder="Teléfono (opcional)"
+              />
               <textarea
                 name="message"
                 autoComplete="off"
@@ -327,8 +396,25 @@ export default function Novias() {
                 placeholder="Mensaje o consulta"
                 required
               />
-              <button className="btn btn-success w-100" type="submit">
-                Enviar solicitud de información
+              {citaMsg && (
+                <div
+                  className={`alert ${
+                    citaMsg.type === "ok" ? "alert-success" : "alert-danger"
+                  } py-2`}
+                  role="alert"
+                >
+                  {citaMsg.text}
+                </div>
+              )}
+
+              <button
+                className="btn btn-success w-100"
+                type="submit"
+                disabled={sendingCita}
+              >
+                {sendingCita
+                  ? "Enviando..."
+                  : "Enviar solicitud de información"}
               </button>
             </form>
           </div>

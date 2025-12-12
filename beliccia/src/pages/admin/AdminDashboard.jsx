@@ -66,15 +66,18 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Aquí más adelante podemos poner métricas/resumen rápido */}
-        <div className="card shadow-sm">
-          <div className="card-body">
-            <h5 className="card-title mb-3">Resumen rápido</h5>
-            <p className="text-muted mb-0">
-              Desde aquí podrás gestionar el catálogo, los pedidos y la
-              información de tus clientas. De momento, empieza por{" "}
-              <strong>“Gestionar catálogo”</strong>.
-            </p>
+        <div className="col-md-4">
+          <div className="card h-100 shadow-sm">
+            <div className="card-body d-flex flex-column">
+              <h5 className="card-title">Citas</h5>
+              <p className="card-text flex-grow-1">
+                Gestiona solicitudes de cita e información, confirmaciones y
+                notas internas.
+              </p>
+              <Link to="/admin/citas" className="btn btn-dark mt-2">
+                Gestionar citas
+              </Link>
+            </div>
           </div>
         </div>
       </div>

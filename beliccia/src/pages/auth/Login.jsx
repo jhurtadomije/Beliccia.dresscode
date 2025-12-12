@@ -9,7 +9,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from || "/perfil/pedidos";
+  const from = location.state?.from || "/perfil";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

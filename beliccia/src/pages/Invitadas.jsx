@@ -6,12 +6,15 @@ import { useCart } from "../context/CartContext";
 import { resolveImageUrl } from "../services/imageUrl";
 
 const PLACEHOLDER = "/placeholder.png"; // asegúrate de tenerlo en /public
-const BUY_LIMIT = 3000;
 
+// Convierte valor a número o null
 const asNumber = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 };
+
+// Normaliza flags tinyint(1) / string / boolean
+const isFlagTrue = (v) => v === 1 || v === "1" || v === true;
 
 // Priorizamos slug para que el detalle vaya por /producto/:slug
 const getId = (p) => p?.slug ?? p?.id ?? p?.nombre;
@@ -70,10 +73,15 @@ function InvitadaCard({ producto, onPedirCita }) {
 
   const imageUrl = resolveImageUrl(firstImage) || PLACEHOLDER;
 
-  // Adaptado a la API nueva: precio_base
   const price = asNumber(producto?.precio_base);
-  const canBuy = price !== null && price <= BUY_LIMIT;
-  const showPrice = price !== null && price <= BUY_LIMIT; // solo mostramos precio si ≤ 250
+  const isOnline = isFlagTrue(producto?.venta_online);
+  const isVisible = isFlagTrue(producto?.visible_web);
+
+  // Seguridad: si llega algo no visible, no lo pintamos
+  if (!isVisible) return null;
+
+  const canBuy = isOnline && price !== null;
+  const showPrice = isOnline && price !== null;
 
   return (
     <div className="card-flip-container h-100">
@@ -92,9 +100,15 @@ function InvitadaCard({ producto, onPedirCita }) {
           />
           <div className="card-body text-center d-flex flex-column justify-content-center align-items-center">
             <h5 className="card-title">{nombre}</h5>
-            {showPrice && (
-              <p className="card-text mb-0">€{price.toFixed(2)}</p>
+
+            {showPrice && <p className="card-text mb-0">€{price.toFixed(2)}</p>}
+
+            {!isOnline && (
+              <p className="card-text mb-0 text-muted small">
+                Solo disponible en tienda física.
+              </p>
             )}
+
             <button
               className="btn btn-outline-dark mt-4 mb-3"
               onClick={() => setFlipped(true)}
@@ -109,24 +123,23 @@ function InvitadaCard({ producto, onPedirCita }) {
         <div className="card-face card-back">
           <div className="card-body text-center d-flex flex-column justify-content-between align-items-center">
             <h5 className="card-title">{nombre}</h5>
-            {!!descripcion && (
-              <p className="card-text mb-3">{descripcion}</p>
-            )}
 
-            {showPrice && (
+            {!!descripcion && <p className="card-text mb-3">{descripcion}</p>}
+
+            {showPrice ? (
               <p className="fw-bold">Precio: €{price.toFixed(2)}</p>
-            )}
-            {!canBuy && (
+            ) : isOnline ? (
               <p className="text-muted mb-2">
-                Este artículo no está disponible para venta online. Solicita
-                información y te responderemos a la mayor brevedad posible.
+                Consultar precio y disponibilidad.
               </p>
+            ) : (
+              <p className="text-muted mb-2">Solo disponible en tienda física.</p>
             )}
 
             {canBuy ? (
               <button
                 className="btn btn-success mb-2 w-100"
-                onClick={() => addToCart({ producto_id: producto.id})}
+                onClick={() => addToCart({ producto_id: producto.id })}
               >
                 Añadir al carrito
               </button>
@@ -166,8 +179,13 @@ export default function Invitadas() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+
   const [showModal, setShowModal] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+
+  // estado de envío / mensajes (igual que Novias)
+  const [sendingCita, setSendingCita] = useState(false);
+  const [citaMsg, setCitaMsg] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -185,15 +203,16 @@ export default function Invitadas() {
       .then(({ data }) => {
         const arr = Array.isArray(data?.data) ? data.data : [];
 
-        // Nos quedamos solo con los de invitada vía tags_origen
-        const invitadas = arr.filter(isInvitada);
+        // Invitadas = fiesta + tag invitada, y además visible_web
+        const invitadas = arr
+          .filter(isInvitada)
+          .filter((p) => isFlagTrue(p.visible_web));
 
         if (alive) setProductos(invitadas);
       })
       .catch((err) => {
         console.error(err);
-        if (alive)
-          setError("No se pudieron cargar los vestidos de invitadas.");
+        if (alive) setError("No se pudieron cargar los vestidos de invitadas.");
       })
       .finally(() => {
         if (alive) setCargando(false);
@@ -205,11 +224,8 @@ export default function Invitadas() {
   }, []);
 
   if (cargando)
-    return (
-      <section className="py-5 text-center">
-        Cargando invitadas…
-      </section>
-    );
+    return <section className="py-5 text-center">Cargando invitadas…</section>;
+
   if (error)
     return (
       <section className="py-5 text-center text-danger">{error}</section>
@@ -219,6 +235,7 @@ export default function Invitadas() {
     <section className="py-5">
       <div className="container">
         <h2 className="text-center mb-4">Colección Invitadas</h2>
+
         <div className="row g-4">
           {productos.length === 0 ? (
             <div className="col-12 text-center text-muted">
@@ -230,6 +247,8 @@ export default function Invitadas() {
                 <InvitadaCard
                   producto={p}
                   onPedirCita={() => {
+                    setCitaMsg(null);
+                    setSendingCita(false);
                     setProductoSeleccionado(p);
                     setShowModal(true);
                   }}
@@ -244,20 +263,25 @@ export default function Invitadas() {
       {showModal && productoSeleccionado && (
         <div
           className="custom-modal-backdrop"
-          onClick={() => setShowModal(false)}
+          onClick={() => {
+            setShowModal(false);
+            setCitaMsg(null);
+            setSendingCita(false);
+          }}
           role="dialog"
           aria-modal="true"
           aria-label={`Solicitar información de ${
             productoSeleccionado?.nombre || "producto"
           }`}
         >
-          <div
-            className="custom-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="custom-modal" onClick={(e) => e.stopPropagation()}>
             <button
               className="btn-close"
-              onClick={() => setShowModal(false)}
+              onClick={() => {
+                setShowModal(false);
+                setCitaMsg(null);
+                setSendingCita(false);
+              }}
               aria-label="Cerrar"
             >
               &times;
@@ -299,10 +323,49 @@ export default function Invitadas() {
             </div>
 
             <form
-              onSubmit={(e) => {
+              className="mt-2"
+              onSubmit={async (e) => {
                 e.preventDefault();
-                alert("¡Gracias! Te contactaremos.");
-                setShowModal(false);
+
+                const formEl = e.currentTarget;
+                setCitaMsg(null);
+                setSendingCita(true);
+
+                const form = new FormData(formEl);
+
+                const payload = {
+                  nombre: String(form.get("name") || "").trim(),
+                  email: String(form.get("email") || "").trim(),
+                  telefono: String(form.get("telefono") || "").trim() || null,
+                  tipo: "info",
+                  mensaje: String(form.get("message") || "").trim(),
+                  producto_id: productoSeleccionado?.id ?? null,
+                  categoria_id: productoSeleccionado?.categoria_id ?? null,
+                };
+
+                try {
+                  await api.post("/citas", payload);
+
+                  setCitaMsg({
+                    type: "ok",
+                    text: "✅ ¡Listo! Hemos recibido tu solicitud.",
+                  });
+
+                  formEl.reset();
+
+                  setTimeout(() => setShowModal(false), 800);
+                } catch (err) {
+                  console.error(err);
+
+                  const backendMsg =
+                    err?.response?.data?.error ||
+                    err?.response?.data?.message ||
+                    "No se pudo enviar la solicitud. Inténtalo de nuevo.";
+
+                  setCitaMsg({ type: "err", text: `❌ ${backendMsg}` });
+                } finally {
+                  setSendingCita(false);
+                }
               }}
             >
               <input
@@ -320,6 +383,12 @@ export default function Invitadas() {
                 type="email"
                 required
               />
+              <input
+                name="telefono"
+                autoComplete="tel"
+                className="form-control mb-2"
+                placeholder="Teléfono (opcional)"
+              />
               <textarea
                 name="message"
                 autoComplete="off"
@@ -327,11 +396,24 @@ export default function Invitadas() {
                 placeholder="Mensaje"
                 required
               />
+
+              {citaMsg && (
+                <div
+                  className={`alert ${
+                    citaMsg.type === "ok" ? "alert-success" : "alert-danger"
+                  } py-2`}
+                  role="alert"
+                >
+                  {citaMsg.text}
+                </div>
+              )}
+
               <button
                 className="btn btn-success w-100"
                 type="submit"
+                disabled={sendingCita}
               >
-                Enviar solicitud
+                {sendingCita ? "Enviando..." : "Enviar solicitud"}
               </button>
             </form>
           </div>

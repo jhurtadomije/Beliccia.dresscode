@@ -6,7 +6,6 @@ import api from "../services/api";
 import { resolveImageUrl } from "../services/imageUrl";
 
 const PLACEHOLDER = "/placeholder.png";
-const PRICE_LIMIT = 2500;
 
 // ---------- helpers comunes ----------
 
@@ -23,6 +22,9 @@ const asNumber = (v) => {
   return Number.isFinite(n) ? n : null;
 };
 
+// Normaliza flags tinyint(1) / string / boolean
+const isFlagTrue = (v) => v === 1 || v === "1" || v === true;
+
 const deaccent = (s) =>
   String(s || "")
     .normalize("NFD")
@@ -38,9 +40,7 @@ const norm = (s) => deaccent(String(s || "").toLowerCase().trim());
  * usando nombre + tags_origen
  */
 function getAccesorioGroup(producto) {
-  const texto = norm(
-    `${producto?.nombre || ""} ${producto?.tags_origen || ""}`
-  );
+  const texto = norm(`${producto?.nombre || ""} ${producto?.tags_origen || ""}`);
 
   const esBolso =
     /\b(bolso|bolsos|clutch|bombonera|cartera|bandolera|bolsa|bolsas)\b/.test(
@@ -76,8 +76,14 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
   const imageUrl = resolveImageUrl(firstImage) || PLACEHOLDER;
 
   const price = asNumber(producto?.precio_base);
-  const canBuy = price !== null && price <= PRICE_LIMIT;
-  const showPrice = price !== null && price <= PRICE_LIMIT;
+  const isOnline = isFlagTrue(producto?.venta_online);
+  const isVisible = isFlagTrue(producto?.visible_web);
+
+  // Seguridad: si llega algo no visible, no lo pintamos
+  if (!isVisible) return null;
+
+  const canBuy = isOnline && price !== null;
+  const showPrice = isOnline && price !== null;
 
   const descripcion =
     producto?.descripcion_larga ||
@@ -102,7 +108,15 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
           />
           <div className="card-body text-center d-flex flex-column justify-content-center align-items-center">
             <h5 className="card-title">{nombre}</h5>
+
             {showPrice && <p className="card-text">{money(price)}</p>}
+
+            {!isOnline && (
+              <p className="card-text mb-0 text-muted small">
+                Solo disponible en tienda física.
+              </p>
+            )}
+
             <button
               className="btn btn-outline-dark mt-3"
               onClick={() => setFlipped(true)}
@@ -116,22 +130,23 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
         <div className="card-face card-back">
           <div className="card-body text-center d-flex flex-column justify-content-between align-items-center">
             <h5 className="card-title">{nombre}</h5>
-            {!!descripcion && (
-              <p className="card-text mb-3">{descripcion}</p>
-            )}
-            {showPrice && (
+
+            {!!descripcion && <p className="card-text mb-3">{descripcion}</p>}
+
+            {showPrice ? (
               <p className="fw-bold mb-3">{money(price)}</p>
+            ) : isOnline ? (
+              <p className="text-muted mb-2">
+                Consultar precio y disponibilidad.
+              </p>
+            ) : (
+              <p className="text-muted mb-2">Solo disponible en tienda física.</p>
             )}
 
             {canBuy ? (
               <button
                 className="btn btn-success mb-2 w-100"
-                onClick={() =>
-                  addToCart({
-                    ...producto,
-                    precio: price ?? 0,
-                  })
-                }
+                onClick={() => addToCart({ producto_id: producto.id })}
               >
                 Añadir al carrito
               </button>
@@ -171,8 +186,13 @@ export default function Accesorios() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+
   const [showModal, setShowModal] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+
+  // estado de envío / mensajes (igual que Novias)
+  const [sendingCita, setSendingCita] = useState(false);
+  const [citaMsg, setCitaMsg] = useState(null);
 
   const location = useLocation();
   // Rutas esperadas: "/accesorios", "/tocados", "/bolsos", "/otros"
@@ -183,6 +203,8 @@ export default function Accesorios() {
     : null;
 
   const abrirModal = useCallback((p) => {
+    setCitaMsg(null);
+    setSendingCita(false);
     setProductoSeleccionado(p);
     setShowModal(true);
   }, []);
@@ -205,23 +227,22 @@ export default function Accesorios() {
       .then(({ data }) => {
         const arr = Array.isArray(data?.data) ? data.data : [];
 
-        let accesorios = arr.map((p) => ({
-          ...p,
-          _grupoAccesorio: getAccesorioGroup(p),
-        }));
+        let accesorios = arr
+          .filter((p) => isFlagTrue(p.visible_web)) // filtramos por visible_web
+          .map((p) => ({
+            ...p,
+            _grupoAccesorio: getAccesorioGroup(p),
+          }));
 
         if (filtroCat) {
-          accesorios = accesorios.filter(
-            (p) => p._grupoAccesorio === filtroCat
-          );
+          accesorios = accesorios.filter((p) => p._grupoAccesorio === filtroCat);
         }
 
         if (alive) setProductos(accesorios);
       })
       .catch((err) => {
         console.error(err);
-        if (alive)
-          setError("No se pudieron cargar los accesorios.");
+        if (alive) setError("No se pudieron cargar los accesorios.");
       })
       .finally(() => {
         if (alive) setCargando(false);
@@ -233,15 +254,10 @@ export default function Accesorios() {
   }, [filtroCat]);
 
   if (cargando)
-    return (
-      <section className="py-5 text-center">
-        Cargando accesorios…
-      </section>
-    );
+    return <section className="py-5 text-center">Cargando accesorios…</section>;
+
   if (error)
-    return (
-      <section className="py-5 text-center text-danger">{error}</section>
-    );
+    return <section className="py-5 text-center text-danger">{error}</section>;
 
   const titulo =
     filtroCat === "bolsos"
@@ -268,10 +284,7 @@ export default function Accesorios() {
           ) : (
             productos.map((p) => (
               <div className="col-12 col-sm-6 col-md-4" key={getId(p)}>
-                <AccesorioCard
-                  producto={p}
-                  onSolicitarInfo={abrirModal}
-                />
+                <AccesorioCard producto={p} onSolicitarInfo={abrirModal} />
               </div>
             ))
           )}
@@ -282,28 +295,31 @@ export default function Accesorios() {
       {showModal && productoSeleccionado && (
         <div
           className="custom-modal-backdrop"
-          onClick={() => setShowModal(false)}
+          onClick={() => {
+            setShowModal(false);
+            setCitaMsg(null);
+            setSendingCita(false);
+          }}
           role="dialog"
           aria-modal="true"
           aria-label={`Solicitar información de ${
             productoSeleccionado?.nombre || "producto"
           }`}
         >
-          <div
-            className="custom-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="custom-modal" onClick={(e) => e.stopPropagation()}>
             <button
               className="btn-close"
-              onClick={() => setShowModal(false)}
+              onClick={() => {
+                setShowModal(false);
+                setCitaMsg(null);
+                setSendingCita(false);
+              }}
               aria-label="Cerrar"
             >
               &times;
             </button>
 
-            <h5 className="mb-3">
-              {productoSeleccionado?.nombre || "Producto"}
-            </h5>
+            <h5 className="mb-3">{productoSeleccionado?.nombre || "Producto"}</h5>
 
             <div className="modal-gallery mb-3 d-flex align-items-center">
               {[
@@ -337,10 +353,49 @@ export default function Accesorios() {
             </div>
 
             <form
-              onSubmit={(e) => {
+              className="mt-2"
+              onSubmit={async (e) => {
                 e.preventDefault();
-                alert("¡Gracias! Te contactaremos.");
-                setShowModal(false);
+
+                const formEl = e.currentTarget;
+                setCitaMsg(null);
+                setSendingCita(true);
+
+                const form = new FormData(formEl);
+
+                const payload = {
+                  nombre: String(form.get("name") || "").trim(),
+                  email: String(form.get("email") || "").trim(),
+                  telefono: String(form.get("telefono") || "").trim() || null,
+                  tipo: "info",
+                  mensaje: String(form.get("message") || "").trim(),
+                  producto_id: productoSeleccionado?.id ?? null,
+                  categoria_id: productoSeleccionado?.categoria_id ?? null,
+                };
+
+                try {
+                  await api.post("/citas", payload);
+
+                  setCitaMsg({
+                    type: "ok",
+                    text: "✅ ¡Listo! Hemos recibido tu solicitud.",
+                  });
+
+                  formEl.reset();
+
+                  setTimeout(() => setShowModal(false), 800);
+                } catch (err) {
+                  console.error(err);
+
+                  const backendMsg =
+                    err?.response?.data?.error ||
+                    err?.response?.data?.message ||
+                    "No se pudo enviar la solicitud. Inténtalo de nuevo.";
+
+                  setCitaMsg({ type: "err", text: `❌ ${backendMsg}` });
+                } finally {
+                  setSendingCita(false);
+                }
               }}
             >
               <input
@@ -358,6 +413,12 @@ export default function Accesorios() {
                 type="email"
                 required
               />
+              <input
+                name="telefono"
+                autoComplete="tel"
+                className="form-control mb-2"
+                placeholder="Teléfono (opcional)"
+              />
               <textarea
                 name="message"
                 autoComplete="off"
@@ -365,11 +426,24 @@ export default function Accesorios() {
                 placeholder="Mensaje"
                 required
               />
+
+              {citaMsg && (
+                <div
+                  className={`alert ${
+                    citaMsg.type === "ok" ? "alert-success" : "alert-danger"
+                  } py-2`}
+                  role="alert"
+                >
+                  {citaMsg.text}
+                </div>
+              )}
+
               <button
                 className="btn btn-success w-100"
                 type="submit"
+                disabled={sendingCita}
               >
-                Enviar
+                {sendingCita ? "Enviando..." : "Enviar"}
               </button>
             </form>
           </div>
