@@ -4,6 +4,7 @@ import { useCart } from "../context/CartContext";
 import { resolveImageUrl } from "../services/imageUrl";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 const PLACEHOLDER = "/placeholder.png";
 
@@ -32,6 +33,12 @@ export default function Carrito() {
     }
     navigate("/checkout");
   };
+
+  usePageMeta({
+    title: "Carrito | Beliccia",
+    description:
+      "Revisa tu carrito, ajusta cantidades y finaliza tu compra en Beliccia Dress Code.",
+  });
 
   return (
     <section className="py-5">
@@ -137,10 +144,7 @@ export default function Carrito() {
               <button className="btn btn-secondary me-2" onClick={clearCart}>
                 Vaciar Carrito
               </button>
-              <button
-                className="btn btn-primary"
-                onClick={handleCheckout}
-              >
+              <button className="btn btn-primary" onClick={handleCheckout}>
                 Finalizar Compra
               </button>
             </div>

@@ -4,11 +4,12 @@ import { useLocation, Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import api from "../services/api";
 import { resolveImageUrl } from "../services/imageUrl";
+import CitaModal from "../components/CitaModal";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 const PLACEHOLDER = "/placeholder.png";
 
 // ---------- helpers comunes ----------
-
 const getId = (p) => p?.slug ?? p?.id ?? p?.nombre;
 
 const money = (n) =>
@@ -30,35 +31,42 @@ const deaccent = (s) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-const norm = (s) => deaccent(String(s || "").toLowerCase().trim());
+const norm = (s) =>
+  deaccent(
+    String(s || "")
+      .toLowerCase()
+      .trim()
+  );
 
 /**
  * Clasificamos complementos en:
- *  - "bolsos"
- *  - "tocados"
- *  - "otros"
- * usando nombre + tags_origen
+ *  - bolsos
+ *  - tocados
+ *  - otros
  */
 function getAccesorioGroup(producto) {
-  const texto = norm(`${producto?.nombre || ""} ${producto?.tags_origen || ""}`);
+  const texto = norm(
+    `${producto?.nombre || ""} ${producto?.tags_origen || ""}`
+  );
 
-  const esBolso =
+  if (
     /\b(bolso|bolsos|clutch|bombonera|cartera|bandolera|bolsa|bolsas)\b/.test(
       texto
-    );
+    )
+  )
+    return "bolsos";
 
-  const esTocado =
-    /\b(tocado|tocados|diadema|diademas|pamela|canotier|corona|coronas|tiara|tiaras|peineta|peinetas)\b/.test(
+  if (
+    /\b(tocado|tocados|diadema|diademas|pamela|canotier|corona|tiara|peineta)\b/.test(
       texto
-    );
+    )
+  )
+    return "tocados";
 
-  if (esBolso) return "bolsos";
-  if (esTocado) return "tocados";
   return "otros";
 }
 
 // ---------- Card ----------
-
 function AccesorioCard({ producto, onSolicitarInfo }) {
   const [flipped, setFlipped] = useState(false);
   const { addToCart } = useCart();
@@ -73,13 +81,13 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
     producto?.imagen ||
     (Array.isArray(producto?.imagenes) && producto.imagenes[0]) ||
     "";
+
   const imageUrl = resolveImageUrl(firstImage) || PLACEHOLDER;
 
   const price = asNumber(producto?.precio_base);
   const isOnline = isFlagTrue(producto?.venta_online);
   const isVisible = isFlagTrue(producto?.visible_web);
 
-  // Seguridad: si llega algo no visible, no lo pintamos
   if (!isVisible) return null;
 
   const canBuy = isOnline && price !== null;
@@ -101,22 +109,17 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
             className="card-img-top"
             alt={nombre}
             loading="lazy"
-            onError={(e) => {
-              e.currentTarget.src = PLACEHOLDER;
-            }}
+            onError={(e) => (e.currentTarget.src = PLACEHOLDER)}
             style={{ objectFit: "contain", aspectRatio: "3 / 4" }}
           />
-          <div className="card-body text-center d-flex flex-column justify-content-center align-items-center">
+          <div className="card-body text-center">
             <h5 className="card-title">{nombre}</h5>
-
-            {showPrice && <p className="card-text">{money(price)}</p>}
-
+            {showPrice && <p>{money(price)}</p>}
             {!isOnline && (
-              <p className="card-text mb-0 text-muted small">
+              <p className="text-muted small">
                 Solo disponible en tienda física.
               </p>
             )}
-
             <button
               className="btn btn-outline-dark mt-3"
               onClick={() => setFlipped(true)}
@@ -128,31 +131,26 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
 
         {/* Back */}
         <div className="card-face card-back">
-          <div className="card-body text-center d-flex flex-column justify-content-between align-items-center">
-            <h5 className="card-title">{nombre}</h5>
-
-            {!!descripcion && <p className="card-text mb-3">{descripcion}</p>}
+          <div className="card-body text-center d-flex flex-column justify-content-between">
+            <h5>{nombre}</h5>
+            {!!descripcion && <p>{descripcion}</p>}
 
             {showPrice ? (
-              <p className="fw-bold mb-3">{money(price)}</p>
-            ) : isOnline ? (
-              <p className="text-muted mb-2">
-                Consultar precio y disponibilidad.
-              </p>
+              <p className="fw-bold">{money(price)}</p>
             ) : (
-              <p className="text-muted mb-2">Solo disponible en tienda física.</p>
+              <p className="text-muted">Consultar precio y disponibilidad.</p>
             )}
 
             {canBuy ? (
               <button
-                className="btn btn-success mb-2 w-100"
+                className="btn btn-success w-100 mb-2"
                 onClick={() => addToCart({ producto_id: producto.id })}
               >
                 Añadir al carrito
               </button>
             ) : (
               <button
-                className="btn btn-primary mb-2 w-100"
+                className="btn btn-primary w-100 mb-2"
                 onClick={() => onSolicitarInfo(producto)}
               >
                 Solicitar información
@@ -162,13 +160,13 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
             <Link
               to={`/producto/${encodeURIComponent(id)}`}
               state={{ from }}
-              className="btn btn-dark mb-2 w-100"
+              className="btn btn-dark w-100 mb-2"
             >
               Ver más
             </Link>
 
             <button
-              className="btn btn-secondary mt-2"
+              className="btn btn-secondary"
               onClick={() => setFlipped(false)}
             >
               Volver
@@ -180,8 +178,7 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
   );
 }
 
-// ---------- Página Accesorios ----------
-
+// ---------- Página Complementos ----------
 export default function Accesorios() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -190,21 +187,37 @@ export default function Accesorios() {
   const [showModal, setShowModal] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
-  // estado de envío / mensajes (igual que Novias)
-  const [sendingCita, setSendingCita] = useState(false);
-  const [citaMsg, setCitaMsg] = useState(null);
-
   const location = useLocation();
-  // Rutas esperadas: "/accesorios", "/tocados", "/bolsos", "/otros"
   const segmento = location.pathname.split("/")[1] || "";
 
   const filtroCat = ["tocados", "bolsos", "otros"].includes(segmento)
     ? segmento
     : null;
 
+  const seoTitle =
+    filtroCat === "bolsos"
+      ? "Bolsos | Beliccia"
+      : filtroCat === "tocados"
+      ? "Tocados | Beliccia"
+      : filtroCat === "otros"
+      ? "Otros complementos | Beliccia"
+      : "Complementos | Beliccia";
+
+  const seoDescription =
+    filtroCat === "bolsos"
+      ? "Descubre bolsos y clutch para completar tu look. Solicita información o disponibilidad en Beliccia."
+      : filtroCat === "tocados"
+      ? "Tocados, diademas y accesorios de pelo para invitada o novia. Solicita información en Beliccia."
+      : filtroCat === "otros"
+      ? "Complementos seleccionados para ceremonias y eventos. Solicita información en Beliccia."
+      : "Complementos de Beliccia: bolsos, tocados y más. Solicita información o disponibilidad.";
+
+  usePageMeta({
+    title: seoTitle,
+    description: seoDescription,
+  });
+
   const abrirModal = useCallback((p) => {
-    setCitaMsg(null);
-    setSendingCita(false);
     setProductoSeleccionado(p);
     setShowModal(true);
   }, []);
@@ -214,43 +227,24 @@ export default function Accesorios() {
     setCargando(true);
     setError(null);
 
-    // Siempre tiramos de categoría "complementos" en la API,
-    // y aquí en el front los separamos en bolsos/tocados/otros
     api
       .get("/productos", {
-        params: {
-          categoria: "complementos",
-          page: 1,
-          limit: 200,
-        },
+        params: { categoria: "complementos", page: 1, limit: 200 },
       })
       .then(({ data }) => {
-        const arr = Array.isArray(data?.data) ? data.data : [];
+        let accesorios = (data?.data || [])
+          .filter((p) => isFlagTrue(p.visible_web))
+          .map((p) => ({ ...p, _grupo: getAccesorioGroup(p) }));
 
-        let accesorios = arr
-          .filter((p) => isFlagTrue(p.visible_web)) // filtramos por visible_web
-          .map((p) => ({
-            ...p,
-            _grupoAccesorio: getAccesorioGroup(p),
-          }));
-
-        if (filtroCat) {
-          accesorios = accesorios.filter((p) => p._grupoAccesorio === filtroCat);
-        }
+        if (filtroCat)
+          accesorios = accesorios.filter((p) => p._grupo === filtroCat);
 
         if (alive) setProductos(accesorios);
       })
-      .catch((err) => {
-        console.error(err);
-        if (alive) setError("No se pudieron cargar los accesorios.");
-      })
-      .finally(() => {
-        if (alive) setCargando(false);
-      });
+      .catch(() => alive && setError("No se pudieron cargar los accesorios."))
+      .finally(() => alive && setCargando(false));
 
-    return () => {
-      alive = false;
-    };
+    return () => (alive = false);
   }, [filtroCat]);
 
   if (cargando)
@@ -259,196 +253,34 @@ export default function Accesorios() {
   if (error)
     return <section className="py-5 text-center text-danger">{error}</section>;
 
-  const titulo =
-    filtroCat === "bolsos"
-      ? "Bolsos"
-      : filtroCat === "tocados"
-      ? "Tocados"
-      : filtroCat === "otros"
-      ? "Otros complementos"
-      : "Todos los Accesorios";
-
   return (
-    <section
-      className="py-5"
-      style={{ backgroundColor: "var(--background-color)" }}
-    >
+    <section className="py-5">
       <div className="container">
-        <h2 className="text-center mb-4">{titulo}</h2>
+        <h2 className="text-center mb-4">
+          {filtroCat === "bolsos"
+            ? "Bolsos"
+            : filtroCat === "tocados"
+            ? "Tocados"
+            : filtroCat === "otros"
+            ? "Otros complementos"
+            : "Complementos"}
+        </h2>
 
         <div className="row g-4">
-          {productos.length === 0 ? (
-            <div className="col-12 text-center text-muted">
-              No hay accesorios disponibles.
+          {productos.map((p) => (
+            <div className="col-12 col-sm-6 col-md-4" key={getId(p)}>
+              <AccesorioCard producto={p} onSolicitarInfo={abrirModal} />
             </div>
-          ) : (
-            productos.map((p) => (
-              <div className="col-12 col-sm-6 col-md-4" key={getId(p)}>
-                <AccesorioCard producto={p} onSolicitarInfo={abrirModal} />
-              </div>
-            ))
-          )}
+          ))}
         </div>
       </div>
 
-      {/* Modal de contacto (Solicitar información) */}
-      {showModal && productoSeleccionado && (
-        <div
-          className="custom-modal-backdrop"
-          onClick={() => {
-            setShowModal(false);
-            setCitaMsg(null);
-            setSendingCita(false);
-          }}
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Solicitar información de ${
-            productoSeleccionado?.nombre || "producto"
-          }`}
-        >
-          <div className="custom-modal" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="btn-close"
-              onClick={() => {
-                setShowModal(false);
-                setCitaMsg(null);
-                setSendingCita(false);
-              }}
-              aria-label="Cerrar"
-            >
-              &times;
-            </button>
-
-            <h5 className="mb-3">{productoSeleccionado?.nombre || "Producto"}</h5>
-
-            <div className="modal-gallery mb-3 d-flex align-items-center">
-              {[
-                resolveImageUrl(
-                  productoSeleccionado?.imagen_portada ||
-                    productoSeleccionado?.imagen ||
-                    PLACEHOLDER
-                ),
-              ].map((imgUrl, i) => (
-                <img
-                  key={i}
-                  src={imgUrl}
-                  alt={`${
-                    productoSeleccionado?.nombre || "Producto"
-                  } - foto ${i + 1}`}
-                  className="modal-image"
-                  loading="lazy"
-                  onError={(e) => {
-                    e.currentTarget.src = PLACEHOLDER;
-                  }}
-                  style={{
-                    maxWidth: 90,
-                    maxHeight: 90,
-                    marginRight: 8,
-                    borderRadius: 8,
-                    objectFit: "cover",
-                    border: "1px solid #eee",
-                  }}
-                />
-              ))}
-            </div>
-
-            <form
-              className="mt-2"
-              onSubmit={async (e) => {
-                e.preventDefault();
-
-                const formEl = e.currentTarget;
-                setCitaMsg(null);
-                setSendingCita(true);
-
-                const form = new FormData(formEl);
-
-                const payload = {
-                  nombre: String(form.get("name") || "").trim(),
-                  email: String(form.get("email") || "").trim(),
-                  telefono: String(form.get("telefono") || "").trim() || null,
-                  tipo: "info",
-                  mensaje: String(form.get("message") || "").trim(),
-                  producto_id: productoSeleccionado?.id ?? null,
-                  categoria_id: productoSeleccionado?.categoria_id ?? null,
-                };
-
-                try {
-                  await api.post("/citas", payload);
-
-                  setCitaMsg({
-                    type: "ok",
-                    text: "✅ ¡Listo! Hemos recibido tu solicitud.",
-                  });
-
-                  formEl.reset();
-
-                  setTimeout(() => setShowModal(false), 800);
-                } catch (err) {
-                  console.error(err);
-
-                  const backendMsg =
-                    err?.response?.data?.error ||
-                    err?.response?.data?.message ||
-                    "No se pudo enviar la solicitud. Inténtalo de nuevo.";
-
-                  setCitaMsg({ type: "err", text: `❌ ${backendMsg}` });
-                } finally {
-                  setSendingCita(false);
-                }
-              }}
-            >
-              <input
-                name="name"
-                autoComplete="name"
-                className="form-control mb-2"
-                placeholder="Nombre"
-                required
-              />
-              <input
-                name="email"
-                autoComplete="email"
-                className="form-control mb-2"
-                placeholder="Correo electrónico"
-                type="email"
-                required
-              />
-              <input
-                name="telefono"
-                autoComplete="tel"
-                className="form-control mb-2"
-                placeholder="Teléfono (opcional)"
-              />
-              <textarea
-                name="message"
-                autoComplete="off"
-                className="form-control mb-2"
-                placeholder="Mensaje"
-                required
-              />
-
-              {citaMsg && (
-                <div
-                  className={`alert ${
-                    citaMsg.type === "ok" ? "alert-success" : "alert-danger"
-                  } py-2`}
-                  role="alert"
-                >
-                  {citaMsg.text}
-                </div>
-              )}
-
-              <button
-                className="btn btn-success w-100"
-                type="submit"
-                disabled={sendingCita}
-              >
-                {sendingCita ? "Enviando..." : "Enviar"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* ✅ Modal reutilizado */}
+      <CitaModal
+        open={showModal}
+        producto={productoSeleccionado}
+        onClose={() => setShowModal(false)}
+      />
     </section>
   );
 }

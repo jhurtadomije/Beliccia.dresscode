@@ -4,6 +4,8 @@ import { useParams, useLocation, Link } from "react-router-dom";
 import api from "../services/api";
 import { useCart } from "../context/CartContext";
 import { resolveImageUrl } from "../services/imageUrl";
+import { usePageMeta } from "../hooks/usePageMeta";
+import CitaModal from "../components/CitaModal";
 
 const PLACEHOLDER = "/placeholder.png";
 const BUY_LIMIT = 250;
@@ -36,6 +38,19 @@ const CANONICAL_SIZES = [
   "56",
 ];
 
+// mini helper para description SEO
+const toPlain = (s) =>
+  String(s || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const truncate = (s, max = 155) => {
+  const t = toPlain(s);
+  if (!t) return "";
+  if (t.length <= max) return t;
+  return t.slice(0, max - 1).trimEnd() + "…";
+};
+
 export default function ProductoDetalle() {
   // En tu código usamos slug en la URL, pero lo llamas "id"
   const { id } = useParams(); // slug
@@ -47,6 +62,7 @@ export default function ProductoDetalle() {
   const [mainIdx, setMainIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
+
   const [showModal, setShowModal] = useState(false);
 
   // Carga del producto: /api/productos/:slug
@@ -88,6 +104,8 @@ export default function ProductoDetalle() {
     };
   }, [id]);
 
+  const nombre = item?.nombre || "Producto";
+
   // Precio: usamos precio_base de tu tabla productos
   const price = asNumber(item?.precio_base);
   const canBuy = price !== null && price <= BUY_LIMIT;
@@ -96,6 +114,33 @@ export default function ProductoDetalle() {
   const descripcionLarga = item?.descripcion_larga || "";
   const descripcionCorta = item?.descripcion_corta || "";
   const descripcion = descripcionLarga || descripcionCorta;
+
+  // ✅ SEO dinámico
+  const seoTitle = useMemo(() => {
+    if (!item) return "Producto | Beliccia";
+    const extra =
+      item?.marca || item?.coleccion
+        ? ` · ${item.marca || ""}${item.marca && item.coleccion ? " / " : ""}${
+            item.coleccion || ""
+          }`
+        : "";
+    return `${nombre}${extra} | Beliccia`;
+  }, [item, nombre]);
+
+  const seoDescription = useMemo(() => {
+    if (!item)
+      return "Detalles del producto, disponibilidad y opciones en Beliccia Dress Code.";
+    const base =
+      item?.descripcion_corta ||
+      item?.descripcion_larga ||
+      `Descubre ${nombre} y solicita información o disponibilidad.`;
+    return truncate(base, 155);
+  }, [item, nombre]);
+
+  usePageMeta({
+    title: seoTitle,
+    description: seoDescription,
+  });
 
   // Tallas desde producto_variantes
   const sizes = useMemo(() => {
@@ -175,8 +220,6 @@ export default function ProductoDetalle() {
         Producto no encontrado.
       </section>
     );
-
-  const nombre = item?.nombre || "Producto";
 
   return (
     <section className="py-5">
@@ -327,84 +370,12 @@ export default function ProductoDetalle() {
         </div>
       </div>
 
-      {/* Modal de contacto */}
-      {showModal && (
-        <div
-          className="custom-modal-backdrop"
-          onClick={() => setShowModal(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Solicitar información de ${nombre}`}
-        >
-          <div className="custom-modal" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="btn-close"
-              onClick={() => setShowModal(false)}
-              aria-label="Cerrar"
-            >
-              &times;
-            </button>
-
-            <h5 className="mb-3">{nombre}</h5>
-
-            <div className="modal-gallery mb-3 d-flex align-items-center">
-              {gallery.slice(0, 8).map((img, i) => (
-                <img
-                  key={i}
-                  src={resolveImageUrl(img)}
-                  alt={`${nombre} - foto ${i + 1}`}
-                  loading="lazy"
-                  onError={(e) => {
-                    e.currentTarget.src = PLACEHOLDER;
-                  }}
-                  style={{
-                    maxWidth: 90,
-                    maxHeight: 90,
-                    marginRight: 8,
-                    borderRadius: 8,
-                    objectFit: "cover",
-                    border: "1px solid #eee",
-                  }}
-                />
-              ))}
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert("¡Gracias! Te contactaremos.");
-                setShowModal(false);
-              }}
-            >
-              <input
-                name="name"
-                autoComplete="name"
-                className="form-control mb-2"
-                placeholder="Nombre"
-                required
-              />
-              <input
-                name="email"
-                autoComplete="email"
-                className="form-control mb-2"
-                placeholder="Correo electrónico"
-                type="email"
-                required
-              />
-              <textarea
-                name="message"
-                autoComplete="off"
-                className="form-control mb-2"
-                placeholder="Mensaje"
-                required
-              />
-              <button className="btn btn-success w-100" type="submit">
-                Enviar solicitud
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* ✅ Modal reutilizado */}
+      <CitaModal
+        open={showModal}
+        producto={item}
+        onClose={() => setShowModal(false)}
+      />
     </section>
   );
 }

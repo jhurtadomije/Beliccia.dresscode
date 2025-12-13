@@ -4,8 +4,10 @@ import { Link, useLocation } from "react-router-dom";
 import api from "../services/api";
 import { useCart } from "../context/CartContext";
 import { resolveImageUrl } from "../services/imageUrl";
+import { usePageMeta } from "../hooks/usePageMeta";
+import CitaModal from "../components/CitaModal";
 
-const PLACEHOLDER = "/placeholder.png"; // asegúrate de tenerlo en /public
+const PLACEHOLDER = "/placeholder.png";
 
 // Convierte valor a número o null
 const asNumber = (v) => {
@@ -20,7 +22,6 @@ const isFlagTrue = (v) => v === 1 || v === "1" || v === true;
 const getId = (p) => p?.slug ?? p?.id ?? p?.nombre;
 
 // ---------- helpers con tags_origen ----------
-
 const deaccent = (s) =>
   String(s || "")
     .normalize("NFD")
@@ -42,14 +43,13 @@ const hasAnyTag = (producto, expected) => {
 
 // Invitada = categoría fiesta + tag invitada
 const isInvitada = (p) => {
-  const cat = norm(p?.categoria); // "Fiesta", "Novias", etc. (nombre que devuelve la API)
+  const cat = norm(p?.categoria); // "Fiesta", ...
   const esFiesta = cat.includes("fiesta");
   const esInvitadaPorTag = hasAnyTag(p, ["invitada", "invitadas"]);
   return esFiesta && esInvitadaPorTag;
 };
 
 // ---------- Card de invitada ----------
-
 function InvitadaCard({ producto, onPedirCita }) {
   const [flipped, setFlipped] = useState(false);
   const { addToCart } = useCart();
@@ -133,7 +133,9 @@ function InvitadaCard({ producto, onPedirCita }) {
                 Consultar precio y disponibilidad.
               </p>
             ) : (
-              <p className="text-muted mb-2">Solo disponible en tienda física.</p>
+              <p className="text-muted mb-2">
+                Solo disponible en tienda física.
+              </p>
             )}
 
             {canBuy ? (
@@ -174,18 +176,19 @@ function InvitadaCard({ producto, onPedirCita }) {
 }
 
 // ---------- Página de Invitadas ----------
-
 export default function Invitadas() {
+  usePageMeta({
+    title: "Invitadas | Beliccia",
+    description:
+      "Colección de invitadas. Descubre diseños con estilo y solicita información o disponibilidad.",
+  });
+
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
 
   const [showModal, setShowModal] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
-
-  // estado de envío / mensajes (igual que Novias)
-  const [sendingCita, setSendingCita] = useState(false);
-  const [citaMsg, setCitaMsg] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -195,7 +198,7 @@ export default function Invitadas() {
     api
       .get("/productos", {
         params: {
-          categoria: "fiesta", // slug de categoría "Fiesta"
+          categoria: "fiesta",
           page: 1,
           limit: 100,
         },
@@ -203,7 +206,6 @@ export default function Invitadas() {
       .then(({ data }) => {
         const arr = Array.isArray(data?.data) ? data.data : [];
 
-        // Invitadas = fiesta + tag invitada, y además visible_web
         const invitadas = arr
           .filter(isInvitada)
           .filter((p) => isFlagTrue(p.visible_web));
@@ -227,9 +229,7 @@ export default function Invitadas() {
     return <section className="py-5 text-center">Cargando invitadas…</section>;
 
   if (error)
-    return (
-      <section className="py-5 text-center text-danger">{error}</section>
-    );
+    return <section className="py-5 text-center text-danger">{error}</section>;
 
   return (
     <section className="py-5">
@@ -243,12 +243,10 @@ export default function Invitadas() {
             </div>
           ) : (
             productos.map((p) => (
-              <div className="col-12 col-sm-6 col-md-4" key={getId(p)}>
+              <div className="col-12 col-sm-6 col-md-4" key={p.id ?? getId(p)}>
                 <InvitadaCard
                   producto={p}
                   onPedirCita={() => {
-                    setCitaMsg(null);
-                    setSendingCita(false);
                     setProductoSeleccionado(p);
                     setShowModal(true);
                   }}
@@ -259,166 +257,12 @@ export default function Invitadas() {
         </div>
       </div>
 
-      {/* Modal de contacto / cita */}
-      {showModal && productoSeleccionado && (
-        <div
-          className="custom-modal-backdrop"
-          onClick={() => {
-            setShowModal(false);
-            setCitaMsg(null);
-            setSendingCita(false);
-          }}
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Solicitar información de ${
-            productoSeleccionado?.nombre || "producto"
-          }`}
-        >
-          <div className="custom-modal" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="btn-close"
-              onClick={() => {
-                setShowModal(false);
-                setCitaMsg(null);
-                setSendingCita(false);
-              }}
-              aria-label="Cerrar"
-            >
-              &times;
-            </button>
-
-            <h5 className="mb-3">
-              {productoSeleccionado?.nombre || "Producto"}
-            </h5>
-
-            <div className="modal-gallery mb-3 d-flex align-items-center">
-              {[
-                resolveImageUrl(
-                  productoSeleccionado?.imagen_portada ||
-                    productoSeleccionado?.imagen ||
-                    PLACEHOLDER
-                ),
-              ].map((imgUrl, i) => (
-                <img
-                  key={i}
-                  src={imgUrl}
-                  alt={`${
-                    productoSeleccionado?.nombre || "Producto"
-                  } - foto ${i + 1}`}
-                  className="modal-image"
-                  loading="lazy"
-                  onError={(e) => {
-                    e.currentTarget.src = PLACEHOLDER;
-                  }}
-                  style={{
-                    maxWidth: 90,
-                    maxHeight: 90,
-                    marginRight: 8,
-                    borderRadius: 8,
-                    objectFit: "cover",
-                    border: "1px solid #eee",
-                  }}
-                />
-              ))}
-            </div>
-
-            <form
-              className="mt-2"
-              onSubmit={async (e) => {
-                e.preventDefault();
-
-                const formEl = e.currentTarget;
-                setCitaMsg(null);
-                setSendingCita(true);
-
-                const form = new FormData(formEl);
-
-                const payload = {
-                  nombre: String(form.get("name") || "").trim(),
-                  email: String(form.get("email") || "").trim(),
-                  telefono: String(form.get("telefono") || "").trim() || null,
-                  tipo: "info",
-                  mensaje: String(form.get("message") || "").trim(),
-                  producto_id: productoSeleccionado?.id ?? null,
-                  categoria_id: productoSeleccionado?.categoria_id ?? null,
-                };
-
-                try {
-                  await api.post("/citas", payload);
-
-                  setCitaMsg({
-                    type: "ok",
-                    text: "✅ ¡Listo! Hemos recibido tu solicitud.",
-                  });
-
-                  formEl.reset();
-
-                  setTimeout(() => setShowModal(false), 800);
-                } catch (err) {
-                  console.error(err);
-
-                  const backendMsg =
-                    err?.response?.data?.error ||
-                    err?.response?.data?.message ||
-                    "No se pudo enviar la solicitud. Inténtalo de nuevo.";
-
-                  setCitaMsg({ type: "err", text: `❌ ${backendMsg}` });
-                } finally {
-                  setSendingCita(false);
-                }
-              }}
-            >
-              <input
-                name="name"
-                autoComplete="name"
-                className="form-control mb-2"
-                placeholder="Nombre"
-                required
-              />
-              <input
-                name="email"
-                autoComplete="email"
-                className="form-control mb-2"
-                placeholder="Correo electrónico"
-                type="email"
-                required
-              />
-              <input
-                name="telefono"
-                autoComplete="tel"
-                className="form-control mb-2"
-                placeholder="Teléfono (opcional)"
-              />
-              <textarea
-                name="message"
-                autoComplete="off"
-                className="form-control mb-2"
-                placeholder="Mensaje"
-                required
-              />
-
-              {citaMsg && (
-                <div
-                  className={`alert ${
-                    citaMsg.type === "ok" ? "alert-success" : "alert-danger"
-                  } py-2`}
-                  role="alert"
-                >
-                  {citaMsg.text}
-                </div>
-              )}
-
-              <button
-                className="btn btn-success w-100"
-                type="submit"
-                disabled={sendingCita}
-              >
-                {sendingCita ? "Enviando..." : "Enviar solicitud"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* ✅ Modal reutilizado */}
+      <CitaModal
+        open={showModal}
+        producto={productoSeleccionado}
+        onClose={() => setShowModal(false)}
+      />
     </section>
   );
 }

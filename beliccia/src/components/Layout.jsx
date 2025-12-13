@@ -4,6 +4,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import InstagramFloatingStories from "./instagram/InstagramFloatingStories";
 import WhatsAppFloatingButton from "./WhatsAppFloatingButton";
+import PageTransition from "./PageTransition";
 
 const HEADER_HEIGHT = "9rem";
 
@@ -21,7 +22,9 @@ export default function Layout() {
           paddingTop: isHomePage ? undefined : HEADER_HEIGHT,
         }}
       >
+        <PageTransition key={location.pathname}>
         <Outlet />
+        </PageTransition>
       </main>
 
       <WhatsAppFloatingButton />

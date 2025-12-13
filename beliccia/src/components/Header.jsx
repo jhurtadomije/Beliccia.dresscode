@@ -99,7 +99,9 @@ export default function Header() {
       item.classList.remove("open");
 
       if (
-        !root.querySelector(".nav-item.dropdown.open, .dropdown-submenu.dropend.open")
+        !root.querySelector(
+          ".nav-item.dropdown.open, .dropdown-submenu.dropend.open"
+        )
       ) {
         setHasOpenDesktopMenu(false);
         clearTimeout(collapseHdrTimeout.current);
@@ -209,9 +211,9 @@ export default function Header() {
 
   return (
     <header
-      className={`main-header${expanded || hasOpenDesktopMenu ? " expanded" : ""}${
-        scrolled ? " scrolled" : ""
-      }`}
+      className={`main-header${
+        expanded || hasOpenDesktopMenu ? " expanded" : ""
+      }${scrolled ? " scrolled" : ""}`}
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => {
         if (window.innerWidth >= DESKTOP_BP) {
@@ -271,7 +273,10 @@ export default function Header() {
                   Colecciones
                 </button>
 
-                <ul className="dropdown-menu" aria-labelledby="coleccionesDropdown">
+                <ul
+                  className="dropdown-menu"
+                  aria-labelledby="coleccionesDropdown"
+                >
                   {/* Novias */}
                   <li className="dropdown-submenu dropend">
                     <button
@@ -384,14 +389,18 @@ export default function Header() {
               </li>
 
               <li className="nav-item">
-                <Link className="nav-link" to="/#about">
+                <NavLink
+                  className="nav-link"
+                  to="/conocenos"
+                  onClick={closeMenu}
+                >
                   Conócenos
-                </Link>
+                </NavLink>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/#services">
-                  Servicios
-                </Link>
+                <NavLink className="nav-link" to="/atelier" onClick={closeMenu}>
+                  Atelier
+                </NavLink>
               </li>
 
               {/* Contacto */}

@@ -10,6 +10,8 @@ import Accesorios from "./pages/Accesorios";
 import Visitanos from "./pages/Visitanos";
 import Carrito from "./pages/Carrito";
 import ProductoDetalle from "./pages/ProductoDetalle";
+import Conocenos from "./pages/Conocenos";
+import Atelier from "./pages/Atelier";
 
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -41,7 +43,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* ✅ TODO lo público bajo Layout (con header/footer) */}
+      {/*  TODO lo público bajo Layout (con header/footer) */}
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
 
@@ -60,9 +62,18 @@ export default function AppRoutes() {
         <Route path="invitada" element={<Navigate to="/invitadas" replace />} />
 
         {/* Accesorios */}
+        <Route path="accesorios" element={<Accesorios />} />
         <Route path="tocados" element={<Accesorios categoria="tocados" />} />
         <Route path="bolsos" element={<Accesorios categoria="bolsos" />} />
         <Route path="otros" element={<Accesorios categoria="otros" />} />
+        {/* Alias */}
+        <Route
+          path="complementos"
+          element={<Navigate to="/accesorios" replace />}
+        />
+
+        <Route path="conocenos" element={<Conocenos />} />
+        <Route path="atelier" element={<Atelier />} />
 
         <Route path="visitanos" element={<Visitanos />} />
         <Route path="carrito" element={<Carrito />} />
@@ -110,14 +121,6 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute redirectTo="/login">
               <PerfilCitaDetalle />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="perfil/citas"
-          element={
-            <ProtectedRoute redirectTo="/login">
-              <PerfilCitas />
             </ProtectedRoute>
           }
         />

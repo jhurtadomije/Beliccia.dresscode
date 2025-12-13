@@ -1,19 +1,28 @@
 // src/pages/Visitanos.jsx
-import React from 'react';
-import Contact from '../components/Contact'; // si ya lo tienes separado
+import Contact from "../components/Contact";
+import { usePageMeta } from "../hooks/usePageMeta";
 
-const ADDRESS = 'Avenida de los Claveles 16, local 1, Maracena, Granada';
+const ADDRESS = "Avenida de los Claveles 16, local 1, Maracena, Granada";
 const MAP_Q = encodeURIComponent(ADDRESS);
 const MAP_EMBED = `https://www.google.com/maps?q=${MAP_Q}&output=embed`;
 const MAPS_DIRECTIONS = `https://www.google.com/maps/dir/?api=1&destination=${MAP_Q}`;
 
 export default function Visitanos() {
+  usePageMeta({
+    title: "Visítanos | Beliccia",
+    description:
+      "Encuentra Beliccia Dress Code en Maracena (Granada). Dirección, horario, mapa e indicaciones para llegar.",
+  });
+
+  const phoneDisplay = "958 000 000";
+  const phoneHref = "tel:+34958000000"; // ajusta si cambia el número real
+
   return (
     <section id="visitanos" className="py-5">
       <div className="container">
         <h2 className="text-center mb-4">Visítanos</h2>
 
-        {/* Mapa de Google  */}
+        {/* Mapa de Google */}
         <div className="mb-5">
           <div className="ratio ratio-4x3 rounded overflow-hidden shadow-sm">
             <iframe
@@ -25,6 +34,8 @@ export default function Visitanos() {
               allowFullScreen
             />
           </div>
+
+          {/* Si Contact ya incluye formulario o bloque de contacto, perfecto */}
           <Contact />
         </div>
 
@@ -34,14 +45,17 @@ export default function Visitanos() {
             <strong>Dirección:</strong> {ADDRESS}
           </p>
           <p>
-            <strong>Horario:</strong> Lunes a Viernes de 10:00 a 13:30 y de 17:00 a 20:30
+            <strong>Horario:</strong> Lunes a Viernes de 10:00 a 13:30 y de 17:00
+            a 20:30
           </p>
+          <p>Sábados de 10:00 a 13:30</p>
           <p>
-            Sábados de 10:00 a 13:30 
+            <strong>Teléfono:</strong>{" "}
+            <a href={phoneHref} style={{ textDecoration: "none" }}>
+              {phoneDisplay}
+            </a>
           </p>
-          <p>
-            <strong>Teléfono:</strong> 958 000 000
-          </p>
+
           <div className="d-flex justify-content-center gap-2 mt-3">
             <a
               className="btn btn-primary"
@@ -63,9 +77,6 @@ export default function Visitanos() {
             </a>
           </div>
         </div>
-
-        {/* Formulario de contacto */}
-        
       </div>
     </section>
   );

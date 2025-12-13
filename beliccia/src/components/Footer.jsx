@@ -1,5 +1,5 @@
 // src/components/Footer.jsx
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 function PlaceholderLink({ children }) {
   return (
@@ -15,9 +15,30 @@ function PlaceholderLink({ children }) {
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const goContact = () => {
+    // Si ya estamos en home, hacemos scroll directo
+    if (location.pathname === "/") {
+      const el = document.getElementById("contact");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    // Si no estamos en home, navegamos y luego scrolleamos
+    navigate("/", { replace: false });
+    setTimeout(() => {
+      const el = document.getElementById("contact");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
 
   return (
-    <footer className="bg--background-color text-secondary pt-5">
+    <footer
+      className="text-secondary pt-5"
+      style={{ background: "var(--background-color, #fff)" }}
+    >
       <div className="container">
         {/* Categorías y enlaces */}
         <div className="row text-center text-md-start">
@@ -25,26 +46,22 @@ export default function Footer() {
             <h6 className="text-uppercase fw-bold">Categorías</h6>
             <ul className="list-unstyled">
               <li>
-                <Link
-                  to="/novias"
-                  className="text-decoration-none text-secondary"
-                >
+                <Link to="/novias" className="text-decoration-none text-secondary">
                   Vestidos de novia
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/fiesta"
-                  className="text-decoration-none text-secondary"
-                >
-                  Vestidos de fiesta
+                <Link to="/madrinas" className="text-decoration-none text-secondary">
+                  Madrinas
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/complementos"
-                  className="text-decoration-none text-secondary"
-                >
+                <Link to="/invitadas" className="text-decoration-none text-secondary">
+                  Invitadas
+                </Link>
+              </li>
+              <li>
+                <Link to="/complementos" className="text-decoration-none text-secondary">
                   Complementos
                 </Link>
               </li>
@@ -58,12 +75,13 @@ export default function Footer() {
                 <PlaceholderLink>Preguntas frecuentes</PlaceholderLink>
               </li>
               <li>
-                <Link
-                  to="/#contact"
-                  className="text-decoration-none text-secondary"
+                <button
+                  type="button"
+                  onClick={goContact}
+                  className="btn btn-link p-0 text-decoration-none text-secondary"
                 >
                   Contacto
-                </Link>
+                </button>
               </li>
               <li>
                 <PlaceholderLink>Mapa web</PlaceholderLink>
@@ -75,7 +93,9 @@ export default function Footer() {
             <h6 className="text-uppercase fw-bold">Puntos de venta</h6>
             <ul className="list-unstyled">
               <li>
-                <PlaceholderLink>Tiendas recomendadas</PlaceholderLink>
+                <Link to="/visitanos" className="text-decoration-none text-secondary">
+                  Visítanos
+                </Link>
               </li>
               <li>
                 <PlaceholderLink>Abre tu tienda</PlaceholderLink>
@@ -90,17 +110,17 @@ export default function Footer() {
             <h6 className="text-uppercase fw-bold">Empresa</h6>
             <ul className="list-unstyled">
               <li>
-                <PlaceholderLink>Sobre nosotros</PlaceholderLink>
+                <Link to="/conocenos" className="text-decoration-none text-secondary">
+                  Sobre nosotros
+                </Link>
               </li>
               <li>
-                <PlaceholderLink>Únete a nuestro equipo</PlaceholderLink>
+                <Link to="/atelier" className="text-decoration-none text-secondary">
+                  Atelier
+                </Link>
               </li>
               <li>
-                {/* Área privada dependientas/admin */}
-                <Link
-                  to="/admin/login"
-                  className="text-decoration-none text-secondary"
-                >
+                <Link to="/admin/login" className="text-decoration-none text-secondary">
                   Área privada
                 </Link>
               </li>
@@ -110,7 +130,6 @@ export default function Footer() {
 
         {/* Redes sociales */}
         <div className="text-center my-4">
-          {/* Si aún no tienes URLs reales, mejor dejar placeholders */}
           <span className="text-secondary me-3" aria-label="Facebook">
             <i className="fab fa-facebook fa-lg" />
           </span>
