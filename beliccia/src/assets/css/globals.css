@@ -28,6 +28,7 @@ a {
 
 a:hover {
   color: var(--background-color);
+  
 }
 
 .btn {
@@ -41,6 +42,7 @@ a:hover {
 
 .btn:hover {
   background-color: var(--accent-color);
+  color: black;
 }
 
 /* 

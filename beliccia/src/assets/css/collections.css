@@ -68,3 +68,17 @@
 
   
 }
+/* Carrusel más ancho sin pegarse a los bordes */
+.collections-carousel {
+  width: 100%;
+}
+
+.collections-carousel .carousel-inner {
+  border-radius: 1.25rem;   /* mismo rollo rounded-4 */
+  overflow: hidden;
+}
+.collections-carousel {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}

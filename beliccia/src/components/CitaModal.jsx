@@ -1,5 +1,6 @@
 // src/components/CitaModal.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import api from "../services/api";
 import { resolveImageUrl } from "../services/imageUrl";
 
@@ -9,12 +10,41 @@ export default function CitaModal({ open, onClose, producto }) {
   const [sendingCita, setSendingCita] = useState(false);
   const [citaMsg, setCitaMsg] = useState(null);
 
+  // ✅ Mantener scroll al abrir/cerrar modal
+  useEffect(() => {
+  if (!open) return;
+
+  // ✅ Evita el micro-salto por scrollbar
+  const scrollbarW =
+    window.innerWidth - document.documentElement.clientWidth;
+
+  const prev = {
+    overflow: document.body.style.overflow,
+    paddingRight: document.body.style.paddingRight,
+  };
+
+  document.body.style.overflow = "hidden";
+  if (scrollbarW > 0) document.body.style.paddingRight = `${scrollbarW}px`;
+
+  return () => {
+    document.body.style.overflow = prev.overflow;
+    document.body.style.paddingRight = prev.paddingRight;
+  };
+}, [open]);
+
+  // Limpieza al abrir/cambiar producto (opcional, pero viene bien)
+  useEffect(() => {
+    if (open) {
+      setCitaMsg(null);
+      setSendingCita(false);
+    }
+  }, [open, producto?.id]);
+
   if (!open || !producto) return null;
 
   const nombre = producto?.nombre || "Producto";
-  const imgUrl = resolveImageUrl(
-    producto?.imagen_portada || producto?.imagen || PLACEHOLDER
-  );
+  const imgUrl =
+    resolveImageUrl(producto?.imagen_portada || producto?.imagen) || PLACEHOLDER;
 
   const close = () => {
     onClose?.();
@@ -22,16 +52,40 @@ export default function CitaModal({ open, onClose, producto }) {
     setSendingCita(false);
   };
 
-  return (
+  return createPortal(
     <div
       className="custom-modal-backdrop"
       onClick={close}
       role="dialog"
       aria-modal="true"
       aria-label={`Solicitar información de ${nombre}`}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 2000,
+        background: "rgba(0,0,0,.45)",
+        display: "grid",
+        placeItems: "center",
+        padding: 16,
+      }}
     >
-      <div className="custom-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="btn-close" onClick={close} aria-label="Cerrar">
+      <div
+        className="custom-modal"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(720px, 100%)",
+          maxHeight: "90vh",
+          overflow: "auto",
+          borderRadius: 16,
+          background: "#fff",
+        }}
+      >
+        <button
+          type="button"
+          className="btn-close"
+          onClick={close}
+          aria-label="Cerrar"
+        >
           &times;
         </button>
 
@@ -151,6 +205,7 @@ export default function CitaModal({ open, onClose, producto }) {
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

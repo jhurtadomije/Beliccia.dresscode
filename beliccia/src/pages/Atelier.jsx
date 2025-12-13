@@ -37,7 +37,7 @@ export default function Atelier() {
         {/* CARDS 3 EN 3 */}
         <section className="py-4">
           <div className="text-center mb-4">
-            <h2 className="h3 mb-2">Qué hacemos en el atelier</h2>
+            <h2 className="h1 mb-4">Qué hacemos en Atelier</h2>
             <p className="text-muted mb-0">
               Un servicio completo para que el vestido quede perfecto.
             </p>

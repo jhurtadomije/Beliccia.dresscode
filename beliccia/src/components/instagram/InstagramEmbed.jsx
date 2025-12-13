@@ -22,6 +22,6 @@ export default function InstagramEmbed({ html }) {
             } 
           } 
         } 
-        // No hace falta limpiar nada al desmontar 
+         
       }, [html]);
        return <div ref={ref} className="instagram-embed" />; }

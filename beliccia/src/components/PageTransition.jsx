@@ -4,9 +4,17 @@ export default function PageTransition({ children }) {
   const reduce = useReducedMotion();
 
   const variants = {
-    hidden: { opacity: 0, y: reduce ? 0 : 10, filter: reduce ? "none" : "blur(2px)" },
-    show:   { opacity: 1, y: 0, filter: "blur(0px)" },
-    exit:   { opacity: 0, y: reduce ? 0 : -6, filter: reduce ? "none" : "blur(2px)" },
+    hidden: {
+      opacity: 0,
+      y: reduce ? 0 : 30,
+      filter: reduce ? "none" : "blur(8px)",
+    },
+    show: { opacity: 1, y: 0, filter: "blur(0px)" },
+    exit: {
+      opacity: 0,
+      y: reduce ? 0 : -20,
+      filter: reduce ? "none" : "blur(8px)",
+    },
   };
 
   return (
@@ -15,7 +23,10 @@ export default function PageTransition({ children }) {
       initial="hidden"
       animate="show"
       exit="exit"
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      transition={{
+        duration: 1.3,               // 👈 antes era muy corto
+        ease: [0.22, 1, 0.36, 1],    // está bien (easeOutExpo-like)
+      }}
       style={{ willChange: "transform, opacity, filter" }}
     >
       {children}

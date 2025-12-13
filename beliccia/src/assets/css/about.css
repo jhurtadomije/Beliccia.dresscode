@@ -1,88 +1,67 @@
-/* Sobre Nosotros */
+/* Sobre Nosotros (nuevo layout: título -> vídeo -> CTAs) */
 #about {
-    padding: 2rem 1rem;
-    margin-bottom: 2rem;
+  padding: 2rem 1rem;
+  margin-bottom: 2rem;
+  
 }
 
 #about h2 {
-    text-align: center;
-    margin-bottom: 2rem;
-    order: -1;
-}
-
-#about img {
-    align-self: center;
-    max-width: 100%;
-    width: 100%;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin-bottom: 2rem;
+  
 }
 
 #about p {
-    margin: 1rem 0;
-    text-align: center;
-    color: var(--secondary-color);
+  margin: 1rem 0;
+  text-align: center;
+  color: var(--secondary-color);
 }
 
-#about a.btn {
-    display: inline-block;
-    color: var(--background-color);
-    background-color: var(--primary-color);
-    padding: 0.8rem 1.2rem;
-    border-radius: 0.3rem;
-    margin-top: 1rem;
-    text-align: center;
-    transition: background-color 0.3s ease;
+/* ✅ Vídeo */
+#about video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  
 }
 
-#about a.btn:hover {
-    background-color: var(--accent-color);
+
+#about .btn {
+  margin-top: 0.25rem;
 }
 
-#about .social-icons {
-    margin-top: 1.5rem;
-    text-align: center;
-}
-
-#about .social-icons a {
-    color: var(--secondary-color);
-    margin: 0 0.8rem;
-    transition: color 0.3s ease;
-}
-
-#about .social-icons a:hover {
-    color: var(--primary-color);
-}
-
-#about .social-icons i {
-    font-size: 1.8rem;
-}
-
-#about .social-icons i:hover {
-    text-shadow: var(--shadow-primary), var(--shadow-accent), var(--shadow-secondary);
-}
-
-/* --- ESCRITORIO: media query para pantallas grandes --- */
+/* --- ESCRITORIO:  --- */
 @media (min-width: 768px) {
   #about {
-    display: flex;
-    align-items: center;
-    gap: 3rem;
     padding: 4rem 3rem;
     margin-bottom: 3rem;
-    justify-content: center;
   }
-  #about img {
-    width: 45%;
-    max-width: 400px;
-    margin: 0;
-  }
-  #about .about-content {
-    width: 50%;
-    text-align: left;
-  }
+
   #about h2,
   #about p {
-    text-align: left;
+    text-align: center;
   }
+  /* Ancho grande pero con estética */
+.about-video-wrap{
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow: 0 .5rem 1.25rem rgba(0,0,0,.12);
+  position: relative;
+
+  /* 👇 altura fluida y estable (no se rompe en móviles) */
+  height: clamp(450px, 45vw, 768px);
+}
+
+/* el vídeo rellena el wrapper */
+.about-video{
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;     /* rellena sin deformar */
+  object-position: center;
+}
 }

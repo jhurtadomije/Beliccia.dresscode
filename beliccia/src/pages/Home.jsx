@@ -18,10 +18,11 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <About />
 
       <Collections />
 
-      <About />
+      
       <Services />
 
       <section id="instagram" className="py-5">
