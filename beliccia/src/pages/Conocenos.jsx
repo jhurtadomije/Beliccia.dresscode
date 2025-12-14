@@ -13,12 +13,12 @@ const CTA_PRODUCTO = {
 };
 
 const IMAGES_CONOCENOS = [
-  "/src/assets/img/conocenos/logoLuz.png",
-  "/src/assets/img/conocenos/entrada.jpg",
-  "/src/assets/img/conocenos/pasilloNovias.jpg",
-  "/src/assets/img/conocenos/pasilloMadrinas.jpg",
-  "/src/assets/img/conocenos/zonaInvitadas.jpg",
-  "/src/assets/img/conocenos/zonaComplementos.jpg",
+  "imagenes/img/conocenos/logoLuz.png",
+  "imagenes/img/conocenos/entrada.jpg",
+  "imagenes/img/conocenos/pasilloNovias.jpg",
+  "imagenes/img/conocenos/pasilloMadrinas.jpg",
+  "imagenes/img/conocenos/zonaInvitadas.jpg",
+  "imagenes/img/conocenos/zonaComplementos.jpg",
 ];
 
 export default function Conocenos() {
@@ -163,7 +163,7 @@ export default function Conocenos() {
                   Pedir cita
                 </button>
                 <Link className="btn btn-outline-dark" to="/atelier">
-                  Ver atelier
+                  Atelier
                 </Link>
                 <Link className="btn btn-outline-secondary" to="/visitanos">
                   Visítanos

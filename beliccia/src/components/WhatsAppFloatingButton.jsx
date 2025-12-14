@@ -1,8 +1,8 @@
-// src/components/WhatsAppFloatingButton.jsx
+
 import "../assets/css/whatsappFloatingButton.css";
 
 export default function WhatsAppFloatingButton() {
-  const whatsappUrl = "https://wa.me/34600000000"; 
+  const whatsappUrl = "https://wa.me/34641363381"; 
 
   return (
     <a

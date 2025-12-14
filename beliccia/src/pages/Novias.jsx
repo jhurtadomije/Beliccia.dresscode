@@ -1,11 +1,12 @@
 // src/pages/Novias.jsx
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useSearchParams, Link, useLocation } from "react-router-dom";
 import api from "../services/api";
 import { useCart } from "../context/CartContext";
 import { resolveImageUrl } from "../services/imageUrl";
 import { usePageMeta } from "../hooks/usePageMeta";
 import CitaModal from "../components/CitaModal";
+import { flyToCartFromEl } from "../utils/cartFly";
 
 const PLACEHOLDER = "/placeholder.png";
 
@@ -34,6 +35,8 @@ function NoviaCard({ producto, onSolicitarInfo }) {
   const { addToCart } = useCart();
   const location = useLocation();
   const from = location.pathname + location.search;
+
+  const imgRef = useRef(null); // ✅ para el fly
 
   const id = getId(producto);
   const nombre = producto?.nombre || "Vestido de novia";
@@ -67,6 +70,7 @@ function NoviaCard({ producto, onSolicitarInfo }) {
         {/* Cara frontal */}
         <div className="card-face card-front">
           <img
+            ref={imgRef}
             src={imageUrl}
             className="card-img-top"
             alt={nombre}
@@ -88,6 +92,7 @@ function NoviaCard({ producto, onSolicitarInfo }) {
             )}
 
             <button
+              type="button"
               className="btn btn-outline-dark mt-4 mb-3"
               aria-label={`Ver detalles de ${nombre}`}
               onClick={() => setFlipped(true)}
@@ -115,13 +120,18 @@ function NoviaCard({ producto, onSolicitarInfo }) {
 
             {canBuy ? (
               <button
+                type="button"
                 className="btn btn-success mb-2 w-100"
-                onClick={() => addToCart({ producto_id: producto.id })}
+                onClick={() => {
+                  addToCart({ producto_id: producto.id });
+                  flyToCartFromEl(imgRef.current); // ✅ fly
+                }}
               >
                 Añadir al carrito
               </button>
             ) : (
               <button
+                type="button"
                 className="btn btn-primary mb-2 w-100"
                 onClick={onSolicitarInfo}
               >
@@ -138,6 +148,7 @@ function NoviaCard({ producto, onSolicitarInfo }) {
             </Link>
 
             <button
+              type="button"
               className="btn btn-secondary mt-2"
               onClick={() => setFlipped(false)}
             >
@@ -220,10 +231,7 @@ export default function Novias() {
     return <section className="py-5 text-center text-danger">{error}</section>;
 
   return (
-    <section
-      className="py-5"
-      style={{ backgroundColor: "var(--background-color)" }}
-    >
+    <section className="py-5" style={{ backgroundColor: "var(--background-color)" }}>
       <div className="container">
         <h2 className="text-center mb-4">Colección de Novias</h2>
 

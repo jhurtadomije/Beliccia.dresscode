@@ -25,10 +25,9 @@ app.use(
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
-      "http://127.0.0.1:5173",
+      "http://localhost:5173", "http://localhost:4173",
       "https://beliccia.es",
-      "https://www.tudominio.com",
+      "https://www.beliccia.es",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: [

@@ -8,6 +8,7 @@ const DESKTOP_BP = 992;
 export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
+  const cartIconRef = useRef(null);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -15,32 +16,58 @@ export default function Header() {
   const [modalEstilosVisible, setModalEstilosVisible] = useState(false);
   const [hasOpenDesktopMenu, setHasOpenDesktopMenu] = useState(false);
 
+  const navRef = useRef(null); // ✅ nuevo: para detectar "click fuera" correctamente
   const collapseRef = useRef(null);
   const togglerRef = useRef(null);
   const hoverTimersRef = useRef(new Map());
   const collapseHdrTimeout = useRef(null);
 
-  const toggleMenu = useCallback(() => {
-    setMenuOpen((prev) => !prev);
-  }, []);
-
+  const isDesktop = () => window.innerWidth >= DESKTOP_BP;
+  const isHome = location.pathname === "/";
   const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const toggleMenu = useCallback(() => setMenuOpen((p) => !p), []);
+  const [cartBump, setCartBump] = useState(false);
+
+  useEffect(() => {
+    const onBump = () => {
+      setCartBump(true);
+      setTimeout(() => setCartBump(false), 450);
+    };
+    window.addEventListener("cart:bump", onBump);
+    return () => window.removeEventListener("cart:bump", onBump);
+  }, []);
 
   const closeAllSubmenus = useCallback(() => {
     const root = collapseRef.current;
     if (!root) return;
 
+    // móvil: .show
     root
       .querySelectorAll(".dropdown-menu.show")
       .forEach((ul) => ul.classList.remove("show"));
-
     root
       .querySelectorAll('.dropdown-toggle[aria-expanded="true"]')
       .forEach((btn) => btn.setAttribute("aria-expanded", "false"));
+
+    // desktop: .open
+    root
+      .querySelectorAll(
+        ".nav-item.dropdown.open, .dropdown-submenu.dropend.open"
+      )
+      .forEach((li) => li.classList.remove("open"));
   }, []);
 
+  const resetHeaderState = useCallback(() => {
+    closeAllSubmenus();
+    setHasOpenDesktopMenu(false);
+    setExpanded(false);
+    setMenuOpen(false);
+    setModalEstilosVisible(false);
+  }, [closeAllSubmenus]);
+
   const toggleDropdown = useCallback((e) => {
-    if (window.innerWidth >= DESKTOP_BP) return;
+    // SOLO MÓVIL
+    if (isDesktop()) return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -51,6 +78,7 @@ export default function Header() {
 
     const isOpen = menu.classList.contains("show");
 
+    // Cerrar siblings
     const parentMenu = menu.parentElement?.parentElement;
     if (parentMenu) {
       parentMenu
@@ -72,15 +100,15 @@ export default function Header() {
     btn.setAttribute("aria-expanded", (!isOpen).toString());
   }, []);
 
-  // ------------------ SUBMENÚS EN DESKTOP (hover-intent) ------------------
+  // ------------------ DESKTOP hover-intent ------------------
   useEffect(() => {
-    if (window.innerWidth < DESKTOP_BP) return;
+    if (!isDesktop()) return;
 
     const root = collapseRef.current;
     if (!root) return;
 
     const HOVER_OPEN_DELAY = 70;
-    const HOVER_CLOSE_DELAY = 320;
+    const HOVER_CLOSE_DELAY = 220;
 
     const items = root.querySelectorAll(
       ".navbar-nav > .nav-item.dropdown, .dropdown-submenu.dropend"
@@ -88,6 +116,11 @@ export default function Header() {
 
     const timers = hoverTimersRef.current;
     const handlers = [];
+
+    const computeHasAnyOpen = () =>
+      !!root.querySelector(
+        ".nav-item.dropdown.open, .dropdown-submenu.dropend.open"
+      );
 
     const openItem = (item) => {
       item.classList.add("open");
@@ -98,11 +131,8 @@ export default function Header() {
     const closeItem = (item) => {
       item.classList.remove("open");
 
-      if (
-        !root.querySelector(
-          ".nav-item.dropdown.open, .dropdown-submenu.dropend.open"
-        )
-      ) {
+      // si ya no queda ninguno abierto, colapsamos header
+      if (!computeHasAnyOpen()) {
         setHasOpenDesktopMenu(false);
         clearTimeout(collapseHdrTimeout.current);
         collapseHdrTimeout.current = setTimeout(() => setExpanded(false), 120);
@@ -112,27 +142,22 @@ export default function Header() {
     items.forEach((item) => {
       const onEnter = () => {
         const tm = timers.get(item);
-        if (tm?.close) {
-          clearTimeout(tm.close);
-          tm.close = null;
-        }
+        if (tm?.close) clearTimeout(tm.close);
+
         const openTm = setTimeout(() => openItem(item), HOVER_OPEN_DELAY);
-        timers.set(item, { ...(timers.get(item) || {}), open: openTm });
+        timers.set(item, { ...(tm || {}), open: openTm, close: null });
       };
 
       const onLeave = () => {
         const tm = timers.get(item);
-        if (tm?.open) {
-          clearTimeout(tm.open);
-          tm.open = null;
-        }
+        if (tm?.open) clearTimeout(tm.open);
+
         const closeTm = setTimeout(() => closeItem(item), HOVER_CLOSE_DELAY);
-        timers.set(item, { ...(timers.get(item) || {}), close: closeTm });
+        timers.set(item, { ...(tm || {}), close: closeTm, open: null });
       };
 
       item.addEventListener("mouseenter", onEnter);
       item.addEventListener("mouseleave", onLeave);
-
       handlers.push({ item, onEnter, onLeave });
     });
 
@@ -146,27 +171,38 @@ export default function Header() {
         if (open) clearTimeout(open);
         if (close) clearTimeout(close);
       });
-
       timers.clear();
     };
   }, [location]);
 
-  // Estilo al hacer scroll
+  // Scroll (con init)
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
-    window.addEventListener("scroll", onScroll);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Click fuera
+  // Resize: si cambia de desktop a móvil o al revés, resetea estados peligrosos
+  useEffect(() => {
+    const onResize = () => {
+      resetHeaderState();
+    };
+
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [resetHeaderState]);
+
+  // ✅ Click fuera (FIX): usar "click" y comprobar TODO el navbar, no solo el collapse
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        collapseRef.current &&
-        !collapseRef.current.contains(e.target) &&
-        togglerRef.current &&
-        !togglerRef.current.contains(e.target)
-      ) {
+      const nav = navRef.current;
+      const toggler = togglerRef.current;
+
+      const clickedInsideNav = nav && nav.contains(e.target);
+      const clickedOnToggler = toggler && toggler.contains(e.target);
+
+      if (!clickedInsideNav && !clickedOnToggler) {
         closeAllSubmenus();
         setHasOpenDesktopMenu(false);
         setExpanded(false);
@@ -174,8 +210,8 @@ export default function Header() {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, [closeAllSubmenus, closeMenu]);
 
   // Cierra al navegar
@@ -186,7 +222,7 @@ export default function Header() {
     closeMenu();
   }, [location, closeAllSubmenus, closeMenu]);
 
-  // Bloqueo de scroll body
+  // Bloqueo de scroll body (solo si menú móvil o modal)
   useEffect(() => {
     document.body.style.overflow =
       menuOpen || modalEstilosVisible ? "hidden" : "";
@@ -199,34 +235,93 @@ export default function Header() {
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") {
-        closeAllSubmenus();
-        setHasOpenDesktopMenu(false);
-        setExpanded(false);
-        closeMenu();
+        resetHeaderState();
       }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [closeAllSubmenus, closeMenu]);
+  }, [resetHeaderState]);
+
+  //efecto fly añadir al carrito
+  useEffect(() => {
+    const fly = (detail) => {
+      const cartEl = cartIconRef.current;
+      if (!cartEl) return;
+
+      const { imgSrc, fromRect } = detail || {};
+      if (!imgSrc || !fromRect) return;
+
+      const toRect = cartEl.getBoundingClientRect();
+
+      // elemento "volador"
+      const img = document.createElement("img");
+      img.src = imgSrc;
+      img.alt = "";
+      img.setAttribute("aria-hidden", "true");
+      img.style.position = "fixed";
+      img.style.left = `${fromRect.left}px`;
+      img.style.top = `${fromRect.top}px`;
+      img.style.width = `${fromRect.width}px`;
+      img.style.height = `${fromRect.height}px`;
+      img.style.objectFit = "cover";
+      img.style.borderRadius = "12px";
+      img.style.zIndex = "99999";
+      img.style.pointerEvents = "none";
+      img.style.boxShadow = "0 18px 45px rgba(0,0,0,.25)";
+      img.style.transform = "translate3d(0,0,0) scale(1)";
+      img.style.opacity = "1";
+      img.style.transition =
+        "transform 650ms cubic-bezier(.2,.8,.2,1), opacity 650ms ease";
+
+      document.body.appendChild(img);
+
+      // destino: centro del icono carrito
+      const toX = toRect.left + toRect.width / 2;
+      const toY = toRect.top + toRect.height / 2;
+
+      // origen: centro de la imagen
+      const fromX = fromRect.left + fromRect.width / 2;
+      const fromY = fromRect.top + fromRect.height / 2;
+
+      const dx = toX - fromX;
+      const dy = toY - fromY;
+
+      // forzar paint y animar
+      requestAnimationFrame(() => {
+        img.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(0.15)`;
+        img.style.opacity = "0.15";
+      });
+
+      const cleanup = () => {
+        img.removeEventListener("transitionend", cleanup);
+        img.remove();
+        window.dispatchEvent(new Event("cart:bump")); // tu bump actual
+      };
+      img.addEventListener("transitionend", cleanup);
+    };
+
+    const onFly = (e) => fly(e.detail);
+    window.addEventListener("cart:fly", onFly);
+    return () => window.removeEventListener("cart:fly", onFly);
+  }, []);
 
   return (
     <header
-      className={`main-header${
+      className={`main-header ${isHome ? "is-home" : "is-inner"}${
         expanded || hasOpenDesktopMenu ? " expanded" : ""
       }${scrolled ? " scrolled" : ""}`}
-      onMouseEnter={() => setExpanded(true)}
+      onMouseEnter={() => {
+        if (isDesktop()) setExpanded(true);
+      }}
       onMouseLeave={() => {
-        if (window.innerWidth >= DESKTOP_BP) {
-          clearTimeout(collapseHdrTimeout.current);
-          collapseHdrTimeout.current = setTimeout(() => {
-            if (!hasOpenDesktopMenu) setExpanded(false);
-          }, 160);
-        } else {
-          setExpanded(false);
-        }
+        if (!isDesktop()) return;
+        clearTimeout(collapseHdrTimeout.current);
+        collapseHdrTimeout.current = setTimeout(() => {
+          if (!hasOpenDesktopMenu) setExpanded(false);
+        }, 160);
       }}
     >
-      <nav className="navbar navbar-expand-lg">
+      <nav ref={navRef} className="navbar navbar-expand-lg">
         <div className="container d-flex align-items-center justify-content-between position-relative">
           {/* Hamburguesa */}
           <button
@@ -243,7 +338,11 @@ export default function Header() {
           </button>
 
           {/* Logo */}
-          <Link className="navbar-brand" to="/">
+          <Link
+            className="navbar-brand"
+            to="/"
+            onClick={() => resetHeaderState()}
+          >
             <img src="/imagenes/logo.png" alt="Logo Beliccia" />
           </Link>
 
@@ -255,9 +354,13 @@ export default function Header() {
           >
             <ul className="navbar-nav">
               <li className="nav-item">
-                {/* Mejor Link que NavLink para anclas */}
-                <Link className="nav-link" to="/">
-                  Inicio
+                <Link
+                  className="nav-link"
+                  to="/"
+                  onClick={resetHeaderState}
+                  aria-label="Inicio"
+                >
+                  <i className="fas fa-home" aria-hidden="true" style={{ fontSize: "1.05rem" }} />
                 </Link>
               </li>
 
@@ -289,7 +392,11 @@ export default function Header() {
                     </button>
                     <ul className="dropdown-menu">
                       <li>
-                        <NavLink className="dropdown-item" to="/novias">
+                        <NavLink
+                          className="dropdown-item"
+                          to="/novias"
+                          onClick={resetHeaderState}
+                        >
                           Ver todo
                         </NavLink>
                       </li>
@@ -300,6 +407,8 @@ export default function Header() {
                           onClick={(e) => {
                             e.preventDefault();
                             setModalEstilosVisible(true);
+                            setMenuOpen(false);
+                            closeAllSubmenus();
                           }}
                         >
                           Elige tu estilo
@@ -330,7 +439,11 @@ export default function Header() {
                         </button>
                         <ul className="dropdown-menu">
                           <li>
-                            <NavLink className="dropdown-item" to="/madrinas">
+                            <NavLink
+                              className="dropdown-item"
+                              to="/madrinas"
+                              onClick={resetHeaderState}
+                            >
                               Ver todo
                             </NavLink>
                           </li>
@@ -348,7 +461,11 @@ export default function Header() {
                         </button>
                         <ul className="dropdown-menu">
                           <li>
-                            <NavLink className="dropdown-item" to="/invitadas">
+                            <NavLink
+                              className="dropdown-item"
+                              to="/invitadas"
+                              onClick={resetHeaderState}
+                            >
                               Ver todo
                             </NavLink>
                           </li>
@@ -369,17 +486,29 @@ export default function Header() {
                     </button>
                     <ul className="dropdown-menu">
                       <li>
-                        <NavLink className="dropdown-item" to="/tocados">
+                        <NavLink
+                          className="dropdown-item"
+                          to="/tocados"
+                          onClick={resetHeaderState}
+                        >
                           Tocados
                         </NavLink>
                       </li>
                       <li>
-                        <NavLink className="dropdown-item" to="/bolsos">
+                        <NavLink
+                          className="dropdown-item"
+                          to="/bolsos"
+                          onClick={resetHeaderState}
+                        >
                           Bolsos
                         </NavLink>
                       </li>
                       <li>
-                        <NavLink className="dropdown-item" to="/otros">
+                        <NavLink
+                          className="dropdown-item"
+                          to="/otros"
+                          onClick={resetHeaderState}
+                        >
                           Otros
                         </NavLink>
                       </li>
@@ -392,54 +521,61 @@ export default function Header() {
                 <NavLink
                   className="nav-link"
                   to="/conocenos"
-                  onClick={closeMenu}
+                  onClick={resetHeaderState}
                 >
                   Conócenos
                 </NavLink>
               </li>
+
               <li className="nav-item">
-                <NavLink className="nav-link" to="/atelier" onClick={closeMenu}>
+                <NavLink
+                  className="nav-link"
+                  to="/atelier"
+                  onClick={resetHeaderState}
+                >
                   Atelier
                 </NavLink>
               </li>
 
               {/* Contacto */}
-              <li className="nav-item dropdown">
-                <button
-                  type="button"
-                  className="nav-link dropdown-toggle btn-reset-link"
-                  id="contactDropdown"
-                  aria-expanded="false"
-                  onClick={toggleDropdown}
+              <li className="nav-item">
+                <NavLink
+                  className="nav-link"
+                  to="/visitanos"
+                  onClick={resetHeaderState}
                 >
                   Contacto
-                </button>
-                <ul className="dropdown-menu" aria-labelledby="contactDropdown">
-                  <li>
-                    <Link className="dropdown-item" to="/#contact">
-                      Formulario
-                    </Link>
-                  </li>
-                  <li>
-                    <NavLink className="dropdown-item" to="/visitanos">
-                      Visítanos
-                    </NavLink>
-                  </li>
-                </ul>
+                </NavLink>
               </li>
             </ul>
           </div>
 
           {/* Iconos */}
           <div className="navbar-icons d-flex ms-auto">
-            <Link to="/buscar" className="icon-link me-2" title="Buscar">
+            <Link
+              to="/buscar"
+              className="icon-link me-2"
+              title="Buscar"
+              onClick={resetHeaderState}
+            >
               <i className="fas fa-search" />
             </Link>
-            <Link to="/carrito" className="icon-link me-2" title="Carrito">
+            <Link
+              to="/carrito"
+              ref={cartIconRef}
+              className={`icon-link me-2 ${cartBump ? "is-bumping" : ""}`}
+              title="Carrito"
+              onClick={resetHeaderState}
+            >
               <i className="fas fa-shopping-cart" />
             </Link>
-            {/* Si no existe /login aún, luego lo ajustamos */}
-            <Link to="/login" className="icon-link" title="Iniciar sesión">
+
+            <Link
+              to="/login"
+              className="icon-link"
+              title="Iniciar sesión"
+              onClick={resetHeaderState}
+            >
               <i className="fas fa-user" />
             </Link>
           </div>
@@ -467,16 +603,20 @@ export default function Header() {
         >
           <div className="custom-modal" onClick={(e) => e.stopPropagation()}>
             <button
+              type="button"
               className="btn-close"
               onClick={() => setModalEstilosVisible(false)}
             >
               &times;
             </button>
+
             <h4 className="mb-3 text-center">Elige tu estilo</h4>
+
             <FiltrosEstiloNovia
               onSelect={(slug) => {
                 navigate(`/novias?corte=${slug}`);
                 setModalEstilosVisible(false);
+                resetHeaderState();
               }}
             />
           </div>

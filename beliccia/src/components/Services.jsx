@@ -38,7 +38,7 @@ export default function Services() {
         {/* ✅ único CTA fuera de las cards */}
         <div className="mt-4">
           <Link to="/atelier" className="btn btn-dark">
-            Ver atelier
+            Atelier
           </Link>
         </div>
       </div>

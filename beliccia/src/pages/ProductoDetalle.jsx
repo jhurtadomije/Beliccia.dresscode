@@ -1,19 +1,38 @@
 // src/pages/ProductoDetalle.jsx
-import { useEffect, useMemo, useState, useCallback } from "react";
-import { useParams, useLocation, Link } from "react-router-dom";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useParams, useLocation, Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useCart } from "../context/CartContext";
 import { resolveImageUrl } from "../services/imageUrl";
 import { usePageMeta } from "../hooks/usePageMeta";
 import CitaModal from "../components/CitaModal";
+import Toast from "../components/Toast";
+import { flyToCartFromEl } from "../utils/cartFly";
 
 const PLACEHOLDER = "/placeholder.png";
-const BUY_LIMIT = 250;
 
 const asNumber = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 };
+
+// Normaliza flags tinyint(1) / string / boolean
+const isFlagTrue = (v) => v === 1 || v === "1" || v === true;
+
+const norm = (s) =>
+  String(s || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+const getTags = (p) => {
+  const raw = norm(p?.tags_origen);
+  if (!raw) return [];
+  return raw.split(/[,\s]+/).filter(Boolean);
+};
+
+const getId = (p) => p?.slug ?? p?.id ?? p?.nombre;
 
 // Tallas estándar para pintar disponibilidad
 const CANONICAL_SIZES = [
@@ -52,18 +71,105 @@ const truncate = (s, max = 155) => {
 };
 
 export default function ProductoDetalle() {
-  // En tu código usamos slug en la URL, pero lo llamas "id"
   const { id } = useParams(); // slug
   const location = useLocation();
   const { addToCart } = useCart();
 
   const [item, setItem] = useState(null);
-  const [images, setImages] = useState([]); // array de objetos { id, url, ... }
+  const [images, setImages] = useState([]);
   const [mainIdx, setMainIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
+  const [related, setRelated] = useState([]);
+  const [loadingRelated, setLoadingRelated] = useState(false);
+
   const [showModal, setShowModal] = useState(false);
+
+  // Toast
+  const [toast, setToast] = useState({ show: false, message: "" });
+
+  // Ref a la imagen principal para el fly
+  const mainImgRef = useRef(null);
+
+  useEffect(() => {
+    if (!item) return;
+
+    let alive = true;
+    setLoadingRelated(true);
+
+    const myTags = getTags(item);
+    const myMarca = norm(item?.marca);
+    const mySlug = norm(item?.slug || id);
+    const myId = item?.id;
+
+    // intentamos usar categoría (la API en listado acepta "novias", "fiesta", "complementos"...)
+    const cat = norm(item?.categoria);
+
+    api
+      .get("/productos", {
+        params: {
+          categoria: cat || undefined,
+          page: 1,
+          limit: 100,
+        },
+      })
+      .then(({ data }) => {
+        if (!alive) return;
+
+        const arr = Array.isArray(data?.data) ? data.data : [];
+
+        // visibles
+        const visibles = arr.filter((p) => isFlagTrue(p?.visible_web));
+
+        // sin el actual
+        const sinActual = visibles.filter((p) => {
+          const ps = norm(p?.slug);
+          const pid = p?.id;
+          if (myId != null && pid === myId) return false;
+          if (mySlug && ps && ps === mySlug) return false;
+          return true;
+        });
+
+        // scoring simple
+        const scored = sinActual
+          .map((p) => {
+            let score = 0;
+
+            // misma marca suma
+            if (myMarca && norm(p?.marca) === myMarca) score += 3;
+
+            // tags comunes suman
+            const ptags = getTags(p);
+            if (myTags.length && ptags.length) {
+              const common = ptags.filter((t) => myTags.includes(t)).length;
+              score += Math.min(common, 4); // max 4 puntos por tags
+            }
+
+            // si es online, un poquito más (opcional)
+            if (isFlagTrue(p?.venta_online)) score += 0.5;
+
+            return { p, score };
+          })
+          .sort((a, b) => b.score - a.score);
+
+        // si todo da 0, igualmente devolvemos “misma categoría”
+        const top = scored.slice(0, 6).map((x) => x.p);
+
+        setRelated(top);
+      })
+      .catch((e) => {
+        console.error(e);
+        if (alive) setRelated([]);
+      })
+      .finally(() => {
+        if (alive) setLoadingRelated(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [item, id]);
 
   // Carga del producto: /api/productos/:slug
   useEffect(() => {
@@ -75,14 +181,13 @@ export default function ProductoDetalle() {
       .get(`/productos/${encodeURIComponent(id)}`)
       .then(({ data }) => {
         if (!alive) return;
+
         setItem(data);
 
-        // data.imagenes viene ya como array [{ id, url, alt_text, es_portada, orden }]
         if (Array.isArray(data?.imagenes) && data.imagenes.length) {
           setImages(data.imagenes);
           setMainIdx(0);
         } else if (data?.imagen_portada || data?.imagen) {
-          // fallback por si acaso
           setImages([{ url: data.imagen_portada || data.imagen }]);
           setMainIdx(0);
         } else {
@@ -106,10 +211,12 @@ export default function ProductoDetalle() {
 
   const nombre = item?.nombre || "Producto";
 
-  // Precio: usamos precio_base de tu tabla productos
+  // ✅ Compra SOLO depende de venta_online (API)
+  const isOnline = isFlagTrue(item?.venta_online);
   const price = asNumber(item?.precio_base);
-  const canBuy = price !== null && price <= BUY_LIMIT;
-  const showPrice = price !== null && price <= BUY_LIMIT; // mismo criterio que en las listas
+
+  // Mostrar precio solo si es online y hay precio
+  const showPrice = isOnline && price !== null;
 
   const descripcionLarga = item?.descripcion_larga || "";
   const descripcionCorta = item?.descripcion_corta || "";
@@ -147,7 +254,7 @@ export default function ProductoDetalle() {
     if (!Array.isArray(item?.variantes)) return [];
     const set = new Set(
       item.variantes
-        .filter((v) => v.activo && v.stock > 0 && v.talla)
+        .filter((v) => v.activo && Number(v.stock) > 0 && v.talla)
         .map((v) => String(v.talla).toUpperCase())
     );
     return [...set];
@@ -159,14 +266,17 @@ export default function ProductoDetalle() {
     if (!vars.length) return null;
 
     return (
-      vars.find((v) => v.activo && v.stock > 0) ||
+      vars.find((v) => v.activo && Number(v.stock) > 0) ||
       vars.find((v) => v.activo) ||
       vars[0] ||
       null
     );
   }, [item]);
 
-  // Galería: convertimos imágenes (objetos) a URLs
+  // ✅ Se puede comprar si es online y tenemos variante válida
+  const canBuy = isOnline && !!defaultVariant?.id;
+
+  // Galería
   const gallery = useMemo(() => {
     if (Array.isArray(images) && images.length) {
       return images
@@ -180,16 +290,25 @@ export default function ProductoDetalle() {
   const onAddToCart = useCallback(() => {
     if (!item) return;
 
-    if (!defaultVariant?.id) {
-      alert("Este producto no tiene variantes disponibles.");
+    // Seguridad: si no es online, abrimos modal
+    if (!isFlagTrue(item?.venta_online)) {
+      setShowModal(true);
       return;
     }
 
-    addToCart({
-      producto_variante_id: defaultVariant.id,
-    });
+    if (!defaultVariant?.id) {
+      setToast({ show: true, message: "⚠️ No hay variantes disponibles." });
+      return;
+    }
 
-    alert("¡Añadido al carrito!");
+    addToCart({ producto_variante_id: defaultVariant.id });
+
+    //  Fly hacia el carrito (igual que en las cards)
+    flyToCartFromEl(mainImgRef.current);
+
+    //  Feedback + bump del icono
+    setToast({ show: true, message: "✅ Añadido al carrito" });
+    window.dispatchEvent(new Event("cart:bump"));
   }, [addToCart, item, defaultVariant]);
 
   // -------- Volver inteligente --------
@@ -200,7 +319,6 @@ export default function ProductoDetalle() {
 
   const guessedBack = useMemo(() => {
     const cat = String(item?.categoria || "").toLowerCase();
-    // La API te devuelve c.nombre como "Novias", "Madrinas", "Invitadas", "Complementos"
     if (cat === "novias") return "/novias";
     if (cat === "madrinas") return "/madrinas";
     if (cat === "invitadas") return "/invitadas";
@@ -214,12 +332,13 @@ export default function ProductoDetalle() {
     return <section className="py-5 text-center">Cargando producto…</section>;
   if (err)
     return <section className="py-5 text-center text-danger">{err}</section>;
-  if (!item)
+  if (!item) {
     return (
       <section className="py-5 text-center text-muted">
         Producto no encontrado.
       </section>
     );
+  }
 
   return (
     <section className="py-5">
@@ -229,6 +348,7 @@ export default function ProductoDetalle() {
           <div className="col-12 col-md-7">
             <div className="detail-main-image mb-3">
               <img
+                ref={mainImgRef}
                 src={resolveImageUrl(gallery[mainIdx] || PLACEHOLDER)}
                 alt={nombre}
                 className="w-100"
@@ -242,6 +362,7 @@ export default function ProductoDetalle() {
                 }}
               />
             </div>
+
             {gallery.length > 1 && (
               <div className="detail-thumbs d-flex flex-wrap gap-2">
                 {gallery.slice(0, 12).map((img, i) => (
@@ -281,7 +402,6 @@ export default function ProductoDetalle() {
           <div className="col-12 col-md-5">
             <h1 className="h3 mb-2">{nombre}</h1>
 
-            {/* Marca / colección si quieres mostrar el contexto */}
             {(item?.marca || item?.coleccion) && (
               <p className="text-muted mb-2">
                 {item?.marca && <span>{item.marca}</span>}
@@ -304,7 +424,7 @@ export default function ProductoDetalle() {
               </p>
             )}
 
-            {/* Tallas (desde variantes) */}
+            {/* Tallas */}
             {sizes.length > 0 && (
               <>
                 <h6 className="mt-3">Tallas disponibles</h6>
@@ -340,14 +460,15 @@ export default function ProductoDetalle() {
             <div className="d-grid gap-2 mt-3">
               {canBuy ? (
                 <button
+                  type="button"
                   className="btn btn-success btn-lg"
                   onClick={onAddToCart}
-                  disabled={!defaultVariant}
                 >
                   Añadir al carrito
                 </button>
               ) : (
                 <button
+                  type="button"
                   className="btn btn-primary btn-lg"
                   onClick={() => setShowModal(true)}
                 >
@@ -367,14 +488,89 @@ export default function ProductoDetalle() {
               </Link>
             </div>
           </div>
+          {/* Relacionados */}
+          <div className="mt-5">
+            <div className="d-flex align-items-end justify-content-between mb-3">
+              <h3 className="h5 mb-0">También te puede gustar</h3>
+              {loadingRelated && (
+                <span className="text-muted small">Cargando…</span>
+              )}
+            </div>
+
+            {related.length === 0 ? (
+              <p className="text-muted small mb-0">
+                No hay productos relacionados disponibles.
+              </p>
+            ) : (
+              <div
+                className="d-flex gap-3 pb-2"
+                style={{
+                  overflowX: "auto",
+                  WebkitOverflowScrolling: "touch",
+                }}
+              >
+                {related.map((p) => {
+                  const rid = getId(p);
+                  const nombreRel = p?.nombre || "Producto";
+                  const imgRel =
+                    resolveImageUrl(p?.imagen_portada || p?.imagen) ||
+                    PLACEHOLDER;
+
+                  const priceRel = asNumber(p?.precio_base);
+                  const isOnlineRel = isFlagTrue(p?.venta_online);
+                  const showPriceRel = isOnlineRel && priceRel !== null;
+
+                  return (
+                    <Link
+                      key={rid}
+                      to={`/producto/${encodeURIComponent(rid)}`}
+                      className="text-decoration-none text-dark"
+                      style={{ minWidth: 220, maxWidth: 240, flex: "0 0 auto" }}
+                    >
+                      <div className="bdc-related-card h-100">
+                        <div className="bdc-related-imgWrap">
+                          <img
+                            className="bdc-related-img"
+                            src={imgRel}
+                            alt={nombreRel}
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.src = PLACEHOLDER;
+                            }}
+                          />
+                        </div>
+
+                        <div className="p-3 text-center">
+                          <div className="fw-semibold">{nombreRel}</div>
+
+                          {showPriceRel ? (
+                            <div className="text-muted small">
+                              €{priceRel.toFixed(2)}
+                            </div>
+                          ) : (
+                            <div className="text-muted small">
+                              Solo en tienda física
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* ✅ Modal reutilizado */}
       <CitaModal
         open={showModal}
         producto={item}
         onClose={() => setShowModal(false)}
+      />
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        onClose={() => setToast({ show: false, message: "" })}
       />
     </section>
   );

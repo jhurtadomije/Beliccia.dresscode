@@ -12,12 +12,12 @@ const CTA_PRODUCTO = {
   imagen_portada: "/placeholder.png",
 };
 
-// ✅ Imágenes reales (según tu carpeta /src/assets/img/atelier)
+
 const IMAGES_ATELIER = [
-  "/src/assets/img/atelier/patronando.jpg", // 0 HERO (patrones / precisión)
-  "/src/assets/img/atelier/diseñando.jpg",  // 1 idea/diseño
-  "/src/assets/img/atelier/cosiendo.png",   // 2 confección
-  "/src/assets/img/atelier/brindis.jpg",    // 3 entrega / emoción
+  "imagenes/img/atelier/patronando.jpg", // 0 HERO (patrones / precisión)
+  "imagenes/img/atelier/diseñando.jpg",  // 1 idea/diseño
+  "imagenes/img/atelier/cosiendo.png",   // 2 confección
+  "imagenes/img/atelier/brindis.jpg",    // 3 entrega / emoción
 ];
 
 export default function Atelier() {

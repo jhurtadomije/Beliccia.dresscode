@@ -10,28 +10,27 @@ import CookieBanner from "./CookieBanner";
 const HEADER_HEIGHT = "9rem";
 
 export default function Layout() {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
   const isHomePage = pathname === "/";
 
   return (
     <>
-    <CookieBanner/>
+      <CookieBanner />
       <Header />
 
       <main
         className={`page-container${isHomePage ? " no-padding" : ""}`}
-        style={{
-          paddingTop: isHomePage ? undefined : HEADER_HEIGHT,
-        }}
+        style={{ paddingTop: isHomePage ? undefined : HEADER_HEIGHT }}
       >
-        <PageTransition key={location.pathname}>
-        <Outlet />
+        {/* ✅ ÚNICO PageTransition aquí */}
+        <PageTransition key={pathname}>
+          <Outlet />
         </PageTransition>
       </main>
 
       <WhatsAppFloatingButton />
       <InstagramFloatingStories />
-
       <Footer />
     </>
   );

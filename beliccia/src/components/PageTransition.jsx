@@ -24,8 +24,8 @@ export default function PageTransition({ children }) {
       animate="show"
       exit="exit"
       transition={{
-        duration: 1.3,               // 👈 antes era muy corto
-        ease: [0.22, 1, 0.36, 1],    // está bien (easeOutExpo-like)
+        duration: 1.3,               
+        ease: [0.22, 1, 0.36, 1],    
       }}
       style={{ willChange: "transform, opacity, filter" }}
     >

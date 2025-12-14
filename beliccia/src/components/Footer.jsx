@@ -9,19 +9,17 @@ function FooterLink({ to, children }) {
     </Link>
   );
 }
-function FooterActionLink({ onClick, children }) {
+
+function FooterActionButton({ onClick, children }) {
   return (
-    <a
-      href="#"
-      className="text-decoration-none text-secondary"
-      onClick={(e) => {
-        e.preventDefault();
-        onClick?.();
-      }}
+    <button
+      type="button"
+      className="text-decoration-none text-secondary p-0 border-0 bg-transparent"
+      onClick={onClick}
       style={{ cursor: "pointer" }}
     >
       {children}
-    </a>
+    </button>
   );
 }
 
@@ -62,6 +60,7 @@ export default function Footer() {
             }}
           />
         </div>
+
         <div className="row text-center text-md-start">
           <div className="col-md-3 mb-4">
             <h6 className="text-uppercase fw-bold">Categorías</h6>
@@ -76,7 +75,8 @@ export default function Footer() {
                 <FooterLink to="/invitadas">Invitadas</FooterLink>
               </li>
               <li>
-                <FooterLink to="/complementos">Complementos</FooterLink>
+                {/* ✅ mejor ir directo a la ruta real */}
+                <FooterLink to="/accesorios">Complementos</FooterLink>
               </li>
             </ul>
           </div>
@@ -90,14 +90,11 @@ export default function Footer() {
               <li className="mt-2 text-muted small">
                 Atención al cliente
                 <div>
-                  Email:{" "}
-                  <span className="text-secondary">info@beliccia.es</span>
+                  Email: <span className="text-secondary">info@beliccia.es</span>
                 </div>
                 <div>
                   Teléfono:{" "}
-                  <span className="text-secondary">
-                    +{SOCIAL.whatsappPhone}
-                  </span>
+                  <span className="text-secondary">+{SOCIAL.whatsappPhone}</span>
                 </div>
               </li>
             </ul>
@@ -143,9 +140,10 @@ export default function Footer() {
                 </FooterLink>
               </li>
               <li>
-                <FooterActionLink onClick={openCookieSettings}>
+                {/* ✅ sin href="#" para evitar saltos/hash */}
+                <FooterActionButton onClick={openCookieSettings}>
                   Configurar cookies
-                </FooterActionLink>
+                </FooterActionButton>
               </li>
             </ul>
           </div>
@@ -173,8 +171,6 @@ export default function Footer() {
             <i className="fab fa-instagram fa-lg" />
           </a>
 
-          {/* TikTok: requiere FontAwesome 6+ (fab fa-tiktok).
-              Si no sale el icono, mira nota abajo. */}
           <a
             className="text-secondary me-3"
             href={SOCIAL.tiktok}
@@ -195,16 +191,33 @@ export default function Footer() {
             <i className="fab fa-whatsapp fa-lg" />
           </a>
         </div>
-        <div className="text-center my-3">
-  <div className="text-muted small mb-2">Pago seguro</div>
 
-  <div className="d-flex justify-content-center align-items-center gap-3 flex-wrap">
-    <img src="/pagos/visablue.png" alt="Visa" style={{ height: 18, width: "auto", opacity: 0.85 }} />
-    <img src="/pagos/mastercard.svg" alt="Mastercard" style={{ height: 18, width: "auto", opacity: 0.85 }} />
-    <img src="/pagos/amex.svg" alt="American Express" style={{ height: 35, width: "auto", opacity: 0.85 }} />
-    <img src="/pagos/Stripe.svg" alt="Stripe" style={{ height: 18, width: "auto", opacity: 0.85 }} />
-  </div>
-</div>
+        <div className="text-center my-3">
+          <div className="text-muted small mb-2">Pago seguro</div>
+
+          <div className="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+            <img
+              src="/pagos/visablue.png"
+              alt="Visa"
+              style={{ height: 18, width: "auto", opacity: 0.85 }}
+            />
+            <img
+              src="/pagos/mastercard.svg"
+              alt="Mastercard"
+              style={{ height: 18, width: "auto", opacity: 0.85 }}
+            />
+            <img
+              src="/pagos/amex.svg"
+              alt="American Express"
+              style={{ height: 35, width: "auto", opacity: 0.85 }}
+            />
+            <img
+              src="/pagos/Stripe.svg"
+              alt="Stripe"
+              style={{ height: 18, width: "auto", opacity: 0.85 }}
+            />
+          </div>
+        </div>
 
         <div className="text-center border-top pt-3">
           <p className="mb-1">

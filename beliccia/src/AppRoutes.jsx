@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
 import Layout from "./components/Layout";
-import PageTransition from "./components/PageTransition";
 
 import Home from "./pages/Home";
 import Novias from "./pages/Novias";
@@ -15,6 +14,7 @@ import Carrito from "./pages/Carrito";
 import ProductoDetalle from "./pages/ProductoDetalle";
 import Conocenos from "./pages/Conocenos";
 import Atelier from "./pages/Atelier";
+import Buscar from "./pages/Buscar";
 import {
   AvisoLegal,
   Privacidad,
@@ -49,8 +49,6 @@ import AdminCitaDetalle from "./pages/admin/citas/AdminCitaDetalle";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
-const wrap = (el) => <PageTransition>{el}</PageTransition>;
-
 export default function AppRoutes() {
   const location = useLocation();
 
@@ -59,202 +57,180 @@ export default function AppRoutes() {
       <Routes location={location} key={location.pathname}>
         {/* ✅ TODO lo público bajo Layout (con header/footer) */}
         <Route path="/" element={<Layout />}>
-          <Route index element={wrap(<Home />)} />
+          <Route index element={<Home />} />
+
+          {/* ✅ FIX: rutas que usas en Header y no existían */}
+          <Route path="contact" element={<Navigate to="/visitanos" replace />} />
+          <Route path="buscar" element={<Buscar />} />
 
           {/* Colecciones */}
-          <Route path="novias" element={wrap(<Novias />)} />
-          <Route path="madrinas" element={wrap(<Madrinas />)} />
-          <Route path="invitadas" element={wrap(<Invitadas />)} />
+          <Route path="novias" element={<Novias />} />
+          <Route path="madrinas" element={<Madrinas />} />
+          <Route path="invitadas" element={<Invitadas />} />
 
           {/* Detalle producto */}
-          <Route path="invitadas/:id" element={wrap(<ProductoDetalle />)} />
-          <Route path="madrinas/:id" element={wrap(<ProductoDetalle />)} />
-          <Route path="producto/:id" element={wrap(<ProductoDetalle />)} />
+          <Route path="invitadas/:id" element={<ProductoDetalle />} />
+          <Route path="madrinas/:id" element={<ProductoDetalle />} />
+          <Route path="producto/:id" element={<ProductoDetalle />} />
 
-          {/* Paginas legales */}
-          <Route path="/legal/aviso-legal" element={<AvisoLegal />} />
-          <Route path="/legal/privacidad" element={<Privacidad />} />
-          <Route path="/legal/cookies" element={<Cookies />} />
-          <Route
-            path="/legal/condiciones-compra"
-            element={<CondicionesCompra />}
-          />
-          <Route
-            path="/legal/envios-devoluciones"
-            element={<EnviosDevoluciones />}
-          />
+          {/* Paginas legales (mejor relativas dentro del Layout) */}
+          <Route path="legal/aviso-legal" element={<AvisoLegal />} />
+          <Route path="legal/privacidad" element={<Privacidad />} />
+          <Route path="legal/cookies" element={<Cookies />} />
+          <Route path="legal/condiciones-compra" element={<CondicionesCompra />} />
+          <Route path="legal/envios-devoluciones" element={<EnviosDevoluciones />} />
 
           {/* Aliases */}
           <Route path="madrina" element={<Navigate to="/madrinas" replace />} />
-          <Route
-            path="invitada"
-            element={<Navigate to="/invitadas" replace />}
-          />
+          <Route path="invitada" element={<Navigate to="/invitadas" replace />} />
 
           {/* Accesorios */}
-          <Route path="accesorios" element={wrap(<Accesorios />)} />
-          <Route
-            path="tocados"
-            element={wrap(<Accesorios categoria="tocados" />)}
-          />
-          <Route
-            path="bolsos"
-            element={wrap(<Accesorios categoria="bolsos" />)}
-          />
-          <Route
-            path="otros"
-            element={wrap(<Accesorios categoria="otros" />)}
-          />
-          {/* Alias */}
-          <Route
-            path="complementos"
-            element={<Navigate to="/accesorios" replace />}
-          />
+          <Route path="accesorios" element={<Accesorios />} />
+          <Route path="tocados" element={<Accesorios categoria="tocados" />} />
+          <Route path="bolsos" element={<Accesorios categoria="bolsos" />} />
+          <Route path="otros" element={<Accesorios categoria="otros" />} />
+          <Route path="complementos" element={<Navigate to="/accesorios" replace />} />
 
-          <Route path="conocenos" element={wrap(<Conocenos />)} />
-          <Route path="atelier" element={wrap(<Atelier />)} />
+          <Route path="conocenos" element={<Conocenos />} />
+          <Route path="atelier" element={<Atelier />} />
 
-          <Route path="visitanos" element={wrap(<Visitanos />)} />
-          <Route path="carrito" element={wrap(<Carrito />)} />
+          <Route path="visitanos" element={<Visitanos />} />
+          <Route path="carrito" element={<Carrito />} />
 
-          {/* ✅ Login general con header/footer */}
-          <Route path="login" element={wrap(<Login />)} />
-          <Route path="register" element={wrap(<Register />)} />
+          {/* Login */}
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
 
-          {/* ✅ Perfil usuario */}
+          {/* Perfil usuario */}
           <Route
             path="perfil/pedidos"
-            element={wrap(
+            element={
               <ProtectedRoute redirectTo="/login">
                 <PerfilPedidos />
               </ProtectedRoute>
-            )}
+            }
           />
           <Route
             path="perfil/pedidos/:id"
-            element={wrap(
+            element={
               <ProtectedRoute redirectTo="/login">
                 <PerfilPedidoDetalle />
               </ProtectedRoute>
-            )}
+            }
           />
           <Route
             path="perfil"
-            element={wrap(
+            element={
               <ProtectedRoute redirectTo="/login">
                 <PerfilDashboard />
               </ProtectedRoute>
-            )}
+            }
           />
           <Route
             path="perfil/citas"
-            element={wrap(
+            element={
               <ProtectedRoute redirectTo="/login">
                 <PerfilCitas />
               </ProtectedRoute>
-            )}
+            }
           />
           <Route
             path="perfil/citas/:id"
-            element={wrap(
+            element={
               <ProtectedRoute redirectTo="/login">
                 <PerfilCitaDetalle />
               </ProtectedRoute>
-            )}
+            }
           />
 
-          {/* ✅ Checkout con header/footer */}
-          <Route path="checkout/auth" element={wrap(<CheckoutAuth />)} />
-          <Route
-            path="checkout/registro"
-            element={wrap(<CheckoutRegister />)}
-          />
-          <Route path="checkout/success" element={wrap(<CheckoutSuccess />)} />
-          <Route path="checkout/cancel" element={wrap(<CheckoutCancel />)} />
-
+          {/* Checkout */}
+          <Route path="checkout/auth" element={<CheckoutAuth />} />
+          <Route path="checkout/registro" element={<CheckoutRegister />} />
+          <Route path="checkout/success" element={<CheckoutSuccess />} />
+          <Route path="checkout/cancel" element={<CheckoutCancel />} />
           <Route
             path="checkout"
-            element={wrap(
+            element={
               <ProtectedRoute redirectTo="/checkout/auth">
                 <Checkout />
               </ProtectedRoute>
-            )}
+            }
           />
         </Route>
 
-        {/* ✅ Admin fuera del Layout público */}
-        <Route path="/admin/login" element={wrap(<LoginAdmin />)} />
+        {/* Admin fuera del Layout público */}
+        <Route path="/admin/login" element={<LoginAdmin />} />
         <Route
           path="/admin"
-          element={wrap(
+          element={
             <ProtectedRoute requireAdmin redirectTo="/admin/login">
               <AdminDashboard />
             </ProtectedRoute>
-          )}
+          }
         />
         <Route
           path="/admin/productos"
-          element={wrap(
+          element={
             <ProtectedRoute requireAdmin redirectTo="/admin/login">
               <AdminProductos />
             </ProtectedRoute>
-          )}
+          }
         />
         <Route
           path="/admin/productos/nuevo"
-          element={wrap(
+          element={
             <ProtectedRoute requireAdmin redirectTo="/admin/login">
               <AdminProductoNuevo />
             </ProtectedRoute>
-          )}
+          }
         />
         <Route
           path="/admin/productos/:slug"
-          element={wrap(
+          element={
             <ProtectedRoute requireAdmin redirectTo="/admin/login">
               <AdminProductoEditar />
             </ProtectedRoute>
-          )}
+          }
         />
         <Route
           path="/admin/pedidos"
-          element={wrap(
+          element={
             <ProtectedRoute requireAdmin redirectTo="/admin/login">
               <AdminPedidos />
             </ProtectedRoute>
-          )}
+          }
         />
         <Route
           path="/admin/pedidos/:id"
-          element={wrap(
+          element={
             <ProtectedRoute requireAdmin redirectTo="/admin/login">
               <AdminPedidoDetalle />
             </ProtectedRoute>
-          )}
+          }
         />
         <Route
           path="/admin/usuarios"
-          element={wrap(
+          element={
             <ProtectedRoute requireAdmin redirectTo="/admin/login">
               <AdminUsuarios />
             </ProtectedRoute>
-          )}
+          }
         />
         <Route
           path="/admin/citas"
-          element={wrap(
+          element={
             <ProtectedRoute requireAdmin redirectTo="/admin/login">
               <AdminCitas />
             </ProtectedRoute>
-          )}
+          }
         />
         <Route
           path="/admin/citas/:id"
-          element={wrap(
+          element={
             <ProtectedRoute requireAdmin redirectTo="/admin/login">
               <AdminCitaDetalle />
             </ProtectedRoute>
-          )}
+          }
         />
 
         {/* 404 */}

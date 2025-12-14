@@ -1,11 +1,12 @@
 // src/pages/Accesorios.jsx
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import api from "../services/api";
 import { resolveImageUrl } from "../services/imageUrl";
 import CitaModal from "../components/CitaModal";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { flyToCartFromEl } from "../utils/cartFly";
 
 const PLACEHOLDER = "/placeholder.png";
 
@@ -45,22 +46,12 @@ const norm = (s) =>
  *  - otros
  */
 function getAccesorioGroup(producto) {
-  const texto = norm(
-    `${producto?.nombre || ""} ${producto?.tags_origen || ""}`
-  );
+  const texto = norm(`${producto?.nombre || ""} ${producto?.tags_origen || ""}`);
 
-  if (
-    /\b(bolso|bolsos|clutch|bombonera|cartera|bandolera|bolsa|bolsas)\b/.test(
-      texto
-    )
-  )
+  if (/\b(bolso|bolsos|clutch|bombonera|cartera|bandolera|bolsa|bolsas)\b/.test(texto))
     return "bolsos";
 
-  if (
-    /\b(tocado|tocados|diadema|diademas|pamela|canotier|corona|tiara|peineta)\b/.test(
-      texto
-    )
-  )
+  if (/\b(tocado|tocados|diadema|diademas|pamela|canotier|corona|tiara|peineta)\b/.test(texto))
     return "tocados";
 
   return "otros";
@@ -72,6 +63,8 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
   const { addToCart } = useCart();
   const location = useLocation();
   const from = location.pathname + location.search;
+
+  const imgRef = useRef(null); // ✅ para el fly
 
   const id = getId(producto);
   const nombre = producto?.nombre || "Accesorio";
@@ -105,6 +98,7 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
         {/* Front */}
         <div className="card-face card-front">
           <img
+            ref={imgRef}
             src={imageUrl}
             className="card-img-top"
             alt={nombre}
@@ -121,6 +115,7 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
               </p>
             )}
             <button
+              type="button"
               className="btn btn-outline-dark mt-3"
               onClick={() => setFlipped(true)}
             >
@@ -143,13 +138,18 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
 
             {canBuy ? (
               <button
+                type="button"
                 className="btn btn-success w-100 mb-2"
-                onClick={() => addToCart({ producto_id: producto.id })}
+                onClick={() => {
+                  addToCart({ producto_id: producto.id });
+                  flyToCartFromEl(imgRef.current); // ✅ fly
+                }}
               >
                 Añadir al carrito
               </button>
             ) : (
               <button
+                type="button"
                 className="btn btn-primary w-100 mb-2"
                 onClick={() => onSolicitarInfo(producto)}
               >
@@ -166,6 +166,7 @@ function AccesorioCard({ producto, onSolicitarInfo }) {
             </Link>
 
             <button
+              type="button"
               className="btn btn-secondary"
               onClick={() => setFlipped(false)}
             >
@@ -236,8 +237,7 @@ export default function Accesorios() {
           .filter((p) => isFlagTrue(p.visible_web))
           .map((p) => ({ ...p, _grupo: getAccesorioGroup(p) }));
 
-        if (filtroCat)
-          accesorios = accesorios.filter((p) => p._grupo === filtroCat);
+        if (filtroCat) accesorios = accesorios.filter((p) => p._grupo === filtroCat);
 
         if (alive) setProductos(accesorios);
       })
@@ -275,7 +275,7 @@ export default function Accesorios() {
         </div>
       </div>
 
-      {/* ✅ Modal reutilizado */}
+      {/* Modal reutilizado */}
       <CitaModal
         open={showModal}
         producto={productoSeleccionado}
