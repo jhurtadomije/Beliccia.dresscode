@@ -2,36 +2,38 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getRandomAnimation } from "../utils/animations";
+import CitaModal from "./CitaModal";
+
+const CTA_PRODUCTO = {
+  id: "cta-about",
+  categoria_id: null,
+  nombre: "Cita Beliccia",
+  imagen_portada: "/placeholder.png",
+};
 
 export default function About() {
   const [animationClass, setAnimationClass] = useState("");
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const randomClass = getRandomAnimation();
-    setAnimationClass(`section ${randomClass}`);
+    setAnimationClass(getRandomAnimation());
   }, []);
 
+  const openCita = () => setOpen(true);
+  const closeCita = () => setOpen(false);
 
-  const VIDEO_MAX_WIDTH = 2000; 
-
+  const VIDEO_MAX_WIDTH = 2000;
 
   return (
-    <section id="about" className={`py-5 ${animationClass}`}>
-      {/* ✅ CONTENEDOR 1: título + texto (centrados) */}
+    <section id="about" className={`section py-5 ${animationClass}`}>
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10 text-center">
             <h2 className="mb-4">Sobre Nosotros</h2>
-            <p className="mb-4" style={{ lineHeight: 1.8 }}>
-              En Beliccia, diseñamos y ofrecemos vestidos únicos para novias,
-              fiesta y ocasiones especiales, cuidando cada detalle para que te
-              sientas tú.
-            </p>
           </div>
         </div>
       </div>
 
-      {/* ✅ BLOQUE 2: vídeo “casi full width” (sin que se pegue a los bordes) */}
       <div className="px-3 px-md-4">
         <div className="mx-auto" style={{ maxWidth: VIDEO_MAX_WIDTH }}>
           <div className="about-video-wrap mx-auto">
@@ -48,17 +50,30 @@ export default function About() {
         </div>
       </div>
 
-      {/* ✅ CONTENEDOR 3: botones (centrados y con aire) */}
-      <div className="container">
-        <div className="d-flex justify-content-center gap-2 flex-wrap mt-4">
-          <a href="#contact" className="btn btn-dark">
-            Pedir cita
-          </a>
-          <Link to="/conocenos" className="btn btn-outline-dark">
-            Conócenos
-          </Link>
+      <div className="container mt-4">
+        <div className="row justify-content-center">
+          <div className="col-12 col-lg-10 text-center">
+            <p className="mb-4" style={{ lineHeight: 1.8 }}>
+              En Beliccia, diseñamos y ofrecemos vestidos únicos para novias,
+              fiesta y ocasiones especiales, cuidando cada detalle para que te
+              sientas tú.
+            </p>
+
+            {/* ✅ Botones SIEMPRE visibles aquí */}
+            <div className="d-flex justify-content-center gap-2 flex-wrap">
+              <button type="button" className="btn btn-dark" onClick={openCita}>
+                Solicita tu cita
+              </button>
+
+              <Link to="/conocenos" className="btn btn-outline-dark">
+                Conócenos
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
+
+      <CitaModal open={open} onClose={closeCita} producto={CTA_PRODUCTO} />
     </section>
   );
 }

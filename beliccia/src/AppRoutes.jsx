@@ -15,7 +15,13 @@ import Carrito from "./pages/Carrito";
 import ProductoDetalle from "./pages/ProductoDetalle";
 import Conocenos from "./pages/Conocenos";
 import Atelier from "./pages/Atelier";
-
+import {
+  AvisoLegal,
+  Privacidad,
+  Cookies,
+  CondicionesCompra,
+  EnviosDevoluciones,
+} from "./pages/legal";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import PerfilPedidos from "./pages/perfil/PerfilPedidos";
@@ -65,9 +71,25 @@ export default function AppRoutes() {
           <Route path="madrinas/:id" element={wrap(<ProductoDetalle />)} />
           <Route path="producto/:id" element={wrap(<ProductoDetalle />)} />
 
+          {/* Paginas legales */}
+          <Route path="/legal/aviso-legal" element={<AvisoLegal />} />
+          <Route path="/legal/privacidad" element={<Privacidad />} />
+          <Route path="/legal/cookies" element={<Cookies />} />
+          <Route
+            path="/legal/condiciones-compra"
+            element={<CondicionesCompra />}
+          />
+          <Route
+            path="/legal/envios-devoluciones"
+            element={<EnviosDevoluciones />}
+          />
+
           {/* Aliases */}
           <Route path="madrina" element={<Navigate to="/madrinas" replace />} />
-          <Route path="invitada" element={<Navigate to="/invitadas" replace />} />
+          <Route
+            path="invitada"
+            element={<Navigate to="/invitadas" replace />}
+          />
 
           {/* Accesorios */}
           <Route path="accesorios" element={wrap(<Accesorios />)} />
@@ -143,7 +165,10 @@ export default function AppRoutes() {
 
           {/* ✅ Checkout con header/footer */}
           <Route path="checkout/auth" element={wrap(<CheckoutAuth />)} />
-          <Route path="checkout/registro" element={wrap(<CheckoutRegister />)} />
+          <Route
+            path="checkout/registro"
+            element={wrap(<CheckoutRegister />)}
+          />
           <Route path="checkout/success" element={wrap(<CheckoutSuccess />)} />
           <Route path="checkout/cancel" element={wrap(<CheckoutCancel />)} />
 

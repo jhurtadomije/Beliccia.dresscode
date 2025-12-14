@@ -1,128 +1,151 @@
 // src/components/Footer.jsx
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { openCookieSettings } from "../utils/cookiesConsent";
 
-function PlaceholderLink({ children }) {
+function FooterLink({ to, children }) {
   return (
-    <span
+    <Link to={to} className="text-decoration-none text-secondary">
+      {children}
+    </Link>
+  );
+}
+function FooterActionLink({ onClick, children }) {
+  return (
+    <a
+      href="#"
       className="text-decoration-none text-secondary"
-      style={{ cursor: "not-allowed", opacity: 0.75 }}
-      title="Disponible más adelante"
+      onClick={(e) => {
+        e.preventDefault();
+        onClick?.();
+      }}
+      style={{ cursor: "pointer" }}
     >
       {children}
-    </span>
+    </a>
   );
 }
 
 export default function Footer() {
   const year = new Date().getFullYear();
-  const navigate = useNavigate();
-  const location = useLocation();
 
-  const goContact = () => {
-    // Si ya estamos en home, hacemos scroll directo
-    if (location.pathname === "/") {
-      const el = document.getElementById("contact");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
-
-    // Si no estamos en home, navegamos y luego scrolleamos
-    navigate("/", { replace: false });
-    setTimeout(() => {
-      const el = document.getElementById("contact");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
+  const SOCIAL = {
+    facebook: "https://www.facebook.com/p/Beliccia-Dress-Code-61577844696625/",
+    instagram: "https://www.instagram.com/beliccia.dresscode",
+    tiktok: "https://www.tiktok.com/@beliccia",
+    whatsappPhone: "34641363381",
   };
+
+  const WHATSAPP_TEXT = encodeURIComponent(
+    "Hola, me gustaría solicitar información / cita. 😊"
+  );
+  const whatsappUrl = `https://wa.me/${SOCIAL.whatsappPhone}?text=${WHATSAPP_TEXT}`;
 
   return (
     <footer
       className="text-secondary pt-5"
-      style={{ background: "var(--background-color, #fff)" }}
+      style={{
+        background: "var(--background-color, #fff)",
+        boxShadow: "0 -12px 24px rgba(0,0,0,.04)",
+      }}
     >
       <div className="container">
-        {/* Categorías y enlaces */}
+        <div className="text-center mb-4">
+          <img
+            src="/imagenes/isotipo.png"
+            alt="Beliccia Dress Code"
+            loading="lazy"
+            style={{
+              width: "clamp(80px, 18vw, 220px)",
+              height: "clamp(80px, 18vw, 220px)",
+              objectFit: "contain",
+              display: "inline-block",
+            }}
+          />
+        </div>
         <div className="row text-center text-md-start">
-          <div className="col-md-3 mb-3">
+          <div className="col-md-3 mb-4">
             <h6 className="text-uppercase fw-bold">Categorías</h6>
             <ul className="list-unstyled">
               <li>
-                <Link to="/novias" className="text-decoration-none text-secondary">
-                  Vestidos de novia
-                </Link>
+                <FooterLink to="/novias">Vestidos de novia</FooterLink>
               </li>
               <li>
-                <Link to="/madrinas" className="text-decoration-none text-secondary">
-                  Madrinas
-                </Link>
+                <FooterLink to="/madrinas">Madrinas</FooterLink>
               </li>
               <li>
-                <Link to="/invitadas" className="text-decoration-none text-secondary">
-                  Invitadas
-                </Link>
+                <FooterLink to="/invitadas">Invitadas</FooterLink>
               </li>
               <li>
-                <Link to="/complementos" className="text-decoration-none text-secondary">
-                  Complementos
-                </Link>
+                <FooterLink to="/complementos">Complementos</FooterLink>
               </li>
             </ul>
           </div>
 
-          <div className="col-md-3 mb-3">
+          <div className="col-md-3 mb-4">
             <h6 className="text-uppercase fw-bold">¿Necesitas ayuda?</h6>
             <ul className="list-unstyled">
               <li>
-                <PlaceholderLink>Preguntas frecuentes</PlaceholderLink>
+                <FooterLink to="/visitanos">Contacto</FooterLink>
               </li>
-              <li>
-                <button
-                  type="button"
-                  onClick={goContact}
-                  className="btn btn-link p-0 text-decoration-none text-secondary"
-                >
-                  Contacto
-                </button>
-              </li>
-              <li>
-                <PlaceholderLink>Mapa web</PlaceholderLink>
+              <li className="mt-2 text-muted small">
+                Atención al cliente
+                <div>
+                  Email:{" "}
+                  <span className="text-secondary">info@beliccia.es</span>
+                </div>
+                <div>
+                  Teléfono:{" "}
+                  <span className="text-secondary">
+                    +{SOCIAL.whatsappPhone}
+                  </span>
+                </div>
               </li>
             </ul>
           </div>
 
-          <div className="col-md-3 mb-3">
+          <div className="col-md-3 mb-4">
             <h6 className="text-uppercase fw-bold">Puntos de venta</h6>
             <ul className="list-unstyled">
               <li>
-                <Link to="/visitanos" className="text-decoration-none text-secondary">
-                  Visítanos
-                </Link>
+                <FooterLink to="/visitanos">Visítanos</FooterLink>
               </li>
               <li>
-                <PlaceholderLink>Abre tu tienda</PlaceholderLink>
+                <FooterLink to="/atelier">Atelier</FooterLink>
               </li>
               <li>
-                <PlaceholderLink>Hazte distribuidor</PlaceholderLink>
+                <FooterLink to="/conocenos">Conócenos</FooterLink>
               </li>
             </ul>
           </div>
 
-          <div className="col-md-3 mb-3">
-            <h6 className="text-uppercase fw-bold">Empresa</h6>
+          <div className="col-md-3 mb-4">
+            <h6 className="text-uppercase fw-bold">Información legal</h6>
             <ul className="list-unstyled">
               <li>
-                <Link to="/conocenos" className="text-decoration-none text-secondary">
-                  Sobre nosotros
-                </Link>
+                <FooterLink to="/legal/aviso-legal">Aviso legal</FooterLink>
               </li>
               <li>
-                <Link to="/atelier" className="text-decoration-none text-secondary">
-                  Atelier
-                </Link>
+                <FooterLink to="/legal/privacidad">
+                  Política de privacidad
+                </FooterLink>
               </li>
               <li>
-                <Link to="/admin/login" className="text-decoration-none text-secondary">
-                  Área privada
-                </Link>
+                <FooterLink to="/legal/cookies">Política de cookies</FooterLink>
+              </li>
+              <li>
+                <FooterLink to="/legal/condiciones-compra">
+                  Condiciones de compra
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink to="/legal/envios-devoluciones">
+                  Envíos y devoluciones
+                </FooterLink>
+              </li>
+              <li>
+                <FooterActionLink onClick={openCookieSettings}>
+                  Configurar cookies
+                </FooterActionLink>
               </li>
             </ul>
           </div>
@@ -130,40 +153,74 @@ export default function Footer() {
 
         {/* Redes sociales */}
         <div className="text-center my-4">
-          <span className="text-secondary me-3" aria-label="Facebook">
+          <a
+            className="text-secondary me-3"
+            href={SOCIAL.facebook}
+            aria-label="Facebook"
+            target="_blank"
+            rel="noreferrer"
+          >
             <i className="fab fa-facebook fa-lg" />
-          </span>
-          <span className="text-secondary me-3" aria-label="Instagram">
-            <i className="fab fa-instagram fa-lg" />
-          </span>
-          <span className="text-secondary me-3" aria-label="Pinterest">
-            <i className="fab fa-pinterest fa-lg" />
-          </span>
-          <span className="text-secondary me-3" aria-label="YouTube">
-            <i className="fab fa-youtube fa-lg" />
-          </span>
-          <span className="text-secondary" aria-label="LinkedIn">
-            <i className="fab fa-linkedin fa-lg" />
-          </span>
-        </div>
+          </a>
 
-        {/* Legales */}
+          <a
+            className="text-secondary me-3"
+            href={SOCIAL.instagram}
+            aria-label="Instagram"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <i className="fab fa-instagram fa-lg" />
+          </a>
+
+          {/* TikTok: requiere FontAwesome 6+ (fab fa-tiktok).
+              Si no sale el icono, mira nota abajo. */}
+          <a
+            className="text-secondary me-3"
+            href={SOCIAL.tiktok}
+            aria-label="TikTok"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <i className="fab fa-tiktok fa-lg" />
+          </a>
+
+          <a
+            className="text-secondary"
+            href={whatsappUrl}
+            aria-label="WhatsApp"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <i className="fab fa-whatsapp fa-lg" />
+          </a>
+        </div>
+        <div className="text-center my-3">
+  <div className="text-muted small mb-2">Pago seguro</div>
+
+  <div className="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+    <img src="/pagos/visablue.png" alt="Visa" style={{ height: 18, width: "auto", opacity: 0.85 }} />
+    <img src="/pagos/mastercard.svg" alt="Mastercard" style={{ height: 18, width: "auto", opacity: 0.85 }} />
+    <img src="/pagos/amex.svg" alt="American Express" style={{ height: 35, width: "auto", opacity: 0.85 }} />
+    <img src="/pagos/Stripe.svg" alt="Stripe" style={{ height: 18, width: "auto", opacity: 0.85 }} />
+  </div>
+</div>
+
         <div className="text-center border-top pt-3">
           <p className="mb-1">
             &copy; {year} Beliccia Dress Code | Todos los derechos reservados.
           </p>
-
-          <ul className="list-inline mb-0">
-            <li className="list-inline-item">
-              <PlaceholderLink>Información legal</PlaceholderLink>
-            </li>
-            <li className="list-inline-item">
-              <PlaceholderLink>Política de privacidad</PlaceholderLink>
-            </li>
-            <li className="list-inline-item">
-              <PlaceholderLink>Política de cookies</PlaceholderLink>
-            </li>
-          </ul>
+          <p className="mb-0 text-muted small">
+            Desarrollado por:{" "}
+            <a
+              className="text-decoration-none text-secondary"
+              href="https://www.linkedin.com/in/jose-ramon-hurtado-mije-888629342/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              José Ramón Hurtado
+            </a>
+          </p>
         </div>
       </div>
     </footer>

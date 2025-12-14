@@ -4,6 +4,7 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import { resolveImageUrl } from "../../services/imageUrl";
+import { Link } from "react-router-dom";
 
 const PLACEHOLDER = "/placeholder.png";
 
@@ -41,6 +42,7 @@ export default function Checkout() {
   });
 
   const [paymentMethod, setPaymentMethod] = useState("card");
+  const [acceptLegal, setAcceptLegal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -88,7 +90,9 @@ export default function Checkout() {
 
     const missing = required.filter(([k]) => !String(form[k] || "").trim());
     if (missing.length) {
-      return `Faltan campos obligatorios: ${missing.map((m) => m[1]).join(", ")}`;
+      return `Faltan campos obligatorios: ${missing
+        .map((m) => m[1])
+        .join(", ")}`;
     }
 
     return null;
@@ -100,7 +104,12 @@ export default function Checkout() {
       setErr(v);
       return;
     }
-
+    if (!acceptLegal) {
+      setErr(
+        "Debes aceptar las Condiciones de compra y la Política de Privacidad para continuar."
+      );
+      return;
+    }
     setLoading(true);
     setErr(null);
 
@@ -365,7 +374,7 @@ export default function Checkout() {
                   <span>Envío</span>
                   <span className="text-muted small">
                     {shipping === 0
-                      ? "Introduce tu dirección para ver opciones de envío."
+                      ? "Se calculará antes de finalizar la compra."
                       : money(shipping)}
                   </span>
                 </div>
@@ -375,6 +384,10 @@ export default function Checkout() {
                 <div className="d-flex justify-content-between">
                   <span className="fw-semibold">Total</span>
                   <span className="fw-bold">{money(total)}</span>
+                </div>
+                <div className="text-muted small mt-2">
+                  Impuestos incluidos (si aplican). Los gastos de envío se
+                  mostrarán antes de finalizar la compra.
                 </div>
               </div>
             </div>
@@ -390,7 +403,10 @@ export default function Checkout() {
                   checked={paymentMethod === "card"}
                   onChange={() => setPaymentMethod("card")}
                 />
-                <label className="form-check-label fw-semibold" htmlFor="pay-card">
+                <label
+                  className="form-check-label fw-semibold"
+                  htmlFor="pay-card"
+                >
                   Tarjeta de crédito / débito
                 </label>
                 <div className="text-muted small mt-1">
@@ -408,28 +424,80 @@ export default function Checkout() {
                   id="pay-bizum"
                   checked={paymentMethod === "bizum"}
                   onChange={() => setPaymentMethod("bizum")}
+                  disabled
                 />
-                <label className="form-check-label fw-semibold" htmlFor="pay-bizum">
+                <label
+                  className="form-check-label fw-semibold"
+                  htmlFor="pay-bizum"
+                >
                   Bizum
                 </label>
-                <div className="text-muted small mt-1">
-                  Próximamente.
-                </div>
+                <div className="text-muted small mt-1">Próximamente.</div>
+              </div>
+            </div>
+            <div className="border rounded mt-4 p-3">
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="legal-accept"
+                  checked={acceptLegal}
+                  onChange={(e) => setAcceptLegal(e.target.checked)}
+                />
+                <label
+                  className="form-check-label text-muted"
+                  htmlFor="legal-accept"
+                  style={{ lineHeight: 1.5 }}
+                >
+                  He leído y acepto las{" "}
+                  <Link
+                    to="/legal/condiciones-compra"
+                    className="text-decoration-underline"
+                  >
+                    Condiciones de compra
+                  </Link>{" "}
+                  y la{" "}
+                  <Link
+                    to="/legal/privacidad"
+                    className="text-decoration-underline"
+                  >
+                    Política de Privacidad
+                  </Link>
+                  . También he leído la información sobre{" "}
+                  <Link
+                    to="/legal/envios-devoluciones"
+                    className="text-decoration-underline"
+                  >
+                    envíos y devoluciones
+                  </Link>
+                  .
+                </label>
+              </div>
+
+              <div
+                className="text-muted small mt-2"
+                style={{ lineHeight: 1.6 }}
+              >
+                Tus datos se utilizarán para procesar el pedido y gestionar la
+                atención al cliente. Puedes consultar más información en la
+                Política de Privacidad.
               </div>
             </div>
 
             <button
               className="btn btn-dark w-100 mt-4"
               onClick={handleConfirm}
-              disabled={loading}
+              disabled={loading || !acceptLegal} // ✅ MOD: bloqueo directo
             >
               {loading ? "Redirigiendo al pago..." : "Pagar y confirmar"}
             </button>
 
-            <p className="text-muted small mt-2">
-              Tus datos personales se utilizarán para procesar tu pedido y
-              mejorar tu experiencia.
-            </p>
+            {!acceptLegal && (
+              <div className="text-muted small mt-2">
+                Para continuar, debes aceptar las condiciones y la política de
+                privacidad.
+              </div>
+            )}
           </div>
         </div>
       </div>

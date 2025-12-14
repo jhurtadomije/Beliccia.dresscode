@@ -55,7 +55,7 @@ export default function InstagramCarousel() {
     // ✅ crear nueva instancia controlada por React
     instanceRef.current = new Carousel(el, {
       interval: 3500,
-      ride: false,  // importante: evitamos auto-ride
+      ride: false,  
       pause: false,
       touch: true,
       wrap: true,

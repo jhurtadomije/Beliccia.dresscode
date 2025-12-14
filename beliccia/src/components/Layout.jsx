@@ -5,6 +5,7 @@ import Footer from "./Footer";
 import InstagramFloatingStories from "./instagram/InstagramFloatingStories";
 import WhatsAppFloatingButton from "./WhatsAppFloatingButton";
 import PageTransition from "./PageTransition";
+import CookieBanner from "./CookieBanner";
 
 const HEADER_HEIGHT = "9rem";
 
@@ -14,6 +15,7 @@ export default function Layout() {
 
   return (
     <>
+    <CookieBanner/>
       <Header />
 
       <main
