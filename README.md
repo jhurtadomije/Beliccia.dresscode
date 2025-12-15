@@ -11,7 +11,6 @@ La aplicación simula un entorno **real y profesional**, combinando un frontend 
 - **Web**: https://beliccia.es  
 - **API**: https://api.beliccia.com  
 
-> ⚠️ Nota: Algunas funcionalidades (pagos, correos, etc.) pueden estar limitadas o en entorno de pruebas.
 
 ---
 
@@ -61,17 +60,15 @@ El objetivo principal es desarrollar una **plataforma web realista y escalable**
 ## 🏗️ Arquitectura del proyecto
 
 
-
 beliccia/
 ├── frontend/ → React + Vite
 ├── backend/ → Node.js + Express
-│ ├── src/
-│ │ ├── controllers
-│ │ ├── services
-│ │ ├── middlewares
-│ │ ├── routes
-│ │ └── server.js
-│ └── ecosystem.config.cjs
+│  ── src/
+│   ├── controllers
+│   ├── services
+│   ├── middlewares
+│   ├── routes
+│   └── server.js
 └── database/ → Esquema y estructura de datos
 ---
 
