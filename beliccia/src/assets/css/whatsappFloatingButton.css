@@ -50,7 +50,7 @@
   box-shadow: 0 10px 38px #25d366cc;
 }
 
-/* Animación de anillo y pulso */
+
 .fab-whatsapp::before {
   content: "";
   position: absolute;
@@ -119,11 +119,11 @@
   background-clip: text;
 }
 
-/* ---- DESKTOP: WhatsApp MÁS ARRIBA y texto animado ---- */
+
 @media (min-width: 992px) {
   .fab-whatsapp {
     left: 1.8rem;
-    bottom: 13.2rem;    /* Más arriba que Instagram */
+    bottom: 13.2rem;   
     width: 64px;
     height: 64px;
   }

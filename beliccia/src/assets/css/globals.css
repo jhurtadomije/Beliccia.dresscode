@@ -1,4 +1,4 @@
-/* IMPORTS Y VARIABLES, por defecto mobile first */
+/* IMPORTS Y VARIABLES */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css');
@@ -45,14 +45,8 @@ a:hover {
   color: black;
 }
 
-/* 
-.page-container {
-  margin-top: 7rem; 
-  padding: 1rem;
-}
-*/
 
-/* MEDIA QUERY ESCRITORIO */
+/* ESCRITORIO */
 @media (min-width: 768px) {
   body {
     font-size: 1.15rem;
@@ -167,7 +161,7 @@ a:hover {
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Related cards hover (solo card + imagen + texto) */
+/* Related cards hover*/
 .bdc-related-card {
   border-radius: 16px;
   overflow: hidden;

@@ -112,6 +112,9 @@ export default function Footer() {
               <li>
                 <FooterLink to="/conocenos">Conócenos</FooterLink>
               </li>
+              <li>
+              <FooterLink to="/admin/login" className="footer-link">Área privada</FooterLink>
+              </li>
             </ul>
           </div>
 

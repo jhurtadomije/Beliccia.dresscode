@@ -1,26 +1,58 @@
-// src/components/Hero.jsx (o donde lo tengas)
-import { useEffect, useState } from "react";
-import { getRandomAnimation } from "../utils/animations"; 
+// src/components/Hero.jsx
+import { useEffect, useRef, useState } from "react";
+import { getRandomAnimation } from "../utils/animations";
 
+const VIDEO_SRC = "/videos/114.mp4";
 
 export default function Hero() {
   const [animation, setAnimation] = useState("");
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     setAnimation(getRandomAnimation());
   }, []);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+
+        // ahora dejamos que React pinte el source
+        setShouldLoadVideo(true);
+
+        // Intentar reproducir
+        setTimeout(() => {
+          video.play?.().catch(() => {});
+        }, 0);
+
+        obs.disconnect();
+      },
+      { threshold: 0.25 }
+    );
+
+    obs.observe(video);
+    return () => obs.disconnect();
+  }, []);
+
   return (
     <section id="hero" className="hero">
       <video
+        ref={videoRef}
         autoPlay
         muted
         loop
         playsInline
         draggable={false}
         className="hero-video"
+        preload="none"
+        poster="/hero-poster.webp"
       >
-        <source src="/videos/114.mp4" type="video/mp4" />
+        {/* ✅ NO renderizar source hasta que toque */}
+        {shouldLoadVideo ? <source src={VIDEO_SRC} type="video/mp4" /> : null}
         Tu navegador no soporta la reproducción de videos.
       </video>
 

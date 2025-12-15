@@ -1,4 +1,4 @@
-/* -------- MOBILE FIRST (fuera de media query) -------- */
+
 .navbar .container {
   display: flex !important;
   align-items: center;
@@ -108,7 +108,7 @@
   }
 }
 
-/* Hero ajuste en móvil pequeño */
+
 @media (max-width: 768px) {
   #hero video { object-position: center center; }
 }

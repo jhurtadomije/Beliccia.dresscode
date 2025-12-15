@@ -1,4 +1,4 @@
-/* MOBILE FIRST: estilos base */
+
 .custom-modal-backdrop {
   position: fixed;
   z-index: 100011;
@@ -34,7 +34,7 @@
   filter: grayscale(0) drop-shadow(0 6px 28px rgba(120,120,120,0.10));
 }
 
-/* ESCRITORIO: modal más grande, mayor padding */
+
 @media (min-width: 768px) {
   .custom-modal {
     max-width: 700px;

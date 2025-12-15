@@ -46,11 +46,11 @@ export default function Atelier() {
           <div className="row g-4 justify-content-center">
             <div className="col-12 col-md-6 col-lg-4">
               <div className="p-4 bg-white rounded-4 shadow-sm h-100 text-center">
-                <div className="mb-3" style={{ fontSize: 28 }}>🧷</div>
-                <h3 className="h5">Ajustes y entalles</h3>
+                <div className="mb-3" style={{ fontSize: 28 }}>🎨</div>
+                <h3 className="h5">Diseño a medida</h3>
                 <p className="text-muted mb-0" style={{ lineHeight: 1.7 }}>
-                  Largo, cintura, pecho, mangas y escotes: comodidad real y
-                  un acabado limpio.
+                  Creamos tu vestido desde cero, adaptándolo a tu estilo, tu
+                  cuerpo y tu historia.
                 </p>
               </div>
             </div>
@@ -68,12 +68,13 @@ export default function Atelier() {
 
             <div className="col-12 col-md-6 col-lg-4">
               <div className="p-4 bg-white rounded-4 shadow-sm h-100 text-center">
-                <div className="mb-3" style={{ fontSize: 28 }}>🎨</div>
-                <h3 className="h5">Diseño a medida</h3>
+                <div className="mb-3" style={{ fontSize: 28 }}>🧷</div>
+                <h3 className="h5">Ajustes y entalles</h3>
                 <p className="text-muted mb-0" style={{ lineHeight: 1.7 }}>
-                  Creamos tu vestido desde cero, adaptándolo a tu estilo, tu
-                  cuerpo y tu historia.
+                  Largo, cintura, pecho, mangas y escotes: comodidad real y
+                  un acabado limpio.
                 </p>
+                
               </div>
             </div>
           </div>

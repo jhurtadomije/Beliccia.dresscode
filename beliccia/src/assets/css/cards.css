@@ -67,12 +67,10 @@
 }
 
 
-/* ESCRITORIO: sube altura de imagen y de card */
+/* ESCRITORIO: altura de imagen y de card */
 @media (min-width: 769px) {
   .card-flip { min-height: 420px; }
-  .card-img-top { height: 250px; } /* sólo para las tarjetas antiguas */
-  /* Si quieres otro ratio en desktop, puedes sobreescribir:
-     .card-image-wrap { aspect-ratio: 2 / 3; } */
+  .card-img-top { height: 250px; } 
 }
 
 .jr-glass-card{
@@ -130,7 +128,7 @@
   background: linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.30));
 }
 
-/* Card: por defecto (mobile/tablet) VA DEBAJO */
+/* Card: por defecto (mobile/tablet) */
 .jr-zz-cardWrap{
   position: relative;
   padding: 14px;

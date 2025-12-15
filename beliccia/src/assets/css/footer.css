@@ -1,4 +1,4 @@
-/* MOBILE FIRST: estilos por defecto */
+
 footer h6 {
     color: var(--secondary-color);
     font-size: 1rem;
@@ -39,7 +39,7 @@ footer p, footer a {
     font-size: 0.9rem;
 }
 
-/* ESCRITORIO: mayores fuentes, separación, columnas si lo deseas */
+
 @media (min-width: 768px) {
     footer h6 {
         font-size: 1.25rem;
@@ -51,7 +51,7 @@ footer p, footer a {
     footer {
         padding: 2.5rem 0;
     }
-    /* Si usas grid/flex para el layout en escritorio */
+   
     .footer-main {
         display: flex;
         justify-content: space-between;

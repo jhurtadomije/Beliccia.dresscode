@@ -1,7 +1,3 @@
-/* =========================
-   INSTAGRAM BOOTSTRAP CAROUSEL
-   Controles + bullets
-========================= */
 
 #instaCarousel .carousel-control-prev,
 #instaCarousel .carousel-control-next {
@@ -14,7 +10,7 @@
   filter: none; /* por si bootstrap mete el icono blanco */
 }
 
-/* Si quieres que se vean más “finos” */
+
 #instaCarousel .carousel-control-prev-icon,
 #instaCarousel .carousel-control-next-icon {
   width: 2.2rem;
@@ -31,51 +27,34 @@
 #instaCarousel .carousel-indicators .active {
   opacity: 1;
 }
-.insta-card {
-  height: 700px;              /* móvil */
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+.insta-card{
+  height: auto;                /* ✅ NO fijo */
+  background:#fff;
+  border-radius:12px;
+  overflow:hidden;
+  display:flex;
+  box-shadow:0 6px 14px rgba(0,0,0,0.06);
 }
-.insta-card-inner {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;        /* centra el embed vertical */
-  justify-content: center;    /* centra horizontal */
-  padding: 4rem;
+.insta-card-inner{
+  width:100%;
+  padding: 12px;               
 }
-.instagram-embed {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.instagram-embed blockquote {
-  margin: 0 !important;
+.instagram-embed{
+  width:100%;
+  aspect-ratio: 1 / 1;         /* ✅ compacto en móvil */
+  min-height: 320px;
+  background:#fff;
+  border-radius:12px;
+  overflow:hidden;
 }
 
 /* Desktop */
-@media (min-width: 768px) {
-  #instaCarousel .carousel-control-prev,
-  #instaCarousel .carousel-control-next {
-    width: 4rem;
+@media (min-width: 768px){
+  .insta-card-inner{
+    padding: 16px;             
   }
-
-  #instaCarousel .carousel-control-prev-icon,
-  #instaCarousel .carousel-control-next-icon {
-    width: 2.8rem;
-    height: 2.8rem;
-  }
-  .insta-card {
-    height: 650px;
-    
-    
+  .instagram-embed{
+    aspect-ratio: 9 / 16;   
+    min-height: 520px;
   }
 }

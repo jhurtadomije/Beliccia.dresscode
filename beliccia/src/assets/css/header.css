@@ -13,8 +13,8 @@
   --hdr-ease: cubic-bezier(.76,.01,.3,1.01);
 
   /* tamaños logo */
-  --logo-h-desktop: 11rem;  /* antes 74px */
-  --logo-h-mobile: 9rem;   /* antes 52px */
+  --logo-h-desktop: 11rem; 
+  --logo-h-mobile: 9rem;   
 }
 
 /* empuja el contenido para que no quede debajo del header fijo */
@@ -58,9 +58,7 @@ body{ padding-top: var(--hdr-h); }
   box-shadow: var(--hdr-shadow);
 }
 
-/* ====== MODO HOME (sin “alfombra blanca”) ====== */
-/* Desktop home arriba: cristal oscuro sutil para que se lean links,
-   y el logo negro lo invertimos a blanco */
+
 .main-header.is-home:not(.scrolled)::before{
   background: rgba(0,0,0,.18);
   backdrop-filter: blur(6px);
@@ -103,7 +101,7 @@ body{ padding-top: var(--hdr-h); }
   position: relative;
 }
 
-/* links: home arriba -> blancos (DESKTOP), resto -> negros */
+
 .main-header.is-home:not(.scrolled) .nav-link,
 .main-header.is-home:not(.scrolled) .btn-reset-link,
 .main-header.is-home:not(.scrolled) .icon-link{
@@ -178,7 +176,7 @@ body{ padding-top: var(--hdr-h); }
   filter: invert(1) brightness(1.05) contrast(1.05);
 }
 
-/* efecto premium suave al expand */
+/* efecto suave al expand */
 @media (min-width: 992px){
   .main-header.expanded .navbar-brand img{ transform: scale(1.06); }
   .main-header.scrolled .navbar-brand img{ transform: scale(0.96); }
@@ -199,8 +197,8 @@ body{ padding-top: var(--hdr-h); }
 
 /* links nav */
 .nav-link{
-  display:inline-flex;
-  align-items:center;
+  display: inline-flex;
+  align-items: center;
   padding: .65rem .85rem;
   border-radius: 999px;
   transition: background-color .2s ease, opacity .2s ease;
@@ -213,11 +211,7 @@ body{ padding-top: var(--hdr-h); }
   background: rgba(255,255,255,.12);
 }
 
-/* =========================
-   DROPDOWNS (FIX: que abran)
-   ========================= */
 
-/* Ocultar caret bootstrap */
 .navbar .dropdown-toggle::after,
 .dropdown-submenu.dropend > .dropdown-toggle::after{
   display:none !important;
@@ -241,12 +235,12 @@ body{ padding-top: var(--hdr-h); }
 }
 .dropdown-item:hover{ background: rgba(0,0,0,.04); }
 
-/* DESKTOP: importante -> display:block para anular bootstrap display:none */
+
 @media (min-width: 992px){
   .navbar-nav > .nav-item.dropdown{ position: relative; }
 
   .navbar-nav > .nav-item.dropdown > .dropdown-menu{
-    display: block;              /* ✅ clave */
+    display: block;              
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
@@ -296,14 +290,10 @@ body{ padding-top: var(--hdr-h); }
   }
 }
 
-/* =========================================================
-   MÓVIL: panel + alfombra + (FORZAR TEXTOS NEGROS SIEMPRE)
-   ========================================================= */
+
 @media (max-width: 991.98px){
 
-  /* En móvil: aunque estemos en HOME arriba del hero,
-     queremos TODO negro (links, iconos, hamburguesa) */
-  .main-header.is-home:not(.scrolled) .nav-link,
+   .main-header.is-home:not(.scrolled) .nav-link,
   .main-header.is-home:not(.scrolled) .btn-reset-link,
   .main-header.is-home:not(.scrolled) .icon-link{
     color: #111 !important;
@@ -313,12 +303,12 @@ body{ padding-top: var(--hdr-h); }
     background:#111 !important;
   }
 
-  /* En móvil: no invertimos el logo (queda negro) */
+ 
   .main-header.is-home:not(.scrolled) .navbar-brand img{
     filter: none !important;
   }
 
-  /* Logo centrado en móvil, más grande */
+  
   .main-header .navbar-brand{
     position:absolute;
     left:50%;
@@ -359,7 +349,7 @@ body{ padding-top: var(--hdr-h); }
     text-shadow: none !important;
   }
 
-  /* alfombra animable */
+ 
   .navbar .dropdown-menu{
     display:block;
     max-height: 0;
@@ -393,7 +383,7 @@ body{ padding-top: var(--hdr-h); }
 
 @media (max-width: 991.98px){
 
-  /* HOME arriba (header cerrado): blanco SOLO para logo + iconos + hamburguesa */
+  
   .main-header.is-home:not(.scrolled) .navbar-brand img{
     filter: invert(1) brightness(1.05) contrast(1.05);
   }
@@ -401,7 +391,7 @@ body{ padding-top: var(--hdr-h); }
     filter: invert(1) brightness(1.05) contrast(1.05) !important;
   }
 
-  /* iconos (FontAwesome) */
+  /* iconos */
   .main-header.is-home:not(.scrolled) .navbar-icons .icon-link,
   .main-header.is-home:not(.scrolled) .navbar-icons .icon-link i{
     color: #fff !important;
@@ -422,35 +412,34 @@ body{ padding-top: var(--hdr-h); }
   }
 }
 @media (min-width: 992px){
-  /* Convertimos el container del header en "casi container-fluid" */
+  
   .main-header .navbar > .container{
-    max-width: 100% !important;     /* rompe el límite del container */
-    width: 100% !important;
-    padding-left: 24px !important;  /* ajusta: 16px / 20px / 24px */
+    max-width: 100% !important;     
+    padding-left: 24px !important;  
     padding-right: 24px !important;
   }
 
-  /* Logo bien a la izquierda */
+
   .main-header .navbar-brand{
     margin-right: 0 !important;
   }
 
-  /* Separa un pelín el menú del logo (tu ajuste fino) */
+  
   .main-header .navbar-collapse{
-    margin-left: 33rem !important; /* sube/baja a tu gusto: 2.6rem / 3.5rem */
+    margin-left: 33rem !important; 
   }
 }
 
 
-/* Móviles estándar (360–575) */
+
 @media (min-width: 360px) and (max-width: 575.98px){
   :root{
-    --logo-h-mobile: 9rem; /* 🔥 más visible en home/hero */
+    --logo-h-mobile: 9rem; 
   }
   .navbar-icons{ gap: .9rem; }
 }
 
-/* Tablets / iPad portrait (576–991) */
+
 @media (min-width: 576px) and (max-width: 991.98px){
   :root{
     --logo-h-mobile: 10rem;
@@ -458,47 +447,46 @@ body{ padding-top: var(--hdr-h); }
   .navbar-icons{ gap: 1rem; }
 }
 
-/* 2) “Laptop pack” (992–1199): 13/14" típico
-   Aquí es donde más suele apretar el menú */
+
+
 @media (min-width: 992px) and (max-width: 1199.98px){
-  /* Separa un pelín el menú del logo (tu ajuste fino) */
+  
   .main-header .navbar-collapse{
     margin-left: 3rem !important; 
   }
 }
 
-/* 3) Desktop normal (1200–1399): 15/16" + 24" 1080p */
+
 @media (min-width: 1200px) and (max-width: 1400px){
-  /* Separa un pelín el menú del logo (tu ajuste fino) */
+  
   .main-header .navbar-collapse{
-    margin-left: 10rem !important; /* sube/baja a tu gusto: 2.6rem / 3.5rem */
+    margin-left: 10rem !important; 
   }
 }
 
-/* 4) Pantalla grande (>=1400): 27" 1440p */
+
 @media (min-width: 1400px) and (max-width: 1920px){
- /* Separa un pelín el menú del logo (tu ajuste fino) */
+
   .main-header .navbar-collapse{
-    margin-left: 25rem !important; /* sube/baja a tu gusto: 2.6rem / 3.5rem */
+    margin-left: 25rem !important; 
   }
 }
 
-/* 5) Ultra-wide (>=1920): 27" 4K/ultra-wide
-   No agrandamos infinito, solo damos aire */
+  
 @media (min-width: 1920px){
-  /* Separa un pelín el menú del logo (tu ajuste fino) */
+  
   .main-header .navbar-collapse{
-    margin-left: 30rem !important; /* sube/baja a tu gusto: 2.6rem / 3.5rem */
+    margin-left: 30rem !important; 
   }
 }
 
-/* 6) Seguridad: evita que el logo “salte” o se recorte en height */
+
 .main-header .navbar-brand img{
   max-height: 100%;
 }
 
-/* 7) Móvil: aunque estés en HOME arriba (iconos/blanco),
-   los enlaces del panel desplegado siempre negros */
+
+   
 @media (max-width: 991.98px){
   .collapse.navbar-collapse.show .nav-link,
   .collapse.navbar-collapse.show .btn-reset-link,
@@ -507,7 +495,7 @@ body{ padding-top: var(--hdr-h); }
     text-shadow:none !important;
   }
 
-  /* y mantenemos hamburguesa/logo/iconos “como antes” arriba */
+ 
   .main-header.is-home:not(.scrolled) .navbar-toggler .line{ background:#fff; }
   .main-header.is-home:not(.scrolled) .navbar-brand img{
     filter: invert(1) brightness(1.05) contrast(1.05);

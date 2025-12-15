@@ -14,8 +14,8 @@ export default function Visitanos() {
       "Encuentra Beliccia Dress Code en Maracena (Granada). Dirección, horario, mapa e indicaciones para llegar.",
   });
 
-  const phoneDisplay = "958 000 000";
-  const phoneHref = "tel:+34958000000"; // ajusta si cambia el número real
+  const phoneDisplay = "641 363 381";
+  const phoneHref = "tel:+34641363381"; 
 
   return (
     <section id="visitanos" className="py-5">

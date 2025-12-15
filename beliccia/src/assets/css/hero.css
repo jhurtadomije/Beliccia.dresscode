@@ -1,4 +1,4 @@
-/* --- GLOBAL: evitar scroll horizontal fantasma --- */
+
 html, body {
   width: 100%;
   margin: 0;
@@ -15,11 +15,11 @@ html, body {
   padding: 0;
   overflow: hidden;
   display: flex;
-  align-items: flex-end; /* móvil: contenido hacia abajo */
+  align-items: flex-end; 
   box-sizing: border-box;
 }
 
-/* Capa opcional si más adelante quieres overlay suave */
+
 .hero::before {
   content: "";
   position: absolute;
@@ -27,7 +27,7 @@ html, body {
   z-index: 0;
 }
 
-/* Vídeo siempre cubriendo todo */
+
 .hero-video {
   position: absolute;
   inset: 0;
@@ -80,7 +80,7 @@ html, body {
 
   .hero-content {
     justify-content: center;
-    padding: 0 4rem; /* aire lateral elegante */
+    padding: 0 4rem; 
     margin-top: 30rem;
   }
 

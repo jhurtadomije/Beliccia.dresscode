@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /perfil/
+Disallow: /checkout/
+
+Sitemap: https://beliccia.es/sitemap.xml
