@@ -3,8 +3,6 @@ import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import UsuarioRepository from "../repositories/UsuarioRepository.js";
 
-
-
 class AuthService {
   static async login(email, password) {
     const user = await UsuarioRepository.findByEmail(email);
@@ -19,6 +17,15 @@ class AuthService {
     if (!user.activo) {
       const e = new Error("Usuario inactivo");
       e.status = 403;
+      throw e;
+    }
+
+    //si la cuenta viene de google y no tiene contraseña, no podemos hacer login por password
+    if (!user.password_hash) {
+      const e = new Error(
+        "Esta cuenta se creó con Google, por favor inicia sesión con Google."
+      );
+      e.status = 401;
       throw e;
     }
 
@@ -39,7 +46,7 @@ class AuthService {
     const payload = {
       id: user.id,
       email: user.email,
-      rol: user.rol, // 👈 IMPORTANTE por tu SQL
+      rol: user.rol,
       nombre: user.nombre,
     };
 
@@ -123,12 +130,21 @@ class AuthService {
       e.status = 400;
       throw e;
     }
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
     if (!process.env.GOOGLE_CLIENT_ID) {
-      const e = new Error("error de clientID no configurado.");
+      const e = new Error("error de GoogleClientId no configurado.");
       e.status = 500;
       throw e;
     }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      const e = new Error("JWT_SECRET no configurado");
+      e.status = 500;
+      throw e;
+    }
+
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
     // 1) Verificar token con Google
     const ticket = await client.verifyIdToken({
@@ -141,6 +157,7 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
     const nombre = payload?.given_name || payload?.name || "Usuario";
     const apellidos = payload?.family_name || "";
     const avatar = payload?.picture || null;
+    const google_id = payload?.sub || null;
 
     if (!email) {
       const e = new Error("Google no devolvió email.");
@@ -160,6 +177,7 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
         avatar,
         rol: "cliente",
         provider: "google",
+        google_id,
       });
     }
 
@@ -170,13 +188,12 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
         email: user.email,
         rol: user.rol,
       },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      secret,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
     );
 
     return { token, user };
   }
 }
-
 
 export default AuthService;

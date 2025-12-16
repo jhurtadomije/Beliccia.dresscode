@@ -30,7 +30,7 @@ export default function LoginAdmin() {
     <section className="py-5" style={{ minHeight: "80vh" }}>
       
       <div className="container" style={{ maxWidth: 480 }}>
-        <img src="../../public/imagenes/logo.png" alt="Beliccia Logo" className="mb-4 d-block mx-auto" style={{ maxWidth: 180 }} />
+        <img src="/imagenes/logo.png" alt="Beliccia Logo" className="mb-4 d-block mx-auto" style={{ maxWidth: 180 }} />
         <h2 className="mb-4 text-center">Área privada</h2>
         
         <p className="text-muted text-center mb-4">

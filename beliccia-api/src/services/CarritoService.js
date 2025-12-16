@@ -135,7 +135,7 @@ class CarritoService {
 
   static async merge({ user, sessionId }) {
     if (!user?.id) {
-      const err = new Error("Debes estar autenticado para hacer merge");
+      const err = new Error("Debes estar autenticado.");
       err.status = 401;
       throw err;
     }

@@ -61,7 +61,7 @@ class UsuarioRepository {
     return rows[0] || null;
   }
 
-  // ✅ Google user sin columnas “inventadas”
+  //  Google user sin columnas “inventadas”
   static async createGoogleUser({ nombre, apellidos, email, rol }) {
     const pool = getPool();
 
@@ -89,7 +89,7 @@ class UsuarioRepository {
     nombre,
     apellidos = null,
     email,
-    password_hash,
+    password_hash = null,
     telefono = null,
     rol = "cliente",
   }) {
