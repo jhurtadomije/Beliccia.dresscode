@@ -62,15 +62,15 @@ class UsuarioRepository {
   }
 
   //  Google user sin columnas “inventadas”
-  static async createGoogleUser({ nombre, apellidos, email, rol }) {
+  static async createGoogleUser({ nombre, apellidos, email, rol, google_id }) {
     const pool = getPool();
 
     const [res] = await pool.query(
       `
-      INSERT INTO usuarios (nombre, apellidos, email, password_hash, telefono, rol)
-      VALUES (?, ?, ?, NULL, NULL, ?)
+      INSERT INTO usuarios (nombre, apellidos, email, password_hash, telefono, rol, auth_provider, google_id)
+      VALUES (?, ?, ?, NULL, NULL, ?, 'google', ?)
       `,
-      [nombre, apellidos || null, email, rol || "cliente"]
+      [nombre, apellidos || null, email, rol || "cliente", google_id || null]
     );
 
     return this.findById(res.insertId);
