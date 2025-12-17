@@ -23,7 +23,7 @@ class ProductoController {
         limit: Number(limit) || 12,
       });
 
-      // 👇 ahora devolvemos { data, meta }
+      //  ahora devolvemos { data, meta }
       return res.json(resultado);
     } catch (err) {
       next(err);
@@ -68,7 +68,7 @@ class ProductoController {
         });
       }
 
-      // 1) Crear producto base usando el repositorio
+      //  Crear producto base usando el repositorio
       const producto = await ProductoRepository.crear({
         nombre,
         slug,
@@ -84,10 +84,10 @@ class ProductoController {
         tags_origen: tags_origen || null,
       });
 
-      // 👇 MUY IMPORTANTE: aquí usamos producto.id (número)
+      //  MUY IMPORTANTE: aquí usamos producto.id (número)
       const productoId = producto.id;
 
-      // 2) Crear variantes (si vienen)
+      //  Crear variantes (si vienen)
       let variantesArr = [];
       try {
         variantesArr = variantes ? JSON.parse(variantes) : [];
@@ -105,7 +105,7 @@ class ProductoController {
         });
       }
 
-      // 3) Imágenes
+      //  Imágenes
       const files = req.files || [];
       const cleanFolder = (carpeta_imagenes || "")
         .trim()
@@ -174,7 +174,7 @@ class ProductoController {
         variantes, // opcional, string JSON
       } = req.body;
 
-      // 1) Construimos objeto de update SOLO con campos presentes
+      //  Construimos objeto de update SOLO con campos presentes
       const data = {};
 
       if (nombre !== undefined) data.nombre = nombre || null;
@@ -205,13 +205,13 @@ class ProductoController {
           v === "0" || v === 0 || v === "false" || v === false ? 0 : 1;
       }
 
-      // 2) Actualizamos el producto (si hay campos que tocar)
+      //  Actualizamos el producto (si hay campos que tocar)
       const actualizado =
         Object.keys(data).length > 0
           ? await ProductoRepository.update(productoId, data)
           : existente;
 
-      // 3) Imágenes: si vienen ficheros, reseteamos la galería
+      //  Imágenes: si vienen ficheros, reseteamos la galería
       const files = req.files || [];
 
       if (files.length) {
@@ -239,11 +239,11 @@ class ProductoController {
         }
       }
 
-      // 4) Variantes (opcional – igual que en crear si quieres mantener tallas)
+      //  Variantes (opcional – igual que en crear si quieres mantener tallas)
       if (variantes) {
         try {
           const parsed = JSON.parse(variantes);
-          // Aquí podrías hacer:
+          // Aquí podríamos hacer:
           // - borrar variantes antiguas
           // - volver a crearlas con VariantesRepository
         } catch (e) {

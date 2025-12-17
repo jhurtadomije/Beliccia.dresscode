@@ -56,7 +56,7 @@ class CarritoRepository {
       return this.createForSession(sessionId);
     }
 
-    // si no hay nada, error controlado
+    
     return null;
   }
 }

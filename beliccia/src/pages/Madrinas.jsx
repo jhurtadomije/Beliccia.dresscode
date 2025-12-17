@@ -43,10 +43,13 @@ const hasAnyTag = (producto, expected) => {
 
 // Madrina = fiesta + tag "madrina"
 const isMadrina = (p) => {
-  const cat = norm(p?.categoria); // "Fiesta", ...
+  const cat = norm(p?.categoria);
+
+  const esCategoriaMadrinas = cat.includes("madrina");   // "madrinas"
   const esFiesta = cat.includes("fiesta");
   const esMadrinaPorTag = hasAnyTag(p, ["madrina", "madrinas"]);
-  return esFiesta && esMadrinaPorTag;
+
+  return esCategoriaMadrinas || (esFiesta && esMadrinaPorTag);
 };
 
 // ---------- Card de madrina ----------
@@ -206,7 +209,7 @@ export default function Madrinas() {
     api
       .get("/productos", {
         params: {
-          categoria: "fiesta",
+          
           page: 1,
           limit: 100,
         },

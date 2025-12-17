@@ -7,7 +7,7 @@ export default function Collections() {
     const el = document.getElementById("carouselCollections");
     if (el && window.bootstrap) {
       const carousel = new window.bootstrap.Carousel(el, {
-        interval: 5000,
+        interval: 4000,
         ride: "carousel",
         pause: false,
         keyboard: true,
@@ -31,19 +31,19 @@ export default function Collections() {
       to: "/madrinas",
     },
     {
-      src: "/imagenes/colecciones/libra-3.jpeg",
+      src: "/imagenes/colecciones/invitada.jpeg",
       title: "Invitadas",
       text: "Looks que marcan la diferencia.",
       to: "/invitadas",
     },
     {
-      src: "/imagenes/colecciones/tocados.jpg",
+      src: "/imagenes/colecciones/tocados.jpeg",
       title: "Tocados",
       text: "Detalles que elevan tu estilo.",
       to: "/tocados",
     },
     {
-      src: "/imagenes/colecciones/bolsos.jpg",
+      src: "/imagenes/colecciones/bolsos.jpeg",
       title: "Bolsos",
       text: "Complementos únicos.",
       to: "/bolsos",

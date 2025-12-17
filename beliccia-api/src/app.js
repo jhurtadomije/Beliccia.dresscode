@@ -14,14 +14,14 @@ import { errorHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
 
-// ✅ Helmet
+// Helmet
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
 
-// ✅ CORS
+// CORS
 app.use(
   cors({
     origin: [
@@ -42,14 +42,14 @@ app.use(
 
 app.use(morgan("dev"));
 
-// ✅ 1) WEBHOOK REAL con RAW antes de JSON
+//  WEBHOOK con RAW antes de JSON
 app.post(
   "/api/webhooks/stripe",
   express.raw({ type: "application/json" }),
   stripeWebhook
 );
 
-//  2) JSON para el resto
+//  JSON para el resto
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -61,7 +61,7 @@ app.use("/api/pagos", pagosRoutes);
 app.use("/api/webhooks", webhooksRoutes);
 app.use("/api", routes);
 
-//  Error handler SIEMPRE al final
+//  Error handler 
 app.use(errorHandler);
 
 export default app;

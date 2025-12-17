@@ -98,30 +98,39 @@ export default function AdminProductos() {
   }
 };
 
-// --- Filtrado de productos y búsqueda ---
-  const filtrados = productos.filter((p) => {
-    if (!busqueda.trim()) return true;
-    const q = busqueda.toLowerCase();
 
-    const nombre = (p.nombre || "").toLowerCase();
-    const codigo = (p.codigo_interno || "").toLowerCase();
-    const slug = (p.slug || "").toLowerCase();
+  // --- Filtrado de productos y búsqueda ---
+const filtrados = productos.filter((p) => {
+  const q = busqueda.trim().toLowerCase();
+  if (!q) return true;
 
-    const categoriaNombre = (categoriasMap[p.categoria_id] || "").toLowerCase();
-    const marcaNombre = (marcasMap[p.marca_id] || "").toLowerCase();
-    const coleccionNombre = (
-      coleccionesMap[p.coleccion_id] || ""
-    ).toLowerCase();
+  const nombre = String(p.nombre || "").toLowerCase();
+  const codigo = String(p.codigo_interno || "").toLowerCase();
+  const slug = String(p.slug || "").toLowerCase();
 
-    return (
-      nombre.includes(q) ||
-      codigo.includes(q) ||
-      slug.includes(q) ||
-      categoriaNombre.includes(q) ||
-      marcaNombre.includes(q) ||
-      coleccionNombre.includes(q)
-    );
-  });
+  //IMPORTANTE: usar el mismo “fallback” que usas al pintar la tabla
+  const categoriaNombre = String(
+    p.categoria || categoriasMap[p.categoria_id] || ""
+  ).toLowerCase();
+
+  const marcaNombre = String(
+    p.marca || marcasMap[p.marca_id] || ""
+  ).toLowerCase();
+
+  const coleccionNombre = String(
+    p.coleccion || coleccionesMap[p.coleccion_id] || ""
+  ).toLowerCase();
+
+  return (
+    nombre.includes(q) ||
+    codigo.includes(q) ||
+    slug.includes(q) ||
+    categoriaNombre.includes(q) ||
+    marcaNombre.includes(q) ||
+    coleccionNombre.includes(q)
+  );
+});
+
 
   return (
     <section className="py-5" style={{ minHeight: "80vh" }}>

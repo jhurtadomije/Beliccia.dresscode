@@ -10,7 +10,7 @@ function getTokenFromHeader(req) {
 function normalizeUser(payload) {
   if (!payload) return null;
 
-  // Soportamos varias formas típicas de JWT
+  // Soportamos varias formas de JWT
   const id =
     payload.id ??
     payload.userId ??

@@ -44,10 +44,13 @@ const hasAnyTag = (producto, expected) => {
 
 // Invitada = categoría fiesta + tag invitada
 const isInvitada = (p) => {
-  const cat = norm(p?.categoria); // "Fiesta", ...
+  const cat = norm(p?.categoria);
+
+  const esCategoriaInvitadas = cat.includes("invitada"); // "invitadas"
   const esFiesta = cat.includes("fiesta");
   const esInvitadaPorTag = hasAnyTag(p, ["invitada", "invitadas"]);
-  return esFiesta && esInvitadaPorTag;
+
+  return esCategoriaInvitadas || (esFiesta && esInvitadaPorTag);
 };
 
 // ---------- Card de invitada ----------
@@ -209,7 +212,7 @@ export default function Invitadas() {
     api
       .get("/productos", {
         params: {
-          categoria: "fiesta",
+          
           page: 1,
           limit: 100,
         },

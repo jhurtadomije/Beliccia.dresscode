@@ -21,8 +21,9 @@ export default function PerfilDashboard() {
           </button>
         </div>
 
+        {/* Cards */}
         <div className="row g-3 mb-4">
-          <div className="col-md-6">
+          <div className="col-md-4">
             <div className="card h-100 shadow-sm">
               <div className="card-body d-flex flex-column">
                 <h5 className="card-title">Mis pedidos</h5>
@@ -36,7 +37,7 @@ export default function PerfilDashboard() {
             </div>
           </div>
 
-          <div className="col-md-6">
+          <div className="col-md-4">
             <div className="card h-100 shadow-sm">
               <div className="card-body d-flex flex-column">
                 <h5 className="card-title">Mis citas</h5>
@@ -49,8 +50,27 @@ export default function PerfilDashboard() {
               </div>
             </div>
           </div>
+
+          <div className="col-md-4">
+            <div className="card h-100 shadow-sm">
+              <div className="card-body d-flex flex-column">
+                <h5 className="card-title">Mis datos</h5>
+                <p className="card-text flex-grow-1">
+                  Datos personales y direcciones (próximamente).
+                </p>
+                <button
+                  className="btn btn-outline-dark mt-2"
+                  disabled
+                  title="Funcionalidad planificada para una versión futura"
+                >
+                  Próximamente
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
+        {/* Resumen */}
         <div className="card shadow-sm">
           <div className="card-body">
             <h5 className="card-title mb-2">Resumen</h5>

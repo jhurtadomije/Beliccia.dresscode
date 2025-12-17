@@ -101,7 +101,7 @@ export default function Footer() {
           </div>
 
           <div className="col-md-3 mb-4">
-            <h6 className="text-uppercase fw-bold">Puntos de venta</h6>
+            <h6 className="text-uppercase fw-bold">Empresa</h6>
             <ul className="list-unstyled">
               <li>
                 <FooterLink to="/visitanos">Visítanos</FooterLink>

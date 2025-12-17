@@ -6,8 +6,8 @@ export function errorHandler(err, req, res, next) {
   const message =
     err.message || "Error interno del servidor";
 
-  // opcional: log en consola
-  console.error("❌ Error:", err);
+  // log en consola
+  console.error(" Error:", err);
 
   res.status(status).json({
     error: true,
