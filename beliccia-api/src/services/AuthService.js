@@ -181,7 +181,7 @@ class AuthService {
       });
     }
 
-    // 4) Emitir TU JWT
+    // 4) Emitimos nuestro JWT
     const token = jwt.sign(
       {
         id: user.id,
@@ -189,7 +189,7 @@ class AuthService {
         rol: user.rol,
       },
       secret,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
+      { expiresIn: process.env.JWT_EXPIRES_IN }
     );
 
     return { token, user };
