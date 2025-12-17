@@ -1,4 +1,5 @@
-// src/AppRoutes.jsx
+//rutas frontend
+
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
@@ -55,11 +56,11 @@ export default function AppRoutes() {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
-        {/* ✅ TODO lo público bajo Layout (con header/footer) */}
+        {/*  TODO lo público bajo Layout (con header/footer) */}
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
 
-          {/* ✅ FIX: rutas que usas en Header y no existían */}
+          {/*  rutas que usaba antes en Header y no existían */}
           <Route path="contact" element={<Navigate to="/visitanos" replace />} />
           <Route path="buscar" element={<Buscar />} />
 
@@ -73,7 +74,7 @@ export default function AppRoutes() {
           <Route path="madrinas/:id" element={<ProductoDetalle />} />
           <Route path="producto/:id" element={<ProductoDetalle />} />
 
-          {/* Paginas legales (mejor relativas dentro del Layout) */}
+          {/* Paginas legales  */}
           <Route path="legal/aviso-legal" element={<AvisoLegal />} />
           <Route path="legal/privacidad" element={<Privacidad />} />
           <Route path="legal/cookies" element={<Cookies />} />

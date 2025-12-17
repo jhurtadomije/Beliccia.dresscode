@@ -50,7 +50,7 @@ class AuthService {
       nombre: user.nombre,
     };
 
-    const expiresIn = process.env.JWT_EXPIRES_IN || "7d";
+    const expiresIn = process.env.JWT_EXPIRES_IN || "1d";
 
     const token = jwt.sign(payload, secret, { expiresIn });
 
@@ -146,7 +146,7 @@ class AuthService {
 
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-    // 1) Verificar token con Google
+    //  Verificar token con Google
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -165,10 +165,10 @@ class AuthService {
       throw e;
     }
 
-    // 2) Buscar usuario por email
+    //  Buscar usuario por email
     let user = await UsuarioRepository.findByEmail(email);
 
-    // 3) Si no existe, crear uno
+    // Si no existe, crear uno
     if (!user) {
       user = await UsuarioRepository.createGoogleUser({
         nombre,

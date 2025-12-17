@@ -11,7 +11,7 @@
   height: 100%;
   transition: transform 1.2s cubic-bezier(.5,1.7,.5,.7);
   transform-style: preserve-3d;
-  min-height: 320px;  /* Móvil: menor altura por defecto */
+  min-height: 320px;  
 }
 .card-flip .card-front,
 .card-flip .card-back {
@@ -30,7 +30,7 @@
 
 .card-image-wrap {
   width: 100%;
-  aspect-ratio: 3 / 4;          /* Cambia a 2 / 3 si la quieres más vertical */
+  aspect-ratio: 3 / 4;          
   position: relative;
   overflow: hidden;
   background: #f6f6f6;
@@ -45,7 +45,7 @@
   height: 100%;
   display: block;
   object-fit: contain;
-  object-position: center top;         /* prueba 'center center' si prefieres */
+  object-position: center top;         
   transform: scale(var(--card-img-zoom, 1));
   transform-origin: center top;
 }
@@ -53,7 +53,7 @@
 .card-img-top {
   object-fit: contain;
   width: 100%;
-  height: 160px;  /* Móvil */
+  height: 160px;  
   border-top-left-radius: 1.5rem;
   border-top-right-radius: 1.5rem;
   background: #eee;
@@ -128,16 +128,16 @@
   background: linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.30));
 }
 
-/* Card: por defecto (mobile/tablet) */
+/* Card: por defecto (movil/tablet) */
 .jr-zz-cardWrap{
   position: relative;
   padding: 14px;
 }
 .jr-zz-card{
-  margin-top: -18px; /* queda “pegadita” a la imagen sin taparla */
+  margin-top: -18px; 
 }
 
-/* ✅ Desktop: flotante encima */
+/* Desktop: flotante encima */
 @media (min-width: 992px){
   .jr-zz{ position: relative; }
   .jr-zz-cardWrap{

@@ -13,7 +13,7 @@ export function getConsent() {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
     const data = JSON.parse(raw);
-    // normaliza por si faltan claves
+    // normalizamos por si faltan claves
     return { ...DEFAULT_CONSENT, ...data, necessary: true };
   } catch {
     return null;

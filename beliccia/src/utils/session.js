@@ -1,4 +1,4 @@
-// src/utils/session.js
+
 const KEY = "beliccia_cart_session_id";
 
 
