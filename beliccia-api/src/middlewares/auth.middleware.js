@@ -1,4 +1,4 @@
-// src/middlewares/auth.middleware.js
+
 import jwt from "jsonwebtoken";
 
 function getTokenFromHeader(req) {
