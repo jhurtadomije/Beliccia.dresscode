@@ -1,4 +1,4 @@
-// src/pages/Home.jsx
+
 import Hero from "../components/Hero";
 import Collections from "../components/Collections";
 import InstagramCarousel from "../components/instagram/InstagramCarousel";

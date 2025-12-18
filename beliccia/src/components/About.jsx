@@ -17,14 +17,14 @@ export default function About() {
   const [animationClass, setAnimationClass] = useState("");
   const [open, setOpen] = useState(false);
 
-  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(true);
   const videoRef = useRef(null);
 
   useEffect(() => {
     setAnimationClass(getRandomAnimation());
   }, []);
 
-  // ✅ Lazy-load cuando el vídeo entra en viewport
+  //  Lazy-load cuando el vídeo entra en viewport
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -73,7 +73,7 @@ export default function About() {
               muted
               loop
               playsInline
-              preload="none"
+              preload="metadata"
               poster="/about-poster.webp"
             >
               {shouldLoadVideo ? (
