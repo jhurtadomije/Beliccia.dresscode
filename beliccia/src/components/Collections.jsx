@@ -19,7 +19,7 @@ export default function Collections() {
 
   const slides = [
     {
-      src: "/imagenes/colecciones/vestido19.jpg",
+      src: "/imagenes/colecciones/amandra.jpeg",
       title: "Novias",
       text: "Descubre nuestra colección de novia.",
       to: "/novias",

@@ -112,3 +112,6 @@
 @media (max-width: 768px) {
   #hero video { object-position: center center; }
 }
+@media (min-width: 768px) {
+  .w-md-auto { width: auto !important; }
+}

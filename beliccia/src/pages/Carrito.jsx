@@ -1,4 +1,4 @@
-// src/pages/Carrito.jsx
+
 import React from "react";
 import { useCart } from "../context/CartContext";
 import { resolveImageUrl } from "../services/imageUrl";
@@ -69,7 +69,7 @@ export default function Carrito() {
               return (
                 <div
                   key={id}
-                  className="d-flex align-items-center mb-3 p-2 border rounded"
+                  className="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2 mb-3 p-2 border rounded"
                 >
                   <img
                     src={imgUrl}
@@ -89,7 +89,7 @@ export default function Carrito() {
                   <div className="flex-grow-1">
                     <h5 className="mb-1">{p?.nombre || "Producto"}</h5>
 
-                    {/* Si quieres mostrar talla / variante */}
+                    {/* mostrar talla / variante */}
                     {p?.talla && (
                       <p className="text-muted mb-1 small">Talla: {p.talla}</p>
                     )}
@@ -120,12 +120,12 @@ export default function Carrito() {
                     </div>
                   </div>
 
-                  <div className="text-end me-3 fw-semibold">
+                  <div className="text-end fw-semibold ms-md-auto">
                     {money(unitPrice * qty)}
                   </div>
 
                   <button
-                    className="btn btn-outline-danger btn-sm"
+                    className="btn btn-outline-danger btn-sm w-100 w-md-auto"
                     onClick={() => removeFromCart(id)}
                   >
                     Eliminar
