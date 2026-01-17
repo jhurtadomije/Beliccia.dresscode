@@ -1,12 +1,9 @@
 // src/pages/Novias.jsx
-import { useEffect, useState, useMemo, useRef } from "react";
-import { useSearchParams, Link, useLocation } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../services/api";
-import { useCart } from "../context/CartContext";
 import { resolveImageUrl } from "../services/imageUrl";
 import { usePageMeta } from "../hooks/usePageMeta";
-import CitaModal from "../components/CitaModal";
-import { flyToCartFromEl } from "../utils/cartFly";
 
 const PLACEHOLDER = "/placeholder.png";
 
@@ -29,14 +26,11 @@ const matchEstilo = (producto, corteSlug) => {
   return tags.includes(corteSlug.toLowerCase());
 };
 
-// ---------- Card de producto de novia ----------
-function NoviaCard({ producto, onSolicitarInfo }) {
-  const [flipped, setFlipped] = useState(false);
-  const { addToCart } = useCart();
+// ---------- Card (estilo “relacionados”) ----------
+function NoviaCard({ producto }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const from = location.pathname + location.search;
-
-  const imgRef = useRef(null); // ✅ para el fly
 
   const id = getId(producto);
   const nombre = producto?.nombre || "Vestido de novia";
@@ -49,126 +43,64 @@ function NoviaCard({ producto, onSolicitarInfo }) {
 
   const imageUrl = resolveImageUrl(firstImage) || PLACEHOLDER;
 
-  const price = asNumber(producto?.precio_base);
-  const isOnline = isFlagTrue(producto?.venta_online);
   const isVisible = isFlagTrue(producto?.visible_web);
+  const isOnline = isFlagTrue(producto?.venta_online);
+
+  const price = asNumber(producto?.precio_base);
+  const showPrice = isOnline && price !== null;
 
   if (!isVisible) return null;
 
-  const canBuy = isOnline && price !== null;
-  const showPrice = isOnline && price !== null;
-
-  const descripcion =
-    producto?.descripcion_larga ||
-    producto?.descripcion_corta ||
-    producto?.descripcion ||
-    "";
+  const goDetail = () => {
+    navigate(`/producto/${encodeURIComponent(id)}`, { state: { from } });
+  };
 
   return (
-    <div className="card-flip-container h-100">
-      <div className={`card card-flip ${flipped ? "flipped" : ""} shadow`}>
-        {/* Cara frontal */}
-        <div className="card-face card-front">
-          <img
-            ref={imgRef}
-            src={imageUrl}
-            className="card-img-top"
-            alt={nombre}
-            loading="lazy"
-            onError={(e) => {
-              e.currentTarget.src = PLACEHOLDER;
-            }}
-            style={{ objectFit: "cover", aspectRatio: "3 / 4" }}
-          />
-          <div className="card-body text-center d-flex flex-column justify-content-center align-items-center">
-            <h5 className="card-title">{nombre}</h5>
+    <div
+      className="bdc-grid-card h-100"
+      role="link"
+      tabIndex={0}
+      onClick={goDetail}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") goDetail();
+      }}
+      style={{ cursor: "pointer" }}
+      aria-label={`Abrir detalle de ${nombre}`}
+    >
+      <div className="bdc-grid-imgWrap">
+        <img
+          src={imageUrl}
+          className="bdc-grid-img"
+          alt={nombre}
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.src = PLACEHOLDER;
+          }}
+        />
+      </div>
 
-            {showPrice && <p className="card-text mb-0">€{price.toFixed(2)}</p>}
+      <div className="p-3 text-center">
+        <div className="fw-semibold">{nombre}</div>
 
-            {!isOnline && (
-              <p className="card-text mb-0 text-muted small">
-                Solo disponible en tienda física.
-              </p>
-            )}
-
-            <button
-              type="button"
-              className="btn btn-outline-dark mt-4 mb-3"
-              aria-label={`Ver detalles de ${nombre}`}
-              onClick={() => setFlipped(true)}
-            >
-              Ver detalles
-            </button>
-          </div>
-        </div>
-
-        {/* Cara trasera */}
-        <div className="card-face card-back">
-          <div className="card-body text-center d-flex flex-column justify-content-between align-items-center">
-            <h5 className="card-title">{nombre}</h5>
-            {!!descripcion && <p className="card-text mb-3">{descripcion}</p>}
-
-            {showPrice ? (
-              <p className="fw-bold">Precio: €{price.toFixed(2)}</p>
-            ) : isOnline ? (
-              <p className="text-muted mb-2">Consultar precio y disponibilidad.</p>
-            ) : (
-              <p className="text-muted mb-2">
-                Solo disponible en tienda física. Solicita cita para probártelo.
-              </p>
-            )}
-
-            {canBuy ? (
-              <button
-                type="button"
-                className="btn btn-success mb-2 w-100"
-                onClick={() => {
-                  addToCart({ producto_id: producto.id });
-                  flyToCartFromEl(imgRef.current); // ✅ fly
-                }}
-              >
-                Añadir al carrito
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-primary mb-2 w-100"
-                onClick={onSolicitarInfo}
-              >
-                Solicitar información / cita
-              </button>
-            )}
-
-            <Link
-              to={`/producto/${encodeURIComponent(id)}`}
-              state={{ from }}
-              className="btn btn-dark mb-2 w-100"
-            >
-              Ver más
-            </Link>
-
-            <button
-              type="button"
-              className="btn btn-secondary mt-2"
-              onClick={() => setFlipped(false)}
-            >
-              Volver
-            </button>
-          </div>
-        </div>
+        {isOnline ? (
+          showPrice ? (
+            <div className="text-muted small">€{price.toFixed(2)}</div>
+          ) : (
+            <div className="text-muted small">Disponible online</div>
+          )
+        ) : (
+          <div className="text-muted small">Solo disponible en tienda física.</div>
+        )}
       </div>
     </div>
   );
 }
 
-// ---------- Página de Novias ----------
+// ---------- Página ----------
 export default function Novias() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
-
-  const [showModal, setShowModal] = useState(false);
-  const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
   const [searchParams] = useSearchParams();
   const corteSlug = searchParams.get("corte");
@@ -193,11 +125,7 @@ export default function Novias() {
 
     api
       .get("/productos", {
-        params: {
-          categoria: "novias",
-          page: 1,
-          limit: 100,
-        },
+        params: { categoria: "novias", page: 1, limit: 100 },
       })
       .then((response) => {
         const payload = response.data;
@@ -249,25 +177,12 @@ export default function Novias() {
           ) : (
             productos.map((p) => (
               <div className="col-12 col-sm-6 col-md-4" key={getId(p)}>
-                <NoviaCard
-                  producto={p}
-                  onSolicitarInfo={() => {
-                    setProductoSeleccionado(p);
-                    setShowModal(true);
-                  }}
-                />
+                <NoviaCard producto={p} />
               </div>
             ))
           )}
         </div>
       </div>
-
-      {/* ✅ Modal reutilizado */}
-      <CitaModal
-        open={showModal}
-        producto={productoSeleccionado}
-        onClose={() => setShowModal(false)}
-      />
     </section>
   );
 }

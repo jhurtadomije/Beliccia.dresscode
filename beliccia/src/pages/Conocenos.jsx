@@ -14,8 +14,9 @@ const CTA_PRODUCTO = {
 
 const IMAGES_CONOCENOS = [
   "imagenes/img/conocenos/logoLuz.png",
-  "imagenes/img/conocenos/entrada.jpg",
-  "imagenes/img/conocenos/pasilloNovias.jpg",
+  "imagenes/img/conocenos/entrada_.jpg",
+  "imagenes/img/conocenos/pasilloNovias3.jpg",
+  "imagenes/img/conocenos/vestidosNovias.jpg",
   "imagenes/img/conocenos/pasilloMadrinas.jpg",
   "imagenes/img/conocenos/zonaInvitadas.jpg",
   "imagenes/img/conocenos/zonaComplementos.jpg",
@@ -48,9 +49,7 @@ export default function Conocenos() {
           <div className="row g-4 justify-content-center">
             <div className="col-12 col-md-6 col-lg-4">
               <div className="p-4 bg-white rounded-4 shadow-sm h-100 text-center">
-                <div className="mb-3" style={{ fontSize: 28 }}>
-                  ✨
-                </div>
+                <div className="mb-3" style={{ fontSize: 28 }}></div>
                 <h3 className="h5">Personalización real</h3>
                 <p className="text-muted mb-0" style={{ lineHeight: 1.7 }}>
                   Ajustamos y adaptamos para que el vestido hable de ti y encaje
@@ -61,9 +60,7 @@ export default function Conocenos() {
 
             <div className="col-12 col-md-6 col-lg-4">
               <div className="p-4 bg-white rounded-4 shadow-sm h-100 text-center">
-                <div className="mb-3" style={{ fontSize: 28 }}>
-                  🤍
-                </div>
+                <div className="mb-3" style={{ fontSize: 28 }}></div>
                 <h3 className="h5">Asesoramiento cercano</h3>
                 <p className="text-muted mb-0" style={{ lineHeight: 1.7 }}>
                   Te guiamos con calma y criterio para acertar con estilo,
@@ -74,9 +71,7 @@ export default function Conocenos() {
 
             <div className="col-12 col-md-6 col-lg-4">
               <div className="p-4 bg-white rounded-4 shadow-sm h-100 text-center">
-                <div className="mb-3" style={{ fontSize: 28 }}>
-                  🧵
-                </div>
+                <div className="mb-3" style={{ fontSize: 28 }}></div>
                 <h3 className="h5">Selección exclusiva</h3>
                 <p className="text-muted mb-0" style={{ lineHeight: 1.7 }}>
                   Diseños para novia, madrina e invitada, con una selección
@@ -217,11 +212,33 @@ export default function Conocenos() {
           <div className="my-4" />
 
           <ZigZagBlock
-          side="left"
+            side="left"
+            eyebrow="Novias"
+            title="Los detalles marcan la diferencia"
+            text="Cada tejido, cada caída y cada acabado importan.
+              Cuidamos los detalles para que el vestido no solo se vea bonito,
+              sino que se sienta perfecto cuando lo llevas puesto."
+            img={IMAGES_CONOCENOS[3]} // vestidosNovias
+            imgStyle={{
+              objectPosition: "center 50%",
+              transform: "scale(1)",
+              transformOrigin: "center",
+              filter: "brightness(1.2) contrast(1.04) saturate(1.03)",
+            }}
+            overlayStyle={{
+              background:
+                "linear-gradient(180deg, rgba(0,0,0,.01), rgba(0,0,0,.05))", // ✅ menos oscuro solo aquí
+            }}
+          />
+
+          <div className="my-4" />
+
+          <ZigZagBlock
+            side="left"
             eyebrow="Madrinas"
             title="Elegancia con asesoramiento real"
             text="Buscamos un look favorecedor y elegante, cuidando proporciones, tejidos y estilo. Te ayudamos a acertar con seguridad."
-            img={IMAGES_CONOCENOS[3]} // pasilloMadrinas
+            img={IMAGES_CONOCENOS[4]} // pasilloMadrinas
           />
 
           <div className="my-4" />
@@ -231,7 +248,7 @@ export default function Conocenos() {
             eyebrow="Invitadas"
             title="Estilo, tendencia y comodidad"
             text="Seleccionamos diseños que sientan bien y te hacen sentir tú. Te asesoramos para que vayas ideal y cómoda en tu evento."
-            img={IMAGES_CONOCENOS[4]} // zonaInvitadas
+            img={IMAGES_CONOCENOS[5]} // zonaInvitadas
           />
 
           <div className="my-4" />
@@ -240,7 +257,7 @@ export default function Conocenos() {
             eyebrow="Complementos"
             title="El toque final perfecto"
             text="Bolsos, tocados y detalles que elevan el conjunto. Aquí encontramos ese complemento que remata el look y lo hace redondo."
-            img={IMAGES_CONOCENOS[5]} // zonaComplementos
+            img={IMAGES_CONOCENOS[6]} // zonaComplementos
           />
         </section>
 

@@ -30,8 +30,8 @@ export default function AdminProductoEditar() {
   const [colecciones, setColecciones] = useState([]);
 
   const [form, setForm] = useState(initialState);
-  const [previewImage, setPreviewImage] = useState(null);     // portada actual
-  const [imagenes, setImagenes] = useState([]);               // nuevas imágenes (File[])
+  const [previewImage, setPreviewImage] = useState(null); // portada actual
+  const [imagenes, setImagenes] = useState([]); // nuevas imágenes (File[])
 
   const [loadingCombos, setLoadingCombos] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -60,6 +60,12 @@ export default function AdminProductoEditar() {
         setColecciones(colRes.data || []);
 
         const p = prodRes.data;
+        const catId =
+          (catRes.data || []).find((c) => c.nombre === p.categoria)?.id ?? "";
+        const marcaId =
+          (marRes.data || []).find((m) => m.nombre === p.marca)?.id ?? "";
+        const colId =
+          (colRes.data || []).find((c) => c.nombre === p.coleccion)?.id ?? "";
 
         setForm((prev) => ({
           ...prev,
@@ -67,9 +73,9 @@ export default function AdminProductoEditar() {
           nombre: p.nombre || "",
           slug: p.slug || "",
           codigo_interno: p.codigo_interno || "",
-          categoria_id: p.categoria_id || "",
-          marca_id: p.marca_id || "",
-          coleccion_id: p.coleccion_id || "",
+          categoria_id: String(catId || ""),
+          marca_id: String(marcaId || ""),
+          coleccion_id: String(colId || ""),
           descripcion_corta: p.descripcion_corta || "",
           descripcion_larga: p.descripcion_larga || "",
           precio_base:
@@ -84,8 +90,7 @@ export default function AdminProductoEditar() {
 
         // Imagen de portada actual
         const imagenes = p.imagenes || [];
-        const portada =
-          imagenes.find((img) => img.es_portada) || imagenes[0];
+        const portada = imagenes.find((img) => img.es_portada) || imagenes[0];
 
         if (portada && portada.url) {
           setPreviewImage(resolveImageUrl(portada.url));
@@ -171,8 +176,7 @@ export default function AdminProductoEditar() {
     } catch (err) {
       console.error(err);
       setError(
-        err.response?.data?.message ||
-          "Error al actualizar el producto."
+        err.response?.data?.message || "Error al actualizar el producto.",
       );
     } finally {
       setLoading(false);
@@ -254,8 +258,8 @@ export default function AdminProductoEditar() {
               />
               <small className="text-muted">
                 El slug identifica el producto en la URL
-                (&quot;/producto/&lt;slug&gt;&quot;). Procura no cambiarlo si
-                ya está en producción.
+                (&quot;/producto/&lt;slug&gt;&quot;). Procura no cambiarlo si ya
+                está en producción.
               </small>
             </div>
 
@@ -281,7 +285,7 @@ export default function AdminProductoEditar() {
               >
                 <option value="">-- Sin categoría --</option>
                 {categorias.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
+                  <option key={cat.id} value={String(cat.id)}>
                     {cat.nombre}
                   </option>
                 ))}
@@ -298,7 +302,7 @@ export default function AdminProductoEditar() {
               >
                 <option value="">-- Sin marca --</option>
                 {marcas.map((m) => (
-                  <option key={m.id} value={m.id}>
+                  <option key={m.id} value={String(m.id)}>
                     {m.nombre}
                   </option>
                 ))}
@@ -315,7 +319,7 @@ export default function AdminProductoEditar() {
               >
                 <option value="">-- Sin colección --</option>
                 {colecciones.map((c) => (
-                  <option key={c.id} value={c.id}>
+                  <option key={c.id} value={String(c.id)}>
                     {c.nombre}
                     {c.activa === 0 ? " (no activa)" : ""}
                   </option>
@@ -396,7 +400,8 @@ export default function AdminProductoEditar() {
             <div className="col-12">
               <label className="form-label">
                 Tag de origen (ej: &quot;corte-recto&quot;, &quot;bolsos&quot;,
-                &quot;tocados&quot;, &quot;madrinas&quot;, &quot;invitadas&quot;)
+                &quot;tocados&quot;, &quot;madrinas&quot;,
+                &quot;invitadas&quot;)
               </label>
               <input
                 type="text"
@@ -424,8 +429,8 @@ export default function AdminProductoEditar() {
               />
               <small className="text-muted">
                 Si subes nuevas imágenes, se guardarán dentro de esa carpeta en{" "}
-                <code>/uploads</code>. Si la dejas vacía, se usarán
-                directamente <code>/uploads</code>.
+                <code>/uploads</code>. Si la dejas vacía, se usarán directamente{" "}
+                <code>/uploads</code>.
               </small>
             </div>
 

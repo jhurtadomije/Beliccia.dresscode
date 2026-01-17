@@ -119,13 +119,15 @@
   width: 100%;
   height: 100%;
   display: block;
+  object-fit: cover;
+  object-position: center 55%;
 }
 
 /* Overlay solo sobre la imagen */
 .jr-zz-overlay{
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.30));
+  background: linear-gradient(180deg, rgba(0,0,0,.03), rgba(0,0,0,.14));
 }
 
 /* Card: por defecto (movil/tablet) */

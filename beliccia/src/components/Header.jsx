@@ -242,7 +242,7 @@ export default function Header() {
     return () => document.removeEventListener("keydown", onKey);
   }, [resetHeaderState]);
 
-  //efecto fly añadir al carrito
+  // efecto fly añadir al carrito
   useEffect(() => {
     const fly = (detail) => {
       const cartEl = cartIconRef.current;
@@ -360,7 +360,11 @@ export default function Header() {
                   onClick={resetHeaderState}
                   aria-label="Inicio"
                 >
-                  <i className="fas fa-home" aria-hidden="true" style={{ fontSize: "1.05rem" }} />
+                  <i
+                    className="fas fa-home"
+                    aria-hidden="true"
+                    style={{ fontSize: "1.05rem" }}
+                  />
                 </Link>
               </li>
 
@@ -427,49 +431,26 @@ export default function Header() {
                     >
                       Fiesta
                     </button>
+
+                    {/* ✅ Simplificado: sin "Ver todo" ni sub-submenús */}
                     <ul className="dropdown-menu">
-                      <li className="dropdown-submenu dropend">
-                        <button
-                          type="button"
-                          className="dropdown-item dropdown-toggle"
-                          aria-expanded="false"
-                          onClick={toggleDropdown}
+                      <li>
+                        <NavLink
+                          className="dropdown-item"
+                          to="/madrinas"
+                          onClick={resetHeaderState}
                         >
                           Madrinas
-                        </button>
-                        <ul className="dropdown-menu">
-                          <li>
-                            <NavLink
-                              className="dropdown-item"
-                              to="/madrinas"
-                              onClick={resetHeaderState}
-                            >
-                              Ver todo
-                            </NavLink>
-                          </li>
-                        </ul>
+                        </NavLink>
                       </li>
-
-                      <li className="dropdown-submenu dropend">
-                        <button
-                          type="button"
-                          className="dropdown-item dropdown-toggle"
-                          aria-expanded="false"
-                          onClick={toggleDropdown}
+                      <li>
+                        <NavLink
+                          className="dropdown-item"
+                          to="/invitadas"
+                          onClick={resetHeaderState}
                         >
                           Invitadas
-                        </button>
-                        <ul className="dropdown-menu">
-                          <li>
-                            <NavLink
-                              className="dropdown-item"
-                              to="/invitadas"
-                              onClick={resetHeaderState}
-                            >
-                              Ver todo
-                            </NavLink>
-                          </li>
-                        </ul>
+                        </NavLink>
                       </li>
                     </ul>
                   </li>

@@ -1,28 +1,19 @@
 // src/pages/Accesorios.jsx
-import { useEffect, useState, useCallback, useRef } from "react";
-import { useLocation, Link } from "react-router-dom";
-import { useCart } from "../context/CartContext";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { resolveImageUrl } from "../services/imageUrl";
-import CitaModal from "../components/CitaModal";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { flyToCartFromEl } from "../utils/cartFly";
 
 const PLACEHOLDER = "/placeholder.png";
-
-// ---------- helpers comunes ----------
-const getId = (p) => p?.slug ?? p?.id ?? p?.nombre;
-
-const money = (n) =>
-  new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: "EUR",
-  }).format(Number(n || 0));
 
 const asNumber = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 };
+
+// ---------- helpers comunes ----------
+const getId = (p) => p?.slug ?? p?.id ?? p?.nombre;
 
 // Normaliza flags tinyint(1) / string / boolean
 const isFlagTrue = (v) => v === 1 || v === "1" || v === true;
@@ -48,132 +39,93 @@ const norm = (s) =>
 function getAccesorioGroup(producto) {
   const texto = norm(`${producto?.nombre || ""} ${producto?.tags_origen || ""}`);
 
-  if (/\b(bolso|bolsos|clutch|bombonera|cartera|bandolera|bolsa|bolsas)\b/.test(texto))
+  if (
+    /\b(bolso|bolsos|clutch|bombonera|cartera|bandolera|bolsa|bolsas)\b/.test(
+      texto
+    )
+  )
     return "bolsos";
 
-  if (/\b(tocado|tocados|diadema|diademas|pamela|canotier|corona|tiara|peineta)\b/.test(texto))
+  if (
+    /\b(tocado|tocados|diadema|diademas|pamela|canotier|corona|tiara|peineta)\b/.test(
+      texto
+    )
+  )
     return "tocados";
 
   return "otros";
 }
 
-// ---------- Card ----------
-function AccesorioCard({ producto, onSolicitarInfo }) {
-  const [flipped, setFlipped] = useState(false);
-  const { addToCart } = useCart();
+// ---------- Card (SIN FLIP, estilo “relacionados”) ----------
+function AccesorioCard({ producto }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const from = location.pathname + location.search;
-
-  const imgRef = useRef(null); // ✅ para el fly
 
   const id = getId(producto);
   const nombre = producto?.nombre || "Accesorio";
 
-  const firstImage =
-    producto?.imagen_portada ||
-    producto?.imagen ||
-    (Array.isArray(producto?.imagenes) && producto.imagenes[0]) ||
-    "";
+  const firstImage = useMemo(() => {
+    return (
+      producto?.imagen_portada ||
+      producto?.imagen ||
+      (Array.isArray(producto?.imagenes) && producto.imagenes[0]) ||
+      ""
+    );
+  }, [producto]);
 
   const imageUrl = resolveImageUrl(firstImage) || PLACEHOLDER;
 
-  const price = asNumber(producto?.precio_base);
   const isOnline = isFlagTrue(producto?.venta_online);
   const isVisible = isFlagTrue(producto?.visible_web);
 
-  if (!isVisible) return null;
-
-  const canBuy = isOnline && price !== null;
+  // ✅ precio
+  const price = asNumber(producto?.precio_base);
   const showPrice = isOnline && price !== null;
 
-  const descripcion =
-    producto?.descripcion_larga ||
-    producto?.descripcion_corta ||
-    producto?.descripcion ||
-    "";
+  if (!isVisible) return null;
+
+  const goDetail = () => {
+    navigate(`/producto/${encodeURIComponent(id)}`, { state: { from } });
+  };
 
   return (
-    <div className="card-flip-container h-100">
-      <div className={`card card-flip ${flipped ? "flipped" : ""} shadow`}>
-        {/* Front */}
-        <div className="card-face card-front">
-          <img
-            ref={imgRef}
-            src={imageUrl}
-            className="card-img-top"
-            alt={nombre}
-            loading="lazy"
-            onError={(e) => (e.currentTarget.src = PLACEHOLDER)}
-            style={{ objectFit: "contain", aspectRatio: "3 / 4" }}
-          />
-          <div className="card-body text-center">
-            <h5 className="card-title">{nombre}</h5>
-            {showPrice && <p>{money(price)}</p>}
-            {!isOnline && (
-              <p className="text-muted small">
-                Solo disponible en tienda física.
-              </p>
-            )}
-            <button
-              type="button"
-              className="btn btn-outline-dark mt-3"
-              onClick={() => setFlipped(true)}
-            >
-              Ver detalles
-            </button>
+    <div
+      className="bdc-grid-card h-100"
+      role="link"
+      tabIndex={0}
+      onClick={goDetail}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") goDetail();
+      }}
+      style={{ cursor: "pointer" }}
+      aria-label={`Abrir detalle de ${nombre}`}
+    >
+      {/* ✅ Imagen “a lo relacionados”: wrap + cover */}
+      <div className="bdc-grid-imgWrap">
+        <img
+          src={imageUrl}
+          className="bdc-grid-img"
+          alt={nombre}
+          loading="lazy"
+          onError={(e) => (e.currentTarget.src = PLACEHOLDER)}
+        />
+      </div>
+
+      <div className="p-3 text-center">
+        <div className="fw-semibold">{nombre}</div>
+
+        {isOnline ? (
+          showPrice ? (
+            <div className="text-muted small">€{price.toFixed(2)}</div>
+          ) : (
+            <div className="text-muted small">Disponible online</div>
+          )
+        ) : (
+          <div className="text-muted small">
+            Solo disponible en tienda física.
           </div>
-        </div>
-
-        {/* Back */}
-        <div className="card-face card-back">
-          <div className="card-body text-center d-flex flex-column justify-content-between">
-            <h5>{nombre}</h5>
-            {!!descripcion && <p>{descripcion}</p>}
-
-            {showPrice ? (
-              <p className="fw-bold">{money(price)}</p>
-            ) : (
-              <p className="text-muted">Consultar precio y disponibilidad.</p>
-            )}
-
-            {canBuy ? (
-              <button
-                type="button"
-                className="btn btn-success w-100 mb-2"
-                onClick={() => {
-                  addToCart({ producto_id: producto.id });
-                  flyToCartFromEl(imgRef.current); // ✅ fly
-                }}
-              >
-                Añadir al carrito
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-primary w-100 mb-2"
-                onClick={() => onSolicitarInfo(producto)}
-              >
-                Solicitar información
-              </button>
-            )}
-
-            <Link
-              to={`/producto/${encodeURIComponent(id)}`}
-              state={{ from }}
-              className="btn btn-dark w-100 mb-2"
-            >
-              Ver más
-            </Link>
-
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setFlipped(false)}
-            >
-              Volver
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -184,9 +136,6 @@ export default function Accesorios() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
-
-  const [showModal, setShowModal] = useState(false);
-  const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
   const location = useLocation();
   const segmento = location.pathname.split("/")[1] || "";
@@ -218,11 +167,6 @@ export default function Accesorios() {
     description: seoDescription,
   });
 
-  const abrirModal = useCallback((p) => {
-    setProductoSeleccionado(p);
-    setShowModal(true);
-  }, []);
-
   useEffect(() => {
     let alive = true;
     setCargando(true);
@@ -237,14 +181,17 @@ export default function Accesorios() {
           .filter((p) => isFlagTrue(p.visible_web))
           .map((p) => ({ ...p, _grupo: getAccesorioGroup(p) }));
 
-        if (filtroCat) accesorios = accesorios.filter((p) => p._grupo === filtroCat);
+        if (filtroCat)
+          accesorios = accesorios.filter((p) => p._grupo === filtroCat);
 
         if (alive) setProductos(accesorios);
       })
       .catch(() => alive && setError("No se pudieron cargar los accesorios."))
       .finally(() => alive && setCargando(false));
 
-    return () => (alive = false);
+    return () => {
+      alive = false;
+    };
   }, [filtroCat]);
 
   if (cargando)
@@ -269,18 +216,11 @@ export default function Accesorios() {
         <div className="row g-4">
           {productos.map((p) => (
             <div className="col-12 col-sm-6 col-md-4" key={getId(p)}>
-              <AccesorioCard producto={p} onSolicitarInfo={abrirModal} />
+              <AccesorioCard producto={p} />
             </div>
           ))}
         </div>
       </div>
-
-      {/* Modal reutilizado */}
-      <CitaModal
-        open={showModal}
-        producto={productoSeleccionado}
-        onClose={() => setShowModal(false)}
-      />
     </section>
   );
 }
